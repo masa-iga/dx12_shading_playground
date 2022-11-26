@@ -1,8 +1,6 @@
-#include <cstdio>
-#include <cstdint>
+#include <windows.h>
 
-int32_t main(int32_t argc, char* argv[])
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-	printf("Hello world\n");
 	return 0;
 }
