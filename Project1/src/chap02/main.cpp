@@ -7,5 +7,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 	WinMgr::main();
 
+	WinMgr::teardown();
+
 	return 0;
 }

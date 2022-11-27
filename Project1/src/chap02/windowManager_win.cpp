@@ -6,6 +6,7 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 static HRESULT handleKeyDown(WPARAM wParam, LPARAM lParam);
 
 static bool s_messageLoop = true;
+static HWND s_hwnd = 0;
 
 namespace WinMgr {
 	HRESULT setup(HINSTANCE hInstance, int nCmdShow)
@@ -23,7 +24,7 @@ namespace WinMgr {
 
 		// create the window
 
-		HWND hwnd = CreateWindowEx(
+		s_hwnd = CreateWindowEx(
 			0,
 			kClassName,
 			kWindowName,
@@ -35,14 +36,14 @@ namespace WinMgr {
 			NULL
 		);
 
-		if (hwnd == NULL)
+		if (s_hwnd == NULL)
 		{
 			Dbg::printLastError();
-			Dbg::assert(hwnd != NULL);
+			Dbg::assert(s_hwnd != NULL);
 			return S_FALSE;
 		}
 
-		ShowWindow(hwnd, nCmdShow);
+		ShowWindow(s_hwnd, nCmdShow);
 
 		return S_OK;
 	}
@@ -59,6 +60,19 @@ namespace WinMgr {
 
 			if (!s_messageLoop)
 				break;
+		}
+
+		return S_OK;
+	}
+
+	HRESULT teardown()
+	{
+		BOOL ret = DestroyWindow(s_hwnd);
+
+		if (ret == false)
+		{
+			Dbg::printLastError();
+			Dbg::assert(ret);
 		}
 
 		return S_OK;
