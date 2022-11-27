@@ -3,7 +3,9 @@
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-	WinMgr::main(hInstance, nCmdShow);
+	WinMgr::setup(hInstance, nCmdShow);
+
+	WinMgr::main();
 
 	return 0;
 }

@@ -2,5 +2,6 @@
 #include <windows.h>
 
 namespace WinMgr {
-	HRESULT main(HINSTANCE hInstance, int nCmdShow);
+	HRESULT setup(HINSTANCE hInstance, int nCmdShow);
+	HRESULT main();
 }
