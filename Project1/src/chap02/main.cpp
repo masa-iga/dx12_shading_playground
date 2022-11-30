@@ -5,7 +5,7 @@
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
 	WinMgr::setup(hInstance, nCmdShow);
-	DeviceD3D12::setup();
+	DeviceD3D12::setup(WinMgr::getHwnd());
 
 	WinMgr::main();
 

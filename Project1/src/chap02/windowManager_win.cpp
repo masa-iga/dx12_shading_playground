@@ -77,6 +77,11 @@ namespace WinMgr {
 
 		return S_OK;
 	}
+
+	HWND getHwnd()
+	{
+		return s_hwnd;
+	}
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
