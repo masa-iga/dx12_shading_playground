@@ -7,7 +7,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 {
 	WinMgr::setup(hInstance, nCmdShow);
 	DeviceD3D12::setup(WinMgr::getHwnd());
-	SwapChain::createSwapChain(DeviceD3D12::getFactory(), DeviceD3D12::getCommandQueue(), WinMgr::getHwnd());
+	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), DeviceD3D12::getCommandQueue(), WinMgr::getHwnd());
 
 	WinMgr::main();
 

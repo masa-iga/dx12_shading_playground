@@ -4,5 +4,5 @@
 #include <windows.h>
 
 namespace SwapChain {
-	void createSwapChain(IDXGIFactory4* factory, ID3D12CommandQueue* commandQueue, HWND hwnd);
+	void setup(ID3D12Device* device, IDXGIFactory4* factory, ID3D12CommandQueue* commandQueue, HWND hwnd);
 }
