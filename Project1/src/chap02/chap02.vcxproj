@@ -85,14 +85,24 @@
     <ClCompile Include="debug_win.cpp" />
     <ClCompile Include="device_d3d12.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="render_d3d12.cpp" />
     <ClCompile Include="swapchain_d3d12.cpp" />
     <ClCompile Include="winmgr_win.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_win.h" />
     <ClInclude Include="device_d3d12.h" />
+    <ClInclude Include="render_d3d12.h" />
     <ClInclude Include="swapchain_d3d12.h" />
     <ClInclude Include="winmgr_win.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="VertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.3</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.3</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
