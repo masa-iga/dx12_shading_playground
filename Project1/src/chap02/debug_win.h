@@ -2,10 +2,12 @@
 #include <windows.h>
 #include <exception>
 #include <cstdio>
+#include <D3Dcommon.h>
 
 namespace Dbg {
 	inline void assert(bool b);
 	void print(const char* format, ...);
+	void printBlob(ID3DBlob* errorBlob);
 	void printLastError();
 
 	// Helper class for COM exceptions

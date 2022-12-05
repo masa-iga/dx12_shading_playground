@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <crtdbg.h>
 #include <windows.h>
+#include <string>
 
 namespace Dbg {
 	void assert(bool b)
@@ -18,6 +19,19 @@ namespace Dbg {
 		Dbg::assert(ret >= 0);
 		OutputDebugStringA(tmp);
 		va_end(valist);
+	}
+
+	void printBlob(ID3DBlob* errorBlob)
+	{
+		if (errorBlob == nullptr)
+			return;
+
+		std::string errStr;
+		errStr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n(static_cast<char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize(), errStr.begin());
+
+		print("%s\n", errStr.c_str());
 	}
 
 	void printLastError()
