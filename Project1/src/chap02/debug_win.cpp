@@ -5,7 +5,7 @@
 #include <string>
 
 namespace Dbg {
-	void assert(bool b)
+	void assert_(bool b)
 	{
 		_ASSERT(b);
 	}
@@ -16,7 +16,7 @@ namespace Dbg {
 		va_start(valist, format);
 		char tmp[256];
 		auto ret = vsprintf_s(tmp, format, valist);
-		Dbg::assert(ret >= 0);
+		Dbg::assert_(ret >= 0);
 		OutputDebugStringA(tmp);
 		va_end(valist);
 	}
@@ -51,7 +51,7 @@ namespace Dbg {
 
 		if (ret == 0)
 		{
-			Dbg::assert(ret != 0);
+			Dbg::assert_(ret != 0);
 			return;
 		}
 

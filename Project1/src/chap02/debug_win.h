@@ -5,7 +5,7 @@
 #include <D3Dcommon.h>
 
 namespace Dbg {
-	inline void assert(bool b);
+	inline void assert_(bool b);
 	void print(const char* format, ...);
 	void printBlob(ID3DBlob* errorBlob);
 	void printLastError();

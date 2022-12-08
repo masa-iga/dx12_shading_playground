@@ -10,7 +10,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	DeviceD3D12::setup(WinMgr::getHwnd());
 	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), DeviceD3D12::getCommandQueue(), WinMgr::getHwnd());
 	Render::setup(DeviceD3D12::getDevice());
-	Render::loadAsserts(DeviceD3D12::getDevice());
+	Render::loadAssets(DeviceD3D12::getDevice());
 
 	WinMgr::main();
 

@@ -55,8 +55,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="VertexShader.hlsl">
+    <None Include="simple.hlsl">
       <Filter>Shader files</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

@@ -39,7 +39,7 @@ namespace WinMgr {
 		if (s_hwnd == NULL)
 		{
 			Dbg::printLastError();
-			Dbg::assert(s_hwnd != NULL);
+			Dbg::assert_(s_hwnd != NULL);
 			return S_FALSE;
 		}
 
@@ -72,7 +72,7 @@ namespace WinMgr {
 		if (ret == false)
 		{
 			Dbg::printLastError();
-			Dbg::assert(ret);
+			Dbg::assert_(ret);
 		}
 
 		return S_OK;

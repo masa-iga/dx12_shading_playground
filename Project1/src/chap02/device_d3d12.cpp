@@ -52,7 +52,7 @@ HRESULT enableDebugLayer()
 	ComPtr<ID3D12Debug> debugController = nullptr;
 
 	auto hr = D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
-	Dbg::assert(SUCCEEDED(hr));
+	Dbg::assert_(SUCCEEDED(hr));
 
 	if (FAILED(hr))
 		return E_FAIL;
