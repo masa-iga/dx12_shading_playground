@@ -11,12 +11,10 @@ constexpr static D3D_FEATURE_LEVEL kD3dFeatureLevel = D3D_FEATURE_LEVEL_12_2;
 
 [[maybe_unused]] static HRESULT enableDebugLayer();
 static void createDevice();
-static void createCommandQueue();
 static void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter** ppAdapter);
 
 static ComPtr<IDXGIFactory4> s_factory = nullptr;
 static ComPtr<ID3D12Device> s_device = nullptr;
-static ComPtr<ID3D12CommandQueue> s_commandQueue = nullptr;
 
 namespace DeviceD3D12 {
 	HRESULT setup(HWND hwnd)
@@ -26,7 +24,6 @@ namespace DeviceD3D12 {
 #endif // _DEBUG
 
 		createDevice();
-		createCommandQueue();
 
 		return S_OK;
 	}
@@ -39,11 +36,6 @@ namespace DeviceD3D12 {
 	ID3D12Device* getDevice()
 	{
 		return s_device.Get();
-	}
-
-	ID3D12CommandQueue* getCommandQueue()
-	{
-		return s_commandQueue.Get();
 	}
 }
 
@@ -74,18 +66,6 @@ void createDevice()
 		kD3dFeatureLevel,
 		IID_PPV_ARGS(&s_device)
 	));
-}
-
-void createCommandQueue()
-{
-	const D3D12_COMMAND_QUEUE_DESC queueDesc = {
-	.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-	.Priority = D3D12_COMMAND_QUEUE_PRIORITY::D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
-	.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
-	.NodeMask = 0,
-	};
-
-	Dbg::ThrowIfFailed(s_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(s_commandQueue.ReleaseAndGetAddressOf())));
 }
 
 void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter** ppAdapter)

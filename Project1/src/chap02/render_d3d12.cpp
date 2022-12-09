@@ -18,6 +18,7 @@ static const LPCSTR kPsVersion = "ps_5_1";
 static const LPCSTR kVsEntryPoint = "vsmain";
 static const LPCSTR kPsEntryPoint = "psmain";
 
+static ComPtr<ID3D12CommandQueue> s_commandQueue = nullptr;
 static ComPtr<ID3D12CommandAllocator> s_commandAllocator = nullptr;
 static ComPtr<ID3D12RootSignature> s_rootSignature = nullptr;
 static ComPtr<ID3D12PipelineState> s_pipelineState = nullptr;
@@ -28,6 +29,7 @@ static UINT64 s_fenceValue = 0;
 static HANDLE s_fenceEvent = nullptr;
 
 static void createCommandList(ID3D12Device* device);
+static void createCommandQueue(ID3D12Device* device);
 static void createGraphicsPipelineState(ID3D12Device* device);
 static void createVertex(ID3D12Device* device);
 static void createFence(ID3D12Device* device);
@@ -37,6 +39,7 @@ namespace Render {
 	void setup(ID3D12Device* device)
 	{
 		device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(s_commandAllocator.ReleaseAndGetAddressOf()));
+		createCommandQueue(device);
 	}
 
 	void loadAssets(ID3D12Device* device)
@@ -47,6 +50,11 @@ namespace Render {
 		createFence(device);
 		waitForPreviousFrame();
 	}
+
+	ID3D12CommandQueue* getCommandQueue()
+	{
+		return s_commandQueue.Get();
+	}
 }
 
 void createCommandList(ID3D12Device* device)
@@ -55,6 +63,18 @@ void createCommandList(ID3D12Device* device)
 	Dbg::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, s_commandAllocator.Get(), s_pipelineState.Get(), IID_PPV_ARGS(s_commandList.ReleaseAndGetAddressOf())));
 
 	Dbg::ThrowIfFailed(s_commandList.Get()->Close());
+}
+
+void createCommandQueue(ID3D12Device* device)
+{
+	const D3D12_COMMAND_QUEUE_DESC queueDesc = {
+	.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+	.Priority = D3D12_COMMAND_QUEUE_PRIORITY::D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
+	.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+	.NodeMask = 0,
+	};
+
+	Dbg::ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(s_commandQueue.ReleaseAndGetAddressOf())));
 }
 
 void createGraphicsPipelineState(ID3D12Device* device)
@@ -216,3 +236,4 @@ void waitForPreviousFrame()
 
 	// TODO: impl
 }
+
