@@ -1,7 +1,6 @@
 #include "swapchain_d3d12.h"
 #include <d3d12sdklayers.h>
 #include <d3dx12.h>
-#include <dxgi1_4.h>
 #include <wrl/client.h>
 #include "debug_win.h"
 
@@ -12,7 +11,7 @@ constexpr static UINT kHeight = 2160;
 constexpr static DXGI_FORMAT kFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 constexpr static UINT kBufferCount = 2;
 
-static ComPtr<IDXGISwapChain> s_swapChain = nullptr;
+static ComPtr<IDXGISwapChain4> s_swapChain = nullptr;
 static ComPtr<ID3D12DescriptorHeap> s_rtvHeap = nullptr;
 static UINT s_rtvDescriptorSize = 0;
 
@@ -26,6 +25,11 @@ namespace SwapChain {
 		createSwapChain(factory, commandQueue, hwnd);
 		createDescHeap(device);
 		createResource(device);
+	}
+
+	IDXGISwapChain4* getSwapChain()
+	{
+		return s_swapChain.Get();
 	}
 }
 
@@ -58,7 +62,7 @@ void createSwapChain(IDXGIFactory4* factory, ID3D12CommandQueue* commandQueue, H
 	Dbg::ThrowIfFailed(factory->CreateSwapChain(
 		commandQueue,
 		&swapChainDesc,
-		s_swapChain.GetAddressOf()
+		reinterpret_cast<IDXGISwapChain**>(s_swapChain.GetAddressOf())
 	));
 }
 

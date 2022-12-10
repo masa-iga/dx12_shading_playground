@@ -5,6 +5,7 @@
 #include <DirectXMath.h>
 #include <wrl/client.h>
 #include "debug_win.h"
+#include "swapchain_d3d12.h"
 
 #pragma comment(lib, "D3DCompiler.lib")
 
@@ -27,9 +28,11 @@ static D3D12_VERTEX_BUFFER_VIEW s_vbView = { };
 static ComPtr<ID3D12Fence> s_fence = nullptr;
 static UINT64 s_fenceValue = 0;
 static HANDLE s_fenceEvent = nullptr;
+static UINT s_frameIndex = 0;
 
-static void createCommandList(ID3D12Device* device);
+static void createCommandAllocator(ID3D12Device* device);
 static void createCommandQueue(ID3D12Device* device);
+static void createCommandList(ID3D12Device* device);
 static void createGraphicsPipelineState(ID3D12Device* device);
 static void createVertex(ID3D12Device* device);
 static void createFence(ID3D12Device* device);
@@ -38,17 +41,28 @@ static void waitForPreviousFrame();
 namespace Render {
 	void setup(ID3D12Device* device)
 	{
-		device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(s_commandAllocator.ReleaseAndGetAddressOf()));
+		createCommandAllocator(device);
 		createCommandQueue(device);
 	}
 
 	void loadAssets(ID3D12Device* device)
 	{
+		s_frameIndex = SwapChain::getSwapChain()->GetCurrentBackBufferIndex();
 		createGraphicsPipelineState(device);
 		createCommandList(device);
 		createVertex(device);
 		createFence(device);
 		waitForPreviousFrame();
+	}
+
+	void onUpdate()
+	{
+		;
+	}
+
+	void onRender()
+	{
+		;
 	}
 
 	ID3D12CommandQueue* getCommandQueue()
@@ -63,6 +77,11 @@ void createCommandList(ID3D12Device* device)
 	Dbg::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, s_commandAllocator.Get(), s_pipelineState.Get(), IID_PPV_ARGS(s_commandList.ReleaseAndGetAddressOf())));
 
 	Dbg::ThrowIfFailed(s_commandList.Get()->Close());
+}
+
+void createCommandAllocator(ID3D12Device* device)
+{
+	Dbg::ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(s_commandAllocator.ReleaseAndGetAddressOf())));
 }
 
 void createCommandQueue(ID3D12Device* device)
@@ -233,7 +252,15 @@ void createFence(ID3D12Device* device)
 void waitForPreviousFrame()
 {
 	const UINT64 fence = s_fenceValue;
+	Dbg::ThrowIfFailed(s_commandQueue->Signal(s_fence.Get(), fence));
+	s_fenceValue++;
 
-	// TODO: impl
+	if (s_fence->GetCompletedValue() < fence)
+	{
+		Dbg::ThrowIfFailed(s_fence->SetEventOnCompletion(fence, s_fenceEvent));
+		Dbg::assert_(WaitForSingleObject(s_fenceEvent, INFINITE) == WAIT_OBJECT_0);
+	}
+
+	s_frameIndex = SwapChain::getSwapChain()->GetCurrentBackBufferIndex();
 }
 
