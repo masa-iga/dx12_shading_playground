@@ -21,6 +21,7 @@ static const LPCSTR kPsEntryPoint = "psmain";
 
 static ComPtr<ID3D12CommandQueue> s_commandQueue = nullptr;
 static ComPtr<ID3D12CommandAllocator> s_commandAllocator = nullptr;
+static ComPtr<ID3D12GraphicsCommandList> s_commandList = nullptr;
 static ComPtr<ID3D12RootSignature> s_rootSignature = nullptr;
 static ComPtr<ID3D12PipelineState> s_pipelineState = nullptr;
 static ComPtr<ID3D12Resource> s_vertexBuffer = nullptr;
@@ -37,6 +38,7 @@ static void createGraphicsPipelineState(ID3D12Device* device);
 static void createVertex(ID3D12Device* device);
 static void createFence(ID3D12Device* device);
 static void waitForPreviousFrame();
+static void populateCommandList();
 
 namespace Render {
 	void setup(ID3D12Device* device)
@@ -62,7 +64,18 @@ namespace Render {
 
 	void onRender()
 	{
-		;
+		populateCommandList();
+
+		ID3D12CommandList* ppCommandLists[] = { s_commandList.Get() };
+		s_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+		{
+			const UINT syncInterval = 1;
+			const UINT flags = 0;
+			Dbg::ThrowIfFailed(SwapChain::getSwapChain()->Present(syncInterval, flags));
+
+			waitForPreviousFrame();
+		}
 	}
 
 	ID3D12CommandQueue* getCommandQueue()
@@ -73,7 +86,6 @@ namespace Render {
 
 void createCommandList(ID3D12Device* device)
 {
-	ComPtr<ID3D12GraphicsCommandList> s_commandList = nullptr;
 	Dbg::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, s_commandAllocator.Get(), s_pipelineState.Get(), IID_PPV_ARGS(s_commandList.ReleaseAndGetAddressOf())));
 
 	Dbg::ThrowIfFailed(s_commandList.Get()->Close());
@@ -262,5 +274,10 @@ void waitForPreviousFrame()
 	}
 
 	s_frameIndex = SwapChain::getSwapChain()->GetCurrentBackBufferIndex();
+}
+
+void populateCommandList()
+{
+	// TODO: imple
 }
 
