@@ -5,7 +5,7 @@
 static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 static HRESULT handleKeyDown(WPARAM wParam, LPARAM lParam);
 
-static bool s_messageLoop = true;
+static bool s_breakLoop = false;
 static HWND s_hwnd = 0;
 
 namespace WinMgr {
@@ -48,21 +48,23 @@ namespace WinMgr {
 		return S_OK;
 	}
 
-	HRESULT main()
+	bool handleMessage()
 	{
 		// Run the message loop
 		MSG msg = { };
+		const UINT wMsgFilterMin = 0;
+		const UINT wMsgFilterMax = 0;
 
-		while (GetMessage(&msg, NULL, 0, 0) > 0)
+		BOOL ret = GetMessage(&msg, NULL, wMsgFilterMin, wMsgFilterMax);
+		Dbg::assert_(ret != -1);
+
+		if (ret > 0)
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
-
-			if (!s_messageLoop)
-				break;
 		}
 
-		return S_OK;
+		return s_breakLoop;
 	}
 
 	HRESULT teardown()
@@ -106,7 +108,7 @@ HRESULT handleKeyDown(WPARAM wParam, LPARAM lParam)
 {
 	switch (wParam) {
 	case VK_ESCAPE:
-		s_messageLoop = false;
+		s_breakLoop = true;
 		return S_OK;
 
 	default:

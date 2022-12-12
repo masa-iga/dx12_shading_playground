@@ -3,7 +3,7 @@
 
 namespace WinMgr {
 	HRESULT setup(HINSTANCE hInstance, int nCmdShow);
-	HRESULT main();
+	bool handleMessage();
 	HRESULT teardown();
 	HWND getHwnd();
 }

@@ -13,7 +13,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 	Render::loadAssets(DeviceD3D12::getDevice());
 
-	WinMgr::main();
+	while (true)
+	{
+		const bool bBreak = WinMgr::handleMessage();
+
+		if (bBreak)
+			break;
+		
+		Render::onUpdate();
+		Render::onRender();
+	}
 
 	WinMgr::teardown();
 
