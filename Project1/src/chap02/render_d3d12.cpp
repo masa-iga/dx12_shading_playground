@@ -1,4 +1,5 @@
 ﻿#include "render_d3d12.h"
+#include "config.h"
 #include <d3dcompiler.h>
 #include <d3d12sdklayers.h>
 #include <d3dx12.h>
@@ -282,8 +283,8 @@ void populateCommandList()
 	Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
 
 	{
-		const CD3DX12_VIEWPORT vp(0.0f, 0.0f, 1920.0f, 1080.0f);
-		const CD3DX12_RECT scrt(0, 0, 1920, 1080);
+		const CD3DX12_VIEWPORT vp(0.0f, 0.0f, static_cast<float>(kRenderTargetWidth), static_cast<float>(kRenderTargetHeight));
+		const CD3DX12_RECT scrt(0, 0, kRenderTargetWidth, kRenderTargetHeight);
 
 		s_commandList->SetPipelineState(s_pipelineState.Get());
 		s_commandList->SetGraphicsRootSignature(s_rootSignature.Get());

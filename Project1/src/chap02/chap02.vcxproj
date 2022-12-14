@@ -90,6 +90,7 @@
     <ClCompile Include="winmgr_win.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="config.h" />
     <ClInclude Include="debug_win.h" />
     <ClInclude Include="device_d3d12.h" />
     <ClInclude Include="render_d3d12.h" />
