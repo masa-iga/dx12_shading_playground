@@ -13,6 +13,7 @@ constexpr static UINT kBufferCount = 2;
 
 static ComPtr<IDXGISwapChain4> s_swapChain = nullptr;
 static ComPtr<ID3D12DescriptorHeap> s_rtvHeap = nullptr;
+static ComPtr<ID3D12Resource> s_renderTargets[kBufferCount];
 static UINT s_rtvDescriptorSize = 0;
 
 static void createSwapChain(IDXGIFactory4* factory, ID3D12CommandQueue* commandQueue, HWND hwnd);
@@ -30,6 +31,21 @@ namespace SwapChain {
 	IDXGISwapChain4* getSwapChain()
 	{
 		return s_swapChain.Get();
+	}
+
+	ID3D12Resource* getRtResource(UINT index)
+	{
+		return s_renderTargets[index].Get();
+	}
+
+	ID3D12DescriptorHeap* getRtvDescHeap()
+	{
+		return s_rtvHeap.Get();
+	}
+
+	UINT getRtvDescSize()
+	{
+		return s_rtvDescriptorSize;
 	}
 }
 
@@ -83,8 +99,6 @@ void createDescHeap(ID3D12Device* device)
 void createResource(ID3D12Device* device)
 {
 	CD3DX12_CPU_DESCRIPTOR_HANDLE handle(s_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
-	ComPtr<ID3D12Resource> s_renderTargets[kBufferCount];
 
 	for (int32_t i = 0; i < kBufferCount; ++i)
 	{

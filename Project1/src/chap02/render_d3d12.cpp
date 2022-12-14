@@ -86,7 +86,7 @@ namespace Render {
 
 void createCommandList(ID3D12Device* device)
 {
-	Dbg::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, s_commandAllocator.Get(), s_pipelineState.Get(), IID_PPV_ARGS(s_commandList.ReleaseAndGetAddressOf())));
+	Dbg::ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, s_commandAllocator.Get(), nullptr, IID_PPV_ARGS(s_commandList.ReleaseAndGetAddressOf())));
 
 	Dbg::ThrowIfFailed(s_commandList.Get()->Close());
 }
@@ -278,6 +278,35 @@ void waitForPreviousFrame()
 
 void populateCommandList()
 {
-	// TODO: imple
+	Dbg::ThrowIfFailed(s_commandAllocator->Reset());
+	Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
+
+	{
+		const CD3DX12_VIEWPORT vp(0.0f, 0.0f, 1920.0f, 1080.0f);
+		const CD3DX12_RECT scrt(0, 0, 1920, 1080);
+
+		s_commandList->SetPipelineState(s_pipelineState.Get());
+		s_commandList->SetGraphicsRootSignature(s_rootSignature.Get());
+		s_commandList->RSSetViewports(1, &vp);
+		s_commandList->RSSetScissorRects(1, &scrt);
+
+		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		s_commandList->ResourceBarrier(1, &barrier);
+
+
+		const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(SwapChain::getRtvDescHeap()->GetCPUDescriptorHandleForHeapStart(), s_frameIndex, SwapChain::getRtvDescSize());
+		s_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+		const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+		s_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+		s_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		s_commandList->IASetVertexBuffers(0, 1, &s_vbView);
+		s_commandList->DrawInstanced(3, 1, 0, 0);
+
+		barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		s_commandList->ResourceBarrier(1, &barrier);
+	}
+
+	Dbg::ThrowIfFailed(s_commandList->Close());
 }
 
