@@ -79,6 +79,12 @@ namespace Render {
 		}
 	}
 
+	void onDestroy()
+	{
+		waitForPreviousFrame();
+		CloseHandle(s_fenceEvent);
+	}
+
 	ID3D12CommandQueue* getCommandQueue()
 	{
 		return s_commandQueue.Get();

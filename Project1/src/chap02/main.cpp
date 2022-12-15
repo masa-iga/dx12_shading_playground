@@ -24,6 +24,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		Render::onRender();
 	}
 
+	Render::onDestroy();
 	WinMgr::teardown();
 
 	return 0;

@@ -7,5 +7,6 @@ namespace Render {
 	void loadAssets(ID3D12Device* device);
 	void onUpdate();
 	void onRender();
+	void onDestroy();
 	ID3D12CommandQueue* getCommandQueue();
 }
