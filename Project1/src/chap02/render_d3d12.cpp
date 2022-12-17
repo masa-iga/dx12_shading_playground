@@ -137,8 +137,8 @@ void populateCommandList()
 	Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
 
 	{
-		const CD3DX12_VIEWPORT vp(0.0f, 0.0f, static_cast<float>(kRenderTargetWidth), static_cast<float>(kRenderTargetHeight));
-		const CD3DX12_RECT scrt(0, 0, kRenderTargetWidth, kRenderTargetHeight);
+		const CD3DX12_VIEWPORT vp(0.0f, 0.0f, static_cast<float>(Config::kRenderTargetWidth), static_cast<float>(Config::kRenderTargetHeight));
+		const CD3DX12_RECT scrt(0, 0, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 
 		s_commandList->SetPipelineState(s_simpleTriangleModel.getPipelineState());
 		s_commandList->SetGraphicsRootSignature(s_simpleTriangleModel.getRootSignature());

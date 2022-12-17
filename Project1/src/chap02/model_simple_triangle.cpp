@@ -16,7 +16,7 @@ void SimpleTriangleModel::createGraphicsPipelineState(ID3D12Device* device)
 	{
 		ComPtr<ID3DBlob> error = nullptr;
 
-		auto result = D3DCompileFromFile(kShaderFile, nullptr, nullptr, kVsEntryPoint, kVsVersion, kCompileFlags, 0, vertexShader.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf());
+		auto result = D3DCompileFromFile(kShaderFile, nullptr, nullptr, kVsEntryPoint, Config::kVsVersion, Config::kCompileFlags, 0, vertexShader.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf());
 
 		if (FAILED(result))
 		{
@@ -24,7 +24,7 @@ void SimpleTriangleModel::createGraphicsPipelineState(ID3D12Device* device)
 			Dbg::ThrowIfFailed(E_FAIL);
 		}
 
-		result = D3DCompileFromFile(kShaderFile, nullptr, nullptr, kPsEntryPoint, kPsVersion, kCompileFlags, 0, pixelShader.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf());
+		result = D3DCompileFromFile(kShaderFile, nullptr, nullptr, kPsEntryPoint, Config::kPsVersion, Config::kCompileFlags, 0, pixelShader.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf());
 
 		if (FAILED(result))
 		{
@@ -40,7 +40,7 @@ void SimpleTriangleModel::createGraphicsPipelineState(ID3D12Device* device)
 		ComPtr<ID3DBlob> signature = nullptr;
 		ComPtr<ID3DBlob> error = nullptr;
 
-		Dbg::ThrowIfFailed(D3D12SerializeRootSignature(&desc, kRootSignatureVersion, signature.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf()));
+		Dbg::ThrowIfFailed(D3D12SerializeRootSignature(&desc, Config::kRootSignatureVersion, signature.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf()));
 		Dbg::ThrowIfFailed(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(m_rootSignature.ReleaseAndGetAddressOf())));
 	}
 

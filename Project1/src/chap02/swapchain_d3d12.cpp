@@ -9,7 +9,7 @@ using namespace Microsoft::WRL;
 
 static ComPtr<IDXGISwapChain4> s_swapChain = nullptr;
 static ComPtr<ID3D12DescriptorHeap> s_rtvHeap = nullptr;
-static ComPtr<ID3D12Resource> s_renderTargets[kRenderTargetBufferCount];
+static ComPtr<ID3D12Resource> s_renderTargets[Config::kRenderTargetBufferCount];
 static UINT s_rtvDescriptorSize = 0;
 
 static void createSwapChain(IDXGIFactory4* factory, ID3D12CommandQueue* commandQueue, HWND hwnd);
@@ -49,13 +49,13 @@ void createSwapChain(IDXGIFactory4* factory, ID3D12CommandQueue* commandQueue, H
 {
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {
 	.BufferDesc = {
-		.Width = kRenderTargetWidth,
-		.Height = kRenderTargetHeight,
+		.Width = Config::kRenderTargetWidth,
+		.Height = Config::kRenderTargetHeight,
 		.RefreshRate = {
 			.Numerator = 0,
 			.Denominator = 0,
 		},
-		.Format = kRenderTargetFormat,
+		.Format = Config::kRenderTargetFormat,
 		.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
 		.Scaling = DXGI_MODE_SCALING_UNSPECIFIED,
 	},
@@ -64,7 +64,7 @@ void createSwapChain(IDXGIFactory4* factory, ID3D12CommandQueue* commandQueue, H
 		.Quality = 0,
 	},
 	.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-	.BufferCount = kRenderTargetBufferCount,
+	.BufferCount = Config::kRenderTargetBufferCount,
 	.OutputWindow = hwnd,
 	.Windowed = TRUE,
 	.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
@@ -96,7 +96,7 @@ void createResource(ID3D12Device* device)
 {
 	CD3DX12_CPU_DESCRIPTOR_HANDLE handle(s_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
-	for (int32_t i = 0; i < kRenderTargetBufferCount; ++i)
+	for (int32_t i = 0; i < Config::kRenderTargetBufferCount; ++i)
 	{
 		Dbg::ThrowIfFailed(s_swapChain->GetBuffer(i, IID_PPV_ARGS(s_renderTargets[i].ReleaseAndGetAddressOf())));
 		device->CreateRenderTargetView(s_renderTargets[i].Get(), nullptr, handle);
