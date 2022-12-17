@@ -41,8 +41,7 @@ namespace Render {
 		createFence(device);
 		waitForPreviousFrame();
 
-		s_simpleTriangleModel.createGraphicsPipelineState(device);
-		s_simpleTriangleModel.createVertex(device);
+		s_simpleTriangleModel.createResource(device);
 	}
 
 	void onUpdate()
@@ -137,28 +136,31 @@ void populateCommandList()
 	Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
 
 	{
-		const CD3DX12_VIEWPORT vp(0.0f, 0.0f, static_cast<float>(Config::kRenderTargetWidth), static_cast<float>(Config::kRenderTargetHeight));
-		const CD3DX12_RECT scrt(0, 0, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
-
-		s_commandList->SetPipelineState(s_simpleTriangleModel.getPipelineState());
-		s_commandList->SetGraphicsRootSignature(s_simpleTriangleModel.getRootSignature());
-		s_commandList->RSSetViewports(1, &vp);
-		s_commandList->RSSetScissorRects(1, &scrt);
-
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		s_commandList->ResourceBarrier(1, &barrier);
+	}
 
+	const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(SwapChain::getRtvDescHeap()->GetCPUDescriptorHandleForHeapStart(), s_frameIndex, SwapChain::getRtvDescSize());
 
-		const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(SwapChain::getRtvDescHeap()->GetCPUDescriptorHandleForHeapStart(), s_frameIndex, SwapChain::getRtvDescSize());
-		s_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
+	// clear color
+	{
 		const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 		s_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-		s_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		s_commandList->IASetVertexBuffers(0, 1, s_simpleTriangleModel.getVertexBufferView());
-		s_commandList->DrawInstanced(3, 1, 0, 0);
+	}
 
-		barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+	// render model(s)
+	{
+		const CD3DX12_VIEWPORT vp(0.0f, 0.0f, static_cast<float>(Config::kRenderTargetWidth), static_cast<float>(Config::kRenderTargetHeight));
+		const CD3DX12_RECT scrt(0, 0, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
+		s_commandList->RSSetViewports(1, &vp);
+		s_commandList->RSSetScissorRects(1, &scrt);
+		s_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+		s_simpleTriangleModel.draw(s_commandList.Get());
+	}
+
+	{
+		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		s_commandList->ResourceBarrier(1, &barrier);
 	}
 

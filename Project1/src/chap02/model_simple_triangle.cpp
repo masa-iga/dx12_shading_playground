@@ -7,6 +7,26 @@
 
 using namespace Microsoft::WRL;
 
+constexpr float kTrans[] = { 0.25f, 0.25f, 0.0f };
+
+void SimpleTriangleModel::createResource(ID3D12Device* device)
+{
+	createGraphicsPipelineState(device);
+	createVertex(device);
+	createWorldMatrix(device);
+}
+
+void SimpleTriangleModel::draw(ID3D12GraphicsCommandList* list)
+{
+	list->SetPipelineState(getPipelineState());
+	list->SetGraphicsRootSignature(getRootSignature());
+	list->SetGraphicsRootConstantBufferView(0, m_resourceWorldMatrix->GetGPUVirtualAddress());
+
+	list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	list->IASetVertexBuffers(0, 1, getVertexBufferView());
+	list->DrawInstanced(3, 1, 0, 0);
+}
+
 void SimpleTriangleModel::createGraphicsPipelineState(ID3D12Device* device)
 {
 	ComPtr<ID3DBlob> vertexShader = nullptr;
@@ -33,9 +53,12 @@ void SimpleTriangleModel::createGraphicsPipelineState(ID3D12Device* device)
 		}
 	}
 
-	// create an empty root signature
+	// create root signature
 	{
-		const CD3DX12_ROOT_SIGNATURE_DESC desc(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		D3D12_ROOT_PARAMETER rootParam = { };
+		CD3DX12_ROOT_PARAMETER::InitAsConstantBufferView(rootParam, 0);
+
+		const CD3DX12_ROOT_SIGNATURE_DESC desc(1, &rootParam, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		ComPtr<ID3DBlob> signature = nullptr;
 		ComPtr<ID3DBlob> error = nullptr;
@@ -143,6 +166,36 @@ void SimpleTriangleModel::createVertex(ID3D12Device* device)
 		m_vbView.BufferLocation = m_vertexBuffer.Get()->GetGPUVirtualAddress();
 		m_vbView.SizeInBytes = vertexBufferSize;
 		m_vbView.StrideInBytes = sizeof(Vertex);
+	}
+}
+
+void SimpleTriangleModel::createWorldMatrix(ID3D12Device* device)
+{
+	{
+		CD3DX12_HEAP_PROPERTIES heapProp(D3D12_HEAP_TYPE_UPLOAD);
+		auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(DirectX::XMMATRIX));
+
+		Dbg::ThrowIfFailed(device->CreateCommittedResource(
+			&heapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&resourceDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(m_resourceWorldMatrix.ReleaseAndGetAddressOf()))
+		);
+	}
+	
+	{
+		using namespace DirectX;
+
+		XMMATRIX* pMatrix = nullptr;
+		const CD3DX12_RANGE readRange(0, 0);
+
+		Dbg::ThrowIfFailed(m_resourceWorldMatrix->Map(0, &readRange, reinterpret_cast<void**>(&pMatrix)));
+		{
+			*pMatrix = DirectX::XMMatrixTranslation(kTrans[0], kTrans[1], kTrans[2]);
+		}
+		m_resourceWorldMatrix->Unmap(0, nullptr);
 	}
 }
 

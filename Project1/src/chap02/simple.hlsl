@@ -4,10 +4,12 @@ struct PsIn
     float4 color : COLOR;
 };
 
+float4x4 g_worldMatrix : register(b0);
+
 PsIn vsmain(float3 pos : POSITION, float4 color : COLOR)
 {
     PsIn psIn;
-    psIn.pos = float4(pos, 1.0f);
+    psIn.pos = mul(g_worldMatrix, float4(pos, 1.0f));
     psIn.color = color;
 
     return psIn;
