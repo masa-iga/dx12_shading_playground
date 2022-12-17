@@ -86,6 +86,7 @@
     <ClCompile Include="device_d3d12.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="render_d3d12.cpp" />
+    <ClCompile Include="model_simple_triangle.cpp" />
     <ClCompile Include="swapchain_d3d12.cpp" />
     <ClCompile Include="winmgr_win.cpp" />
   </ItemGroup>
@@ -94,6 +95,7 @@
     <ClInclude Include="debug_win.h" />
     <ClInclude Include="device_d3d12.h" />
     <ClInclude Include="render_d3d12.h" />
+    <ClInclude Include="model_simple_triangle.h" />
     <ClInclude Include="swapchain_d3d12.h" />
     <ClInclude Include="winmgr_win.h" />
   </ItemGroup>
