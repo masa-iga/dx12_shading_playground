@@ -1,3 +1,6 @@
 [submodule "Project1/import/DirectX-Headers"]
 	path = Project1/import/DirectX-Headers
 	url = git@github.com:microsoft/DirectX-Headers.git
+[submodule "Project1/import/hlsl-grimoire-sample"]
+	path = Project1/import/hlsl-grimoire-sample
+	url = git@github.com:shoeisha-books/hlsl-grimoire-sample.git
