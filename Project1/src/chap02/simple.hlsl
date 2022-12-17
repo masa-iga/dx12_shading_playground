@@ -1,9 +1,19 @@
-float4 vsmain( float4 pos : POSITION ) : SV_POSITION
+struct PsIn
 {
-	return pos;
+	float4 pos : SV_POSITION;
+    float4 color : COLOR;
+};
+
+PsIn vsmain(float3 pos : POSITION, float4 color : COLOR)
+{
+    PsIn psIn;
+    psIn.pos = float4(pos, 1.0f);
+    psIn.color = color;
+
+    return psIn;
 }
 
-float4 psmain() : SV_TARGET
+float4 psmain(PsIn input) : SV_TARGET
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    return input.color;
 }
