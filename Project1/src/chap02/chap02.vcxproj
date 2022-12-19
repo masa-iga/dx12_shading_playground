@@ -82,6 +82,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\import\DirectXTex\DDSTextureLoader\DDSTextureLoader12.cpp" />
+    <ClCompile Include="dds_loader_if.cpp" />
     <ClCompile Include="debug_win.cpp" />
     <ClCompile Include="device_d3d12.cpp" />
     <ClCompile Include="main.cpp" />
@@ -91,7 +93,9 @@
     <ClCompile Include="winmgr_win.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\import\DirectXTex\DDSTextureLoader\DDSTextureLoader12.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="dds_loader_if.h" />
     <ClInclude Include="debug_win.h" />
     <ClInclude Include="device_d3d12.h" />
     <ClInclude Include="render_d3d12.h" />
