@@ -41,7 +41,28 @@ namespace Render {
 		createFence(device);
 		waitForPreviousFrame();
 
-		s_simpleTriangleModel.createResource(device);
+		// create resource for each model
+		{
+			s_simpleTriangleModel.createResource(device);
+		}
+
+		// upload textures for each model
+		Dbg::ThrowIfFailed(s_commandAllocator->Reset());
+		Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
+		{
+			s_simpleTriangleModel.uploadTextures(device, s_commandList.Get());
+		}
+		Dbg::ThrowIfFailed(s_commandList->Close());
+
+		ID3D12CommandList* ppCommandLists[] = { s_commandList.Get() };
+		s_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+		waitForPreviousFrame();
+
+		// release temporary buffers
+		{
+			s_simpleTriangleModel.releaseTemporaryBuffers();
+		}
 	}
 
 	void onUpdate()

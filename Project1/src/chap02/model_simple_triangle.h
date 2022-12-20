@@ -5,6 +5,8 @@
 class SimpleTriangleModel {
 public:
 	void createResource(ID3D12Device* device);
+	void uploadTextures(ID3D12Device* device, ID3D12GraphicsCommandList* list);
+	void releaseTemporaryBuffers();
 	void draw(ID3D12GraphicsCommandList* list);
 
 private:
@@ -18,10 +20,13 @@ private:
 	void createGraphicsPipelineState(ID3D12Device* device);
 	void createVertex(ID3D12Device* device);
 	void createWorldMatrix(ID3D12Device* device);
+	void createTexture(ID3D12Device* device, ID3D12GraphicsCommandList* list);
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer = nullptr;
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_resourceWorldMatrix = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> s_texture = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> s_uploadRes = nullptr;
 	D3D12_VERTEX_BUFFER_VIEW m_vbView = { };
 };

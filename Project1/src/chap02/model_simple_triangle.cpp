@@ -2,18 +2,31 @@
 #include <DirectXMath.h>
 #include <d3dcompiler.h>
 #include <d3dx12.h>
+#include <typeinfo>
 #include "config.h"
+#include "dds_loader_if.h"
 #include "debug_win.h"
 
 using namespace Microsoft::WRL;
 
 constexpr float kTrans[] = { 0.25f, 0.25f, 0.0f };
+constexpr wchar_t kDdsFileName[] = L"../../import/hlsl-grimoire-sample/Sample_03_02/Sample_03_02/Assets/image/sample_00.dds";
 
 void SimpleTriangleModel::createResource(ID3D12Device* device)
 {
 	createGraphicsPipelineState(device);
 	createVertex(device);
 	createWorldMatrix(device);
+}
+
+void SimpleTriangleModel::uploadTextures(ID3D12Device* device, ID3D12GraphicsCommandList* list)
+{
+	createTexture(device, list);
+}
+
+void SimpleTriangleModel::releaseTemporaryBuffers()
+{
+	s_texture.Reset();
 }
 
 void SimpleTriangleModel::draw(ID3D12GraphicsCommandList* list)
@@ -196,6 +209,49 @@ void SimpleTriangleModel::createWorldMatrix(ID3D12Device* device)
 			*pMatrix = DirectX::XMMatrixTranslation(kTrans[0], kTrans[1], kTrans[2]);
 		}
 		m_resourceWorldMatrix->Unmap(0, nullptr);
+	}
+}
+
+void SimpleTriangleModel::createTexture(ID3D12Device* device, ID3D12GraphicsCommandList* list)
+{
+	std::unique_ptr<uint8_t[]> ddsData;
+	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+
+	Dbg::ThrowIfFailed(DdsLoaderIf::LoadDDSTextureFromFile(kDdsFileName, s_texture.ReleaseAndGetAddressOf(), ddsData, subresources));
+
+	const UINT64 uploadBufferSize = GetRequiredIntermediateSize(s_texture.Get(), 0, static_cast<UINT>(subresources.size()));
+
+#define DEBUG_PRINT (0)
+#if DEBUG_PRINT
+	{
+		auto d = s_texture->GetDesc();
+		Dbg::print("%s::%s(): dim %d width %zd height %d mip %d size %zd\n", typeid(*this).name(), __func__, d.Dimension, d.Width, d.Height, d.MipLevels, uploadBufferSize);
+	}
+#endif // #if DEBUG_PRINT
+#undef DEBUG_PRINT
+
+	{
+		const CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
+		const auto desc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+
+		Dbg::ThrowIfFailed(device->CreateCommittedResource(
+			&heapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(s_uploadRes.GetAddressOf())));
+	}
+
+	{
+		const UINT64 intermediateOffset = 0;
+		const UINT firstSubresource = 0;
+		UpdateSubresources(list, s_texture.Get(), s_uploadRes.Get(), intermediateOffset, firstSubresource, static_cast<UINT>(subresources.size()), subresources.data());
+	}
+
+	{
+		const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(s_texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		list->ResourceBarrier(1, &barrier);
 	}
 }
 
