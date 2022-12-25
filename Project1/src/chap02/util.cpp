@@ -6,11 +6,11 @@
 
 namespace {
 #if defined(_WIN32) || defined(_WIN64)
-	constexpr std::string getNameOfD3d12HeapType(D3D12_HEAP_TYPE type);
-	constexpr std::string getNameOfD3d12CpuPageProperty(D3D12_CPU_PAGE_PROPERTY prop);
-	constexpr std::string getNameOfD3d12MemoryPool(D3D12_MEMORY_POOL mpool);
-	constexpr std::string getNameOfD3d12DxgiFormat(DXGI_FORMAT format);
-	constexpr std::string getNameOfD3d12TextureLayout(D3D12_TEXTURE_LAYOUT layout);
+	const char* getNameOfD3d12HeapType(D3D12_HEAP_TYPE type);
+	const char* getNameOfD3d12CpuPageProperty(D3D12_CPU_PAGE_PROPERTY prop);
+	const char* getNameOfD3d12MemoryPool(D3D12_MEMORY_POOL mpool);
+	const char* getNameOfD3d12DxgiFormat(DXGI_FORMAT format);
+	const char* getNameOfD3d12TextureLayout(D3D12_TEXTURE_LAYOUT layout);
 #endif // #if defined(_WIN32) || defined(_WIN64)
 }
 
@@ -19,19 +19,19 @@ namespace Util {
 	void debugPrint(ID3D12Resource* resource)
 	{
 		const auto d = resource->GetDesc();
-		Dbg::print("  desc: dim %d width %zd height %d mip %d slice %d %s %s\n", d.Dimension, d.Width, d.Height, d.MipLevels, d.DepthOrArraySize, getNameOfD3d12DxgiFormat(d.Format).c_str(), getNameOfD3d12TextureLayout(d.Layout).c_str());
+		Dbg::print("  desc: dim %d width %zd height %d mip %d slice %d %s %s\n", d.Dimension, d.Width, d.Height, d.MipLevels, d.DepthOrArraySize, getNameOfD3d12DxgiFormat(d.Format), getNameOfD3d12TextureLayout(d.Layout));
 
 		D3D12_HEAP_PROPERTIES hp = { };
 		D3D12_HEAP_FLAGS hf = { };
 		Dbg::ThrowIfFailed(resource->GetHeapProperties(&hp, &hf));
-		Dbg::print("  heap: %s %s %s flag 0x%x\n", getNameOfD3d12HeapType(hp.Type).c_str(), getNameOfD3d12CpuPageProperty(hp.CPUPageProperty).c_str(), getNameOfD3d12MemoryPool(hp.MemoryPoolPreference).c_str(), hf);
+		Dbg::print("  heap: %s %s %s flag 0x%x\n", getNameOfD3d12HeapType(hp.Type), getNameOfD3d12CpuPageProperty(hp.CPUPageProperty), getNameOfD3d12MemoryPool(hp.MemoryPoolPreference), hf);
 	}
 #endif // #if defined(_WIN32) || defined(_WIN64)
 }
 
 namespace {
 #if defined(_WIN32) || defined(_WIN64)
-	constexpr std::string getNameOfD3d12HeapType(D3D12_HEAP_TYPE type)
+	const char* getNameOfD3d12HeapType(D3D12_HEAP_TYPE type)
 	{
 		switch (type) {
 		case D3D12_HEAP_TYPE_DEFAULT: return "HEAP_DEFAULT";
@@ -42,7 +42,7 @@ namespace {
 		return "UNKNOWN !!";
 	}
 
-	constexpr std::string getNameOfD3d12CpuPageProperty(D3D12_CPU_PAGE_PROPERTY prop)
+	const char* getNameOfD3d12CpuPageProperty(D3D12_CPU_PAGE_PROPERTY prop)
 	{
 		switch (prop) {
 		case D3D12_CPU_PAGE_PROPERTY_UNKNOWN: return "PAGE_PROP_UNKNOWN";
@@ -53,7 +53,7 @@ namespace {
 		return "UNKNOWN !!";
 	}
 
-	constexpr std::string getNameOfD3d12MemoryPool(D3D12_MEMORY_POOL mpool)
+	const char* getNameOfD3d12MemoryPool(D3D12_MEMORY_POOL mpool)
 	{
 		switch (mpool) {
 		case D3D12_MEMORY_POOL_UNKNOWN: return "MPOOL_UNKNOWN";
@@ -63,7 +63,7 @@ namespace {
 		return "UNKNOWN !!";
 	}
 
-	constexpr std::string getNameOfD3d12DxgiFormat(DXGI_FORMAT format)
+	const char*  getNameOfD3d12DxgiFormat(DXGI_FORMAT format)
 	{
 		switch (format) {
 		case DXGI_FORMAT_UNKNOWN: return "FORMAT_UNKNOWN";
@@ -192,7 +192,7 @@ namespace {
 		return "Unknown !!";
 	}
 
-	constexpr std::string getNameOfD3d12TextureLayout(D3D12_TEXTURE_LAYOUT layout)
+	const char*  getNameOfD3d12TextureLayout(D3D12_TEXTURE_LAYOUT layout)
 	{
 		switch (layout) {
 		case D3D12_TEXTURE_LAYOUT_UNKNOWN: return "LAYOUT_UNKNOWN";
