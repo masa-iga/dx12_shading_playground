@@ -37,6 +37,12 @@ namespace DeviceD3D12 {
 	{
 		return s_device.Get();
 	}
+
+	UINT getDescHandleIncSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+	{
+		Dbg::assert_(s_device != nullptr);
+		return s_device->GetDescriptorHandleIncrementSize(heapType);
+	}
 }
 
 HRESULT enableDebugLayer()
