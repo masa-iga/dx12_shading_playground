@@ -1,0 +1,324 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル\font">
+      <UniqueIdentifier>{ae3ea93f-416e-428b-bdc9-ada68dc11e98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\font">
+      <UniqueIdentifier>{70181fa1-87cf-4754-95d9-7d08862c0ffe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\HID">
+      <UniqueIdentifier>{325901bd-96a7-4e53-9a37-5a64ce0aa301}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\HID">
+      <UniqueIdentifier>{c8b4b1c6-2452-4017-9e00-c68b5d4417c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\math">
+      <UniqueIdentifier>{070fbe68-35b4-4054-bdc7-c7352da707ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\math">
+      <UniqueIdentifier>{01ca6037-941d-43eb-bf23-0d86918067a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\raytracing">
+      <UniqueIdentifier>{57016ddb-1f71-4124-93a5-b3af05b909ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\raytracing">
+      <UniqueIdentifier>{86e5c915-a3f9-4c72-93da-7213f435e021}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\tkFile">
+      <UniqueIdentifier>{b1ad6df3-1367-4d36-a066-3004993b70bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\tkFile">
+      <UniqueIdentifier>{75d30065-0687-4e9c-94d6-7012c944e07f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Animation.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\AnimationClip.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\AnimationPlayController.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Camera.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\ConstantBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\DescriptorHeap.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\GaussianBlur.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\GPUBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\GraphicsEngine.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\IndexBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Material.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\MeshParts.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Model.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\NullTextureMaps.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\PipelineState.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\RenderTarget.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\RootSignature.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\RWStructuredBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Shader.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Skeleton.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Sprite.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\StructuredBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\Texture.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\tkEngine.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\VertexBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\font\Font.cpp">
+      <Filter>ソース ファイル\font</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\font\FontEngine.cpp">
+      <Filter>ソース ファイル\font</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\HID\GamePad.cpp">
+      <Filter>ソース ファイル\HID</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\math\Matrix.cpp">
+      <Filter>ソース ファイル\math</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\math\Vector.cpp">
+      <Filter>ソース ファイル\math</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\BLASBuffer.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingDescriptorHeaps.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingEngine.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingInstance.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingPSO.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingShaderTable.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingWorld.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\raytracing\TLASBuffer.cpp">
+      <Filter>ソース ファイル\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\tkFile\TkaFile.cpp">
+      <Filter>ソース ファイル\tkFile</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\tkFile\TkmFile.cpp">
+      <Filter>ソース ファイル\tkFile</Filter>
+    </ClCompile>
+    <ClCompile Include="hlsl-grimoire-sample\MiniEngine\tkFile\TksFile.cpp">
+      <Filter>ソース ファイル\tkFile</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Animation.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\AnimationClip.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\AnimationPlayController.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Camera.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\ConstantBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\d3dx12.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\DescriptorHeap.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\DescriptorHeap_inline.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\GaussianBlur.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\GPUBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\GraphicsEngine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\IndexBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\IShaderResource.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\IUnorderAccessResource.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Material.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\MeshParts.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\MiniEngine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Model.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\NullTextureMaps.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\PipelineState.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\RenderContext.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\RenderContext_inline.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\RenderTarget.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\RootSignature.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\RWStructuredBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Shader.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Skeleton.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Sprite.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\StructuredBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\Texture.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\tkEngine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\TResourceBank.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\VertexBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\font\Font.h">
+      <Filter>ヘッダー ファイル\font</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\font\FontEngine.h">
+      <Filter>ヘッダー ファイル\font</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\HID\GamePad.h">
+      <Filter>ヘッダー ファイル\HID</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\math\Matrix.h">
+      <Filter>ヘッダー ファイル\math</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\math\Vector.h">
+      <Filter>ヘッダー ファイル\math</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\BLASBuffer.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\Raytracing.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingDescriptorHeaps.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingEngine.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingInstance.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingPSO.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingShaderTable.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\RaytracingWorld.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\raytracing\TLASBuffer.h">
+      <Filter>ヘッダー ファイル\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\tkFile\TkaFile.h">
+      <Filter>ヘッダー ファイル\tkFile</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\tkFile\TkmFile.h">
+      <Filter>ヘッダー ファイル\tkFile</Filter>
+    </ClInclude>
+    <ClInclude Include="hlsl-grimoire-sample\MiniEngine\tkFile\TksFile.h">
+      <Filter>ヘッダー ファイル\tkFile</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
