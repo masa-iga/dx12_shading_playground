@@ -16,12 +16,6 @@
     <Filter Include="Shader files">
       <UniqueIdentifier>{ceee8bba-3fe0-4206-92b5-ddfcfe01f32a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\DirectXTex">
-      <UniqueIdentifier>{f8f7f4f8-c714-46e5-b82c-886ac6373722}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\DirectXTex">
-      <UniqueIdentifier>{0459af95-23c1-4ba0-9df1-5e543281f763}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -45,13 +39,13 @@
     <ClCompile Include="model_simple_triangle.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\import\DirectXTex\DDSTextureLoader\DDSTextureLoader12.cpp">
-      <Filter>ソース ファイル\DirectXTex</Filter>
-    </ClCompile>
     <ClCompile Include="dds_loader_if.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="util.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="miniEngine_if.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,13 +71,13 @@
     <ClInclude Include="model_simple_triangle.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\import\DirectXTex\DDSTextureLoader\DDSTextureLoader12.h">
-      <Filter>ヘッダー ファイル\DirectXTex</Filter>
-    </ClInclude>
     <ClInclude Include="dds_loader_if.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="util.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="miniEngine_if.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

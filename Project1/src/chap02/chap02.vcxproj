@@ -58,10 +58,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\import\hlsl-grimoire-sample\MiniEngine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)import\DirectXTex\DirectXTex\Bin\Desktop_2019_Win10\x64\Debug\DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -73,20 +76,23 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\import\hlsl-grimoire-sample\MiniEngine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)import\DirectXTex\DirectXTex\Bin\Desktop_2019_Win10\x64\Debug\DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\import\DirectXTex\DDSTextureLoader\DDSTextureLoader12.cpp" />
     <ClCompile Include="dds_loader_if.cpp" />
     <ClCompile Include="debug_win.cpp" />
     <ClCompile Include="device_d3d12.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="miniEngine_if.cpp" />
     <ClCompile Include="render_d3d12.cpp" />
     <ClCompile Include="model_simple_triangle.cpp" />
     <ClCompile Include="swapchain_d3d12.cpp" />
@@ -94,11 +100,11 @@
     <ClCompile Include="winmgr_win.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\import\DirectXTex\DDSTextureLoader\DDSTextureLoader12.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dds_loader_if.h" />
     <ClInclude Include="debug_win.h" />
     <ClInclude Include="device_d3d12.h" />
+    <ClInclude Include="miniEngine_if.h" />
     <ClInclude Include="render_d3d12.h" />
     <ClInclude Include="model_simple_triangle.h" />
     <ClInclude Include="swapchain_d3d12.h" />
