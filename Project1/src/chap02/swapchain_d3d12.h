@@ -9,4 +9,5 @@ namespace SwapChain {
 	ID3D12Resource* getRtResource(UINT index);
 	ID3D12DescriptorHeap* getRtvDescHeap();
 	UINT getRtvDescSize();
+	ID3D12DescriptorHeap* getDepthDescHeap();
 }
