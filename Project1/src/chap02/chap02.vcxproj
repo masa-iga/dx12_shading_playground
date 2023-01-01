@@ -67,33 +67,47 @@
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>set topdir=Assets
-set srcdir=..\..\import\hlsl-grimoire-sample\Sample_17_05\Sample_17_05\Assets
+      <Command>set TOPDIR=Assets
+set SRCDIR=..\..\import\hlsl-grimoire-sample\Sample_17_05\Sample_17_05\Assets
 
 call :makeDirectory
 call :copyFiles
 
 :makeDirectory
-	if not exist "%topdir%" (
-		mkdir %topdir%
+	if not exist "%TOPDIR%" (
+		mkdir %TOPDIR%
 	)
-	if not exist "%topdir%\font" (
-		mkdir %topdir%\font
+	if not exist "%TOPDIR%\font" (
+		mkdir %TOPDIR%\font
 	)
-	if not exist "%topdir%\modelData" (
-		mkdir %topdir%\modelData
+	if not exist "%TOPDIR%\modelData" (
+		mkdir %TOPDIR%\modelData
 	)
-	if not exist "%topdir%\modelData\preset" (
-		mkdir %topdir%\modelData\preset
+	if not exist "%TOPDIR%\modelData\preset" (
+		mkdir %TOPDIR%\modelData\preset
 	)
 	exit /b
 
 :copyFiles
-	XCOPY /E /Y %srcdir%\modelData\preset\NullAlbedoMap.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\modelData\preset\NullNormalMap.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\modelData\preset\specMap_None.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\modelData\preset\ZeroValueMap.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\font\myfile.spritefont %topdir%\font
+	call :copyFile NullAlbedoMap.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile NullNormalMap.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile specMap_None.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile ZeroValueMap.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile myfile.spritefont %SRCDIR%\font %TOPDIR%\font
+	exit /b
+
+:copyFile
+	setlocal
+	set fileName=%1
+	set srcDir=%2
+	set dstDir=%3
+
+	if exist "%dstDir%\%fileName%" (
+		exit /b
+	)
+	XCOPY /E /Y %srcdir%\%fileName% %dstDir%
+
+	endlocal
 	exit /b</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -117,33 +131,47 @@ call :copyFiles
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>set topdir=Assets
-set srcdir=..\..\import\hlsl-grimoire-sample\Sample_17_05\Sample_17_05\Assets
+      <Command>set TOPDIR=Assets
+set SRCDIR=..\..\import\hlsl-grimoire-sample\Sample_17_05\Sample_17_05\Assets
 
 call :makeDirectory
 call :copyFiles
 
 :makeDirectory
-	if not exist "%topdir%" (
-		mkdir %topdir%
+	if not exist "%TOPDIR%" (
+		mkdir %TOPDIR%
 	)
-	if not exist "%topdir%\font" (
-		mkdir %topdir%\font
+	if not exist "%TOPDIR%\font" (
+		mkdir %TOPDIR%\font
 	)
-	if not exist "%topdir%\modelData" (
-		mkdir %topdir%\modelData
+	if not exist "%TOPDIR%\modelData" (
+		mkdir %TOPDIR%\modelData
 	)
-	if not exist "%topdir%\modelData\preset" (
-		mkdir %topdir%\modelData\preset
+	if not exist "%TOPDIR%\modelData\preset" (
+		mkdir %TOPDIR%\modelData\preset
 	)
 	exit /b
 
 :copyFiles
-	XCOPY /E /Y %srcdir%\modelData\preset\NullAlbedoMap.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\modelData\preset\NullNormalMap.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\modelData\preset\specMap_None.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\modelData\preset\ZeroValueMap.DDS %topdir%\modelData\preset
-	XCOPY /E /Y %srcdir%\font\myfile.spritefont %topdir%\font
+	call :copyFile NullAlbedoMap.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile NullNormalMap.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile specMap_None.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile ZeroValueMap.DDS %SRCDIR%\modelData\preset %TOPDIR%\modelData\preset
+	call :copyFile myfile.spritefont %SRCDIR%\font %TOPDIR%\font
+	exit /b
+
+:copyFile
+	setlocal
+	set fileName=%1
+	set srcDir=%2
+	set dstDir=%3
+
+	if exist "%dstDir%\%fileName%" (
+		exit /b
+	)
+	XCOPY /E /Y %srcdir%\%fileName% %dstDir%
+
+	endlocal
 	exit /b</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
