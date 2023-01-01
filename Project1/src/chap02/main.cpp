@@ -8,9 +8,9 @@
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
 	WinMgr::setup(hInstance, nCmdShow);
-	DeviceD3D12::setup(WinMgr::getHwnd());
-	Render::setup(DeviceD3D12::getDevice());
-	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), Render::getCommandQueue(), WinMgr::getHwnd());
+	DeviceD3D12::setup(WinMgr::getHwndMain());
+	Render::setup(WinMgr::getHwndMiniEngine(), DeviceD3D12::getDevice());
+	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), Render::getCommandQueue(), WinMgr::getHwndMain());
 	DdsLoaderIf::setDevice(DeviceD3D12::getDevice());
 
 	Render::loadAssets(DeviceD3D12::getDevice());

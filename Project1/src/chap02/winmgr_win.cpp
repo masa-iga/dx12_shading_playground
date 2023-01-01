@@ -2,48 +2,24 @@
 #include <windows.h>
 #include "debug_win.h"
 
-static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-static HRESULT handleKeyDown(WPARAM wParam, LPARAM lParam);
+namespace {
+	HRESULT createWindow(HWND* hwnd, HINSTANCE hInstance, WNDPROC wndproc, const wchar_t className[], const wchar_t windowName[]);
+	LRESULT CALLBACK WindowProcMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT CALLBACK WindowProcMiniEngine(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	HRESULT handleKeyDownMain(WPARAM wParam, LPARAM lParam);
 
-static bool s_breakLoop = false;
-static HWND s_hwnd = 0;
+	bool s_breakLoop = false;
+	HWND s_hwndMain = NULL;
+	HWND s_hwndMiniEngine = NULL;
+}
 
 namespace WinMgr {
 	HRESULT setup(HINSTANCE hInstance, int nCmdShow)
 	{
-		// Register the window class
-		constexpr wchar_t kClassName[] = L"Sample Window Class";
-		constexpr wchar_t kWindowName[] = L"DX12 Shading Playground";
+		Dbg::ThrowIfFailed(createWindow(&s_hwndMain, hInstance, WindowProcMain, L"Sample Window Class", L"DX12 Shading Playground"));
+		Dbg::ThrowIfFailed(createWindow(&s_hwndMiniEngine, hInstance, WindowProcMiniEngine, L"Mini Engine Class", L"Mini Engine Window"));
 
-		WNDCLASS wc = { };
-		wc.lpfnWndProc = WindowProc;
-		wc.hInstance = hInstance;
-		wc.lpszClassName = kClassName;
-
-		RegisterClass(&wc);
-
-		// create the window
-
-		s_hwnd = CreateWindowEx(
-			0,
-			kClassName,
-			kWindowName,
-			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-			NULL,
-			NULL,
-			hInstance,
-			NULL
-		);
-
-		if (s_hwnd == NULL)
-		{
-			Dbg::printLastError();
-			Dbg::assert_(s_hwnd != NULL);
-			return S_FALSE;
-		}
-
-		ShowWindow(s_hwnd, nCmdShow);
+		ShowWindow(s_hwndMain, nCmdShow);
 
 		return S_OK;
 	}
@@ -69,7 +45,15 @@ namespace WinMgr {
 
 	HRESULT teardown()
 	{
-		BOOL ret = DestroyWindow(s_hwnd);
+		BOOL ret = DestroyWindow(s_hwndMain);
+
+		if (ret == false)
+		{
+			Dbg::printLastError();
+			Dbg::assert_(ret);
+		}
+
+		ret = DestroyWindow(s_hwndMiniEngine);
 
 		if (ret == false)
 		{
@@ -80,40 +64,94 @@ namespace WinMgr {
 		return S_OK;
 	}
 
-	HWND getHwnd()
+	HWND getHwndMain()
 	{
-		return s_hwnd;
+		return s_hwndMain;
+	}
+
+	HWND getHwndMiniEngine()
+	{
+		return s_hwndMiniEngine;
 	}
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	switch (uMsg) {
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
+namespace {
+	HRESULT createWindow(HWND* hwnd, HINSTANCE hInstance, WNDPROC wndproc, const wchar_t className[], const wchar_t windowName[])
+	{
+		// Register the window class
+		WNDCLASS wc = { };
+		wc.lpfnWndProc = wndproc;
+		wc.hInstance = hInstance;
+		wc.lpszClassName = className;
 
-	case WM_KEYDOWN:
-		handleKeyDown(wParam, lParam);
-		return 0;
+		RegisterClass(&wc);
 
-	default:
-		break;
-	}
+		// create the window
+		*hwnd = CreateWindowEx(
+			0,
+			className,
+			windowName,
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+			NULL,
+			NULL,
+			hInstance,
+			NULL
+		);
 
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
+		if (*hwnd == NULL)
+		{
+			Dbg::printLastError();
+			Dbg::assert_(*hwnd != NULL);
+			return S_FALSE;
+		}
 
-HRESULT handleKeyDown(WPARAM wParam, LPARAM lParam)
-{
-	switch (wParam) {
-	case VK_ESCAPE:
-		s_breakLoop = true;
 		return S_OK;
-
-	default:
-		break;
 	}
 
-	return S_OK;
+	LRESULT CALLBACK WindowProcMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		switch (uMsg) {
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
+
+		case WM_KEYDOWN:
+			handleKeyDownMain(wParam, lParam);
+			return 0;
+
+		default:
+			break;
+		}
+
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
+
+	LRESULT WindowProcMiniEngine(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		switch (uMsg) {
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
+
+		default:
+			break;
+		}
+
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
+
+	HRESULT handleKeyDownMain(WPARAM wParam, LPARAM lParam)
+	{
+		switch (wParam) {
+		case VK_ESCAPE:
+			s_breakLoop = true;
+			return S_OK;
+
+		default:
+			break;
+		}
+
+		return S_OK;
+	}
 }

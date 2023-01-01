@@ -3,6 +3,7 @@
 #include <wrl/client.h>
 #include "config.h"
 #include "debug_win.h"
+#include "miniEngine_if.h"
 #include "model_simple_triangle.h"
 #include "swapchain_d3d12.h"
 
@@ -28,10 +29,12 @@ static void waitForPreviousFrame();
 static void populateCommandList();
 
 namespace Render {
-	void setup(ID3D12Device* device)
+	void setup(HWND hwnd, ID3D12Device* device)
 	{
 		createCommandAllocator(device);
 		createCommandQueue(device);
+
+		MiniEngineIf::init(hwnd, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 	}
 
 	void loadAssets(ID3D12Device* device)
@@ -63,6 +66,8 @@ namespace Render {
 		{
 			s_simpleTriangleModel.releaseTemporaryBuffers();
 		}
+
+		MiniEngineIf::loadModel();
 	}
 
 	void onUpdate()
@@ -90,6 +95,7 @@ namespace Render {
 	{
 		waitForPreviousFrame();
 		CloseHandle(s_fenceEvent);
+		MiniEngineIf::end();
 	}
 
 	ID3D12CommandQueue* getCommandQueue()

@@ -66,6 +66,36 @@
       <AdditionalDependencies>$(SolutionDir)import\DirectXTex\DirectXTex\Bin\Desktop_2019_Win10\x64\Debug\DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>set topdir=Assets
+set srcdir=..\..\import\hlsl-grimoire-sample\Sample_17_05\Sample_17_05\Assets
+
+call :makeDirectory
+call :copyFiles
+
+:makeDirectory
+	if not exist "%topdir%" (
+		mkdir %topdir%
+	)
+	if not exist "%topdir%\font" (
+		mkdir %topdir%\font
+	)
+	if not exist "%topdir%\modelData" (
+		mkdir %topdir%\modelData
+	)
+	if not exist "%topdir%\modelData\preset" (
+		mkdir %topdir%\modelData\preset
+	)
+	exit /b
+
+:copyFiles
+	XCOPY /E /Y %srcdir%\modelData\preset\NullAlbedoMap.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\modelData\preset\NullNormalMap.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\modelData\preset\specMap_None.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\modelData\preset\ZeroValueMap.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\font\myfile.spritefont %topdir%\font
+	exit /b</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -86,6 +116,36 @@
       <AdditionalDependencies>$(SolutionDir)import\DirectXTex\DirectXTex\Bin\Desktop_2019_Win10\x64\Debug\DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>set topdir=Assets
+set srcdir=..\..\import\hlsl-grimoire-sample\Sample_17_05\Sample_17_05\Assets
+
+call :makeDirectory
+call :copyFiles
+
+:makeDirectory
+	if not exist "%topdir%" (
+		mkdir %topdir%
+	)
+	if not exist "%topdir%\font" (
+		mkdir %topdir%\font
+	)
+	if not exist "%topdir%\modelData" (
+		mkdir %topdir%\modelData
+	)
+	if not exist "%topdir%\modelData\preset" (
+		mkdir %topdir%\modelData\preset
+	)
+	exit /b
+
+:copyFiles
+	XCOPY /E /Y %srcdir%\modelData\preset\NullAlbedoMap.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\modelData\preset\NullNormalMap.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\modelData\preset\specMap_None.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\modelData\preset\ZeroValueMap.DDS %topdir%\modelData\preset
+	XCOPY /E /Y %srcdir%\font\myfile.spritefont %topdir%\font
+	exit /b</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dds_loader_if.cpp" />

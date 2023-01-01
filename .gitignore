@@ -38,3 +38,4 @@
 *.pdb
 *.vcxproj.user
 
+Project1/src/chap02/Assets/*

@@ -5,5 +5,6 @@ namespace WinMgr {
 	HRESULT setup(HINSTANCE hInstance, int nCmdShow);
 	bool handleMessage();
 	HRESULT teardown();
-	HWND getHwnd();
+	HWND getHwndMain();
+	HWND getHwndMiniEngine();
 }
