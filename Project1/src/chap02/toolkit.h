@@ -4,5 +4,5 @@
 
 namespace Toolkit {
 	void init();
-	void renderTextureToTarget(ID3D12GraphicsCommandList* list);
+	void copyTextureToTarget(ID3D12GraphicsCommandList* list);
 }

@@ -92,4 +92,9 @@
       <Filter>Shader files</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="texCopy.hlsl">
+      <Filter>Shader files</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>
