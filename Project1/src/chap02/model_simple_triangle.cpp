@@ -52,23 +52,8 @@ void SimpleTriangleModel::createGraphicsPipelineState(ID3D12Device* device)
 
 	// create the pipline state, which includes compiling and loading shaders
 	{
-		ComPtr<ID3DBlob> error = nullptr;
-
-		auto result = D3DCompileFromFile(kShaderFile, nullptr, nullptr, kVsEntryPoint, Config::kVsVersion, Config::kCompileFlags, 0, vertexShader.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf());
-
-		if (FAILED(result))
-		{
-			Dbg::printBlob(error.Get());
-			Dbg::ThrowIfFailed(E_FAIL);
-		}
-
-		result = D3DCompileFromFile(kShaderFile, nullptr, nullptr, kPsEntryPoint, Config::kPsVersion, Config::kCompileFlags, 0, pixelShader.ReleaseAndGetAddressOf(), error.ReleaseAndGetAddressOf());
-
-		if (FAILED(result))
-		{
-			Dbg::printBlob(error.Get());
-			Dbg::ThrowIfFailed(E_FAIL);
-		}
+		Dbg::ThrowIfFailed(Util::compileVsShader(vertexShader, kShaderFile, kVsEntryPoint));
+		Dbg::ThrowIfFailed(Util::compilePsShader(pixelShader, kShaderFile, kPsEntryPoint));
 	}
 
 	// create root signature
