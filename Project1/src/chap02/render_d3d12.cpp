@@ -29,12 +29,12 @@ static void waitForPreviousFrame();
 static void populateCommandList();
 
 namespace Render {
-	void setup(HWND hwnd, ID3D12Device* device)
+	void setup(ID3D12Device* device, HWND hwnd)
 	{
 		createCommandAllocator(device);
 		createCommandQueue(device);
 
-		MiniEngineIf::init(hwnd, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
+		MiniEngineIf::init(device, hwnd, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 	}
 
 	void loadAssets(ID3D12Device* device)
@@ -77,6 +77,7 @@ namespace Render {
 
 	void onRender()
 	{
+		MiniEngineIf::draw();
 		populateCommandList();
 
 		ID3D12CommandList* ppCommandLists[] = { s_commandList.Get() };
