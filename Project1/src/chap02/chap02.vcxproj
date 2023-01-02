@@ -184,6 +184,7 @@ call :copyFiles
     <ClCompile Include="render_d3d12.cpp" />
     <ClCompile Include="model_simple_triangle.cpp" />
     <ClCompile Include="swapchain_d3d12.cpp" />
+    <ClCompile Include="toolkit.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="winmgr_win.cpp" />
   </ItemGroup>
@@ -196,6 +197,7 @@ call :copyFiles
     <ClInclude Include="render_d3d12.h" />
     <ClInclude Include="model_simple_triangle.h" />
     <ClInclude Include="swapchain_d3d12.h" />
+    <ClInclude Include="toolkit.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="winmgr_win.h" />
   </ItemGroup>
