@@ -2,6 +2,8 @@
 #include <windows.h>
 #include "debug_win.h"
 
+#define ENABLE_MINI_ENGINE_WINDOW (0)
+
 namespace {
 	HRESULT createWindow(HWND* hwnd, HINSTANCE hInstance, WNDPROC wndproc, const wchar_t className[], const wchar_t windowName[]);
 	LRESULT CALLBACK WindowProcMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -20,6 +22,9 @@ namespace WinMgr {
 		Dbg::ThrowIfFailed(createWindow(&s_hwndMiniEngine, hInstance, WindowProcMiniEngine, L"Mini Engine Class", L"Mini Engine Window"));
 
 		ShowWindow(s_hwndMain, nCmdShow);
+#if ENABLE_MINI_ENGINE_WINDOW
+		ShowWindow(s_hwndMiniEngine, nCmdShow);
+#endif // #if ENABLE_MINI_ENGINE_WINDOW
 
 		return S_OK;
 	}
