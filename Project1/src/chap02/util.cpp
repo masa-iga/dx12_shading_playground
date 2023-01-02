@@ -1,11 +1,20 @@
 #include "util.h"
 #include <string>
+#if defined(_WIN32) || defined(_WIN64)
+#include <d3dcompiler.h>
+#endif // #if defined(_WIN32) || defined(_WIN64)
+#include "config.h"
 #include "debug_win.h"
 #pragma warning(push)
 #pragma warning(disable: 26812)
 
+#if defined(_WIN32) || defined(_WIN64)
+using namespace Microsoft::WRL;
+#endif // #if defined(_WIN32) || defined(_WIN64)
+
 namespace {
 #if defined(_WIN32) || defined(_WIN64)
+	HRESULT compileShader(ComPtr<ID3DBlob>& shaderBlob, LPCWSTR shaderFile, LPCSTR entrypoint, LPCSTR target);
 	const char* getNameOfD3d12HeapType(D3D12_HEAP_TYPE type);
 	const char* getNameOfD3d12CpuPageProperty(D3D12_CPU_PAGE_PROPERTY prop);
 	const char* getNameOfD3d12MemoryPool(D3D12_MEMORY_POOL mpool);
@@ -16,6 +25,16 @@ namespace {
 
 namespace Util {
 #if defined(_WIN32) || defined(_WIN64)
+	HRESULT compileVsShader(ComPtr<ID3DBlob>& shaderBlob, LPCWSTR shaderFile, LPCSTR entrypoint)
+	{
+		return compileShader(shaderBlob, shaderFile, entrypoint, Config::kVsVersion);
+	}
+
+	HRESULT compilePsShader(Microsoft::WRL::ComPtr<ID3DBlob>& shaderBlob, LPCWSTR shaderFile, LPCSTR entrypoint)
+	{
+		return compileShader(shaderBlob, shaderFile, entrypoint, Config::kPsVersion);
+	}
+
 	void debugPrint(ID3D12Resource* resource)
 	{
 		const auto d = resource->GetDesc();
@@ -31,6 +50,31 @@ namespace Util {
 
 namespace {
 #if defined(_WIN32) || defined(_WIN64)
+	HRESULT compileShader(ComPtr<ID3DBlob>& shaderBlob, LPCWSTR shaderFile, LPCSTR entrypoint, LPCSTR target)
+	{
+		ComPtr<ID3DBlob> error = nullptr;
+
+		auto result = D3DCompileFromFile(
+			shaderFile,
+			nullptr,
+			nullptr,
+			entrypoint,
+			target,
+			Config::kCompileFlags1,
+			Config::kCompileFlags2,
+			shaderBlob.ReleaseAndGetAddressOf(),
+			error.ReleaseAndGetAddressOf()
+		);
+
+		if (FAILED(result))
+		{
+			Dbg::printBlob(error.Get());
+			return E_FAIL;
+		}
+
+		return S_OK;
+	}
+
 	const char* getNameOfD3d12HeapType(D3D12_HEAP_TYPE type)
 	{
 		switch (type) {

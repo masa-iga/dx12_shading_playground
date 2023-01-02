@@ -9,7 +9,8 @@ namespace Config {
 	constexpr static UINT kRenderTargetBufferCount = 2;
 
 	constexpr static D3D_ROOT_SIGNATURE_VERSION kRootSignatureVersion = D3D_ROOT_SIGNATURE_VERSION_1;
-	const static UINT kCompileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+	const static UINT kCompileFlags1 = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+	const static UINT kCompileFlags2 = 0;
 	const static LPCSTR kVsVersion = "vs_5_1";
 	const static LPCSTR kPsVersion = "ps_5_1";
 }
