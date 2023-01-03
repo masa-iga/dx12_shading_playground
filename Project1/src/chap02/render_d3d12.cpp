@@ -38,7 +38,7 @@ namespace Render {
 		createCommandQueue(device);
 
 		MiniEngineIf::init(device, hwnd, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
-		Toolkit::init();
+		Toolkit::init(device);
 	}
 
 	void loadAssets(ID3D12Device* device)

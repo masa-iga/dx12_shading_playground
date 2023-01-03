@@ -3,6 +3,6 @@
 #include <Windows.h>
 
 namespace Toolkit {
-	void init();
+	void init(ID3D12Device* device);
 	void copyTextureToTarget(ID3D12GraphicsCommandList* list);
 }
