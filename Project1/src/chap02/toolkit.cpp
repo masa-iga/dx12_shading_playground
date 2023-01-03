@@ -4,6 +4,7 @@
 #include <directxmath.h>
 #include "config.h"
 #include "debug_win.h"
+#include "device_d3d12.h"
 #include "util.h"
 
 using namespace Microsoft::WRL;
@@ -13,6 +14,7 @@ namespace {
 	const CD3DX12_RECT kScissorRect(0, 0, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 	void initTexCopy(ID3D12Device* device);
 
+	constexpr DXGI_FORMAT kRtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	enum class Index {
 		kCopyTex,
 		kLen,
@@ -20,14 +22,21 @@ namespace {
 	constexpr std::array<LPCWSTR, static_cast<size_t>(Index::kLen)> kShaderFiles = { L"texCopy.hlsl" };
 	constexpr std::array<LPCSTR, static_cast<size_t>(Index::kLen)> kVsEntrypoints = { "vsmain" };
 	constexpr std::array<LPCSTR, static_cast<size_t>(Index::kLen)> kPsEntrypoints = { "psmain" };
-	constexpr DXGI_FORMAT kRtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-
 	std::array<ComPtr<ID3DBlob>, static_cast<size_t>(Index::kLen)> s_vsShaderBlobs = { nullptr };
 	std::array<ComPtr<ID3DBlob>, static_cast<size_t>(Index::kLen)> s_psShaderBlobs = { nullptr };
 	std::array<ComPtr<ID3D12RootSignature>, static_cast<size_t>(Index::kLen)> s_rootSignatures = { nullptr };
 	std::array<ComPtr<ID3D12PipelineState>, static_cast<size_t>(Index::kLen)> s_pipelineStates = { nullptr };
 	std::array<ComPtr<ID3D12Resource>, static_cast<size_t>(Index::kLen)> s_vertexBuffers = { nullptr };
 	std::array<D3D12_VERTEX_BUFFER_VIEW, static_cast<size_t>(Index::kLen)> s_vbViews = { { } };
+	std::array<ComPtr<ID3D12DescriptorHeap>, static_cast<size_t>(Index::kLen)> s_descHeaps = { nullptr };
+}
+
+namespace {
+	enum class TexCopyHeapIndex : UINT {
+		kCbvWorldMatrix,
+		kSrvSrcTex,
+	};
+	ComPtr<ID3D12Resource> s_texCopyMatrixBuffer = nullptr;
 }
 
 namespace Toolkit {
@@ -46,9 +55,9 @@ namespace Toolkit {
 
 		list->SetPipelineState(s_pipelineStates.at(static_cast<uint32_t>(Index::kCopyTex)).Get());
 		list->SetGraphicsRootSignature(s_rootSignatures.at(static_cast<uint32_t>(Index::kCopyTex)).Get());
-//		ID3D12DescriptorHeap* const heaps[] = { m_descHeap.Get(), };
-//		list->SetDescriptorHeaps(_countof(heaps), heaps);
-//		list->SetGraphicsRootDescriptorTable(0, m_descHeap->GetGPUDescriptorHandleForHeapStart());
+		ID3D12DescriptorHeap* const heaps[] = { s_descHeaps.at(static_cast<uint32_t>(Index::kCopyTex)).Get(), };
+		list->SetDescriptorHeaps(_countof(heaps), heaps);
+		list->SetGraphicsRootDescriptorTable(0, s_descHeaps.at(static_cast<uint32_t>(Index::kCopyTex))->GetGPUDescriptorHandleForHeapStart());
 
 		list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		list->IASetVertexBuffers(0, 1, &s_vbViews.at(static_cast<uint32_t>(Index::kCopyTex)));
@@ -76,15 +85,11 @@ namespace {
 				CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0),
 			};
 
-#if 0
 			CD3DX12_ROOT_PARAMETER rootParam;
 			rootParam.InitAsDescriptorTable(_countof(descRanges), descRanges);
 			const CD3DX12_STATIC_SAMPLER_DESC sampleDesc(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 
 			const CD3DX12_ROOT_SIGNATURE_DESC desc(1, &rootParam, 1, &sampleDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-#else
-			const CD3DX12_ROOT_SIGNATURE_DESC desc(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-#endif
 
 			ComPtr<ID3DBlob> signature = nullptr;
 			ComPtr<ID3DBlob> error = nullptr;
@@ -187,6 +192,64 @@ namespace {
 			s_vbViews.at(static_cast<uint32_t>(Index::kCopyTex)).BufferLocation = s_vertexBuffers.at(static_cast<uint32_t>(Index::kCopyTex))->GetGPUVirtualAddress();
 			s_vbViews.at(static_cast<uint32_t>(Index::kCopyTex)).SizeInBytes = vertexBufferSize;
 			s_vbViews.at(static_cast<uint32_t>(Index::kCopyTex)).StrideInBytes = sizeof(Vertex);
+		}
+
+		{
+			constexpr UINT kNumOfDesc = 2;
+
+			const D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {
+				.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+				.NumDescriptors = kNumOfDesc,
+				.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+				.NodeMask = 1,
+			};
+			Dbg::ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(s_descHeaps.at(static_cast<uint32_t>(Index::kCopyTex)).ReleaseAndGetAddressOf())));
+		}
+
+		{
+			CD3DX12_HEAP_PROPERTIES heapProp(D3D12_HEAP_TYPE_UPLOAD);
+			auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(Util::getAlignedContantBufferSize(sizeof(DirectX::XMMATRIX)));
+
+			Dbg::ThrowIfFailed(device->CreateCommittedResource(
+				&heapProp,
+				D3D12_HEAP_FLAG_NONE,
+				&resourceDesc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(s_texCopyMatrixBuffer.ReleaseAndGetAddressOf()))
+			);
+		}
+
+		{
+			using namespace DirectX;
+
+			XMMATRIX* pMatrix = nullptr;
+			const CD3DX12_RANGE readRange(0, 0);
+
+			Dbg::ThrowIfFailed(s_texCopyMatrixBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pMatrix)));
+			{
+				constexpr float scale[] = { 0.15f, 0.15f, 0.15f };
+				constexpr float trans[] = { 0.8f, -0.8f, 0.0f };
+				*pMatrix = DirectX::XMMatrixMultiply(
+					DirectX::XMMatrixScaling(scale[0], scale[1], scale[2]),
+					DirectX::XMMatrixTranslation(trans[0], trans[1], trans[2])
+				);
+			}
+			s_texCopyMatrixBuffer->Unmap(0, nullptr);
+		}
+
+		{
+			const D3D12_CONSTANT_BUFFER_VIEW_DESC desc = {
+				.BufferLocation = s_texCopyMatrixBuffer->GetGPUVirtualAddress(),
+				.SizeInBytes = static_cast<UINT>(s_texCopyMatrixBuffer->GetDesc().Width),
+			};
+			const CD3DX12_CPU_DESCRIPTOR_HANDLE destDesc(
+				s_descHeaps.at(static_cast<uint32_t>(Index::kCopyTex))->GetCPUDescriptorHandleForHeapStart(),
+				static_cast<INT>(TexCopyHeapIndex::kCbvWorldMatrix),
+				DeviceD3D12::getDescHandleIncSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+			);
+
+			device->CreateConstantBufferView(&desc, destDesc);
 		}
 	}
 }

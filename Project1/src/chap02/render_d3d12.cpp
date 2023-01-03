@@ -194,7 +194,7 @@ namespace {
 
 		// render texture of MiniEngine to frame buffer
 		{
-			//Toolkit::copyTextureToTarget(s_commandList.Get());
+			Toolkit::copyTextureToTarget(s_commandList.Get());
 		}
 
 		{
