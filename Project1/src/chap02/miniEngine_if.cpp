@@ -99,6 +99,7 @@ namespace {
 				D3D12_RESOURCE_STATE_RENDER_TARGET,
 				&clearVal,
 				IID_PPV_ARGS(s_renderTarget.ReleaseAndGetAddressOf())));
+			Dbg::ThrowIfFailed(s_renderTarget->SetName(L"MiniEngine_RenderTarget"));
 		}
 
 		{
@@ -112,6 +113,7 @@ namespace {
 			Dbg::ThrowIfFailed(device->CreateDescriptorHeap(
 				&heapDesc,
 				IID_PPV_ARGS(s_descHeapRt.ReleaseAndGetAddressOf())));
+			Dbg::ThrowIfFailed(s_descHeapRt->SetName(L"MiniEngine_DescHeapRenderTarget"));
 
 			const D3D12_RENDER_TARGET_VIEW_DESC rtViewDesc = {
 				.Format = kRenderTargetFormat,
@@ -145,6 +147,7 @@ namespace {
 				D3D12_RESOURCE_STATE_DEPTH_WRITE,
 				&clearVal,
 				IID_PPV_ARGS(s_depthRenderTarget.ReleaseAndGetAddressOf())));
+			Dbg::ThrowIfFailed(s_depthRenderTarget->SetName(L"MiniEngine_DepthRenderTarget"));
 		}
 
 		{
@@ -158,6 +161,7 @@ namespace {
 			Dbg::ThrowIfFailed(device->CreateDescriptorHeap(
 				&heapDesc,
 				IID_PPV_ARGS(s_descHeapDrt.ReleaseAndGetAddressOf())));
+			Dbg::ThrowIfFailed(s_descHeapDrt->SetName(L"MiniEngine_DescHeapDepthRenderTarget"));
 
 			const D3D12_DEPTH_STENCIL_VIEW_DESC viewDesc = {
 				.Format = s_depthRenderTarget->GetDesc().Format,
