@@ -6,5 +6,6 @@ namespace MiniEngineIf {
 	void init(ID3D12Device* device, HWND hwnd, UINT frameBufferWidth, UINT frameBufferHeight);
 	void end();
 	void loadModel();
+	ID3D12Resource* getRenderTargetResource();
 	void draw(bool renderToOffscreenBuffer = true);
 }

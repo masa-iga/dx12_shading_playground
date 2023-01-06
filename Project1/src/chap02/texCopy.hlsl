@@ -5,6 +5,8 @@ struct PsIn
 };
 
 float4x4 g_worldMatrix : register(b0);
+Texture2D<float4> g_tex : register(t0);
+sampler g_sampler : register(s0);
 
 PsIn vsmain(float4 pos : POSITION, float2 uv : TEXCOORD)
 {
@@ -16,5 +18,5 @@ PsIn vsmain(float4 pos : POSITION, float2 uv : TEXCOORD)
 
 float4 psmain(PsIn input) : SV_TARGET
 {
-    return float4(0, 0, 0, 1);
+    return g_tex.Sample(g_sampler, input.uv);
 }

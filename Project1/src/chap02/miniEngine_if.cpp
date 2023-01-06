@@ -58,6 +58,11 @@ namespace MiniEngineIf {
 		s_charaModel.Init(initData);
 	}
 
+	ID3D12Resource* getRenderTargetResource()
+	{
+		return s_renderTarget.Get();
+	}
+
 	void draw(bool renderToOffscreenBuffer)
 	{
 		auto& renderContext = g_graphicsEngine->GetRenderContext();

@@ -19,6 +19,7 @@ namespace {
 		kCopyTex,
 		kLen,
 	};
+	ID3D12Device* s_device = nullptr;
 	constexpr std::array<LPCWSTR, static_cast<size_t>(Index::kLen)> kShaderFiles = { L"texCopy.hlsl" };
 	constexpr std::array<LPCSTR, static_cast<size_t>(Index::kLen)> kVsEntrypoints = { "vsmain" };
 	constexpr std::array<LPCSTR, static_cast<size_t>(Index::kLen)> kPsEntrypoints = { "psmain" };
@@ -37,20 +38,24 @@ namespace {
 		kSrvSrcTex,
 	};
 	ComPtr<ID3D12Resource> s_texCopyMatrixBuffer = nullptr;
+	void updateTexCopyDescHeapToRegisterSrv(ID3D12Device* device, ID3D12Resource* srcTexResource);
 }
 
 namespace Toolkit {
 	void init(ID3D12Device* device)
 	{
-		initTexCopy(device);
+		s_device = device;
+		initTexCopy(s_device);
 	}
 
-	void copyTextureToTarget(ID3D12GraphicsCommandList* list)
+	void copyTextureToTarget(ID3D12GraphicsCommandList* list, ID3D12Resource* srcTexResource)
 	{
+		updateTexCopyDescHeapToRegisterSrv(s_device, srcTexResource);
+
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = { };
 
-		list->RSSetViewports(1, &kViewPort);
-		list->RSSetScissorRects(1, &kScissorRect);
+		list->RSSetViewports(1, &kViewPort); // TODO: needed ?
+		list->RSSetScissorRects(1, &kScissorRect); // TODO: needed ?
 //		list->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
 		list->SetPipelineState(s_pipelineStates.at(static_cast<uint32_t>(Index::kCopyTex)).Get());
@@ -251,5 +256,36 @@ namespace {
 
 			device->CreateConstantBufferView(&desc, destDesc);
 		}
+	}
+}
+
+namespace {
+	void updateTexCopyDescHeapToRegisterSrv(ID3D12Device* device, ID3D12Resource* srcTexResource)
+	{
+		Dbg::assert_(srcTexResource != nullptr);
+		Dbg::assert_(srcTexResource->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+
+		const D3D12_SHADER_RESOURCE_VIEW_DESC desc = {
+			.Format = srcTexResource->GetDesc().Format,
+			.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+			.Texture2D = {
+				.MostDetailedMip = 0,
+				.MipLevels = 1,
+				.PlaneSlice = 0,
+				.ResourceMinLODClamp = 0,
+			},
+		};
+
+		const CD3DX12_CPU_DESCRIPTOR_HANDLE destDesc(
+			s_descHeaps.at(static_cast<uint32_t>(Index::kCopyTex))->GetCPUDescriptorHandleForHeapStart(),
+			static_cast<INT>(TexCopyHeapIndex::kSrvSrcTex),
+			DeviceD3D12::getDescHandleIncSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+		);
+
+		device->CreateShaderResourceView(
+            srcTexResource,
+            &desc,
+            destDesc);
 	}
 }
