@@ -7,5 +7,7 @@ namespace MiniEngineIf {
 	void end();
 	void loadModel();
 	ID3D12Resource* getRenderTargetResource();
+	void beginFrame();
+	void endFrame();
 	void draw(bool renderToOffscreenBuffer = true);
 }

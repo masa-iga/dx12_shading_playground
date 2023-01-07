@@ -81,7 +81,10 @@ namespace Render {
 
 	void onRender()
 	{
+		MiniEngineIf::beginFrame();
 		MiniEngineIf::draw();
+		MiniEngineIf::endFrame();
+
 		populateCommandList();
 
 		ID3D12CommandList* ppCommandLists[] = { s_commandList.Get() };

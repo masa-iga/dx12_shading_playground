@@ -63,11 +63,19 @@ namespace MiniEngineIf {
 		return s_renderTarget.Get();
 	}
 
+	void beginFrame()
+	{
+		g_engine->BeginFrame();
+	}
+
+	void endFrame()
+	{
+		g_engine->EndFrame();
+	}
+
 	void draw(bool renderToOffscreenBuffer)
 	{
 		auto& renderContext = g_graphicsEngine->GetRenderContext();
-
-		g_engine->BeginFrame();
 
 		if (renderToOffscreenBuffer)
 		{
@@ -75,8 +83,6 @@ namespace MiniEngineIf {
 		}
 
 		s_charaModel.Draw(renderContext);
-
-		g_engine->EndFrame();
 	}
 }
 
