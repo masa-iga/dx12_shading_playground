@@ -16,6 +16,7 @@ namespace {
 	constexpr DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	constexpr UINT kRenderTargetWidth = 1920;
 	constexpr UINT kRenderTargetHeight = 1080;
+	constexpr float kRenderTargetClearColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 	Model s_charaModel;
 	ComPtr<ID3D12Resource> s_renderTarget = nullptr;
@@ -73,6 +74,11 @@ namespace MiniEngineIf {
 		g_engine->EndFrame();
 	}
 
+	void clearRenderTarget(ID3D12GraphicsCommandList* commandList)
+	{
+		commandList->ClearRenderTargetView(s_descHeapRt->GetCPUDescriptorHandleForHeapStart(), kRenderTargetClearColor, 0, nullptr);
+	}
+
 	void draw(bool renderToOffscreenBuffer)
 	{
 		auto& renderContext = g_graphicsEngine->GetRenderContext();
@@ -95,7 +101,7 @@ namespace {
 			resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			const D3D12_CLEAR_VALUE clearVal = {
 				.Format = kRenderTargetFormat,
-				.Color = { 0.0f, 0.0f, 0.0f, 0.0f },
+				.Color = { kRenderTargetClearColor[0],  kRenderTargetClearColor[1], kRenderTargetClearColor[2], kRenderTargetClearColor[3]},
 			};
 
 			Dbg::ThrowIfFailed(device->CreateCommittedResource(
