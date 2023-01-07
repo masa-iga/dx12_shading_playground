@@ -8,11 +8,11 @@ float4x4 g_worldMatrix : register(b0);
 Texture2D<float4> g_tex : register(t0);
 sampler g_sampler : register(s0);
 
-PsIn vsmain(float4 pos : POSITION, float2 uv : TEXCOORD)
+PsIn vsmain(float3 pos : POSITION, float2 uv : TEXCOORD)
 {
     PsIn psIn;
-    psIn.pos = mul(g_worldMatrix, pos);
-    psIn.uv = float2(0, 0);
+    psIn.pos = mul(g_worldMatrix, float4(pos, 1.0f));
+    psIn.uv = uv;
 	return psIn;
 }
 
