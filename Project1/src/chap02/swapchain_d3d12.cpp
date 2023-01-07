@@ -103,6 +103,7 @@ namespace {
 		};
 
 		Dbg::ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(s_rtvHeap.ReleaseAndGetAddressOf())));
+		Dbg::ThrowIfFailed(s_rtvHeap->SetName(L"DescHeap_FrameBuffer"));
 
 		s_rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
@@ -115,6 +116,7 @@ namespace {
 		{
 			Dbg::ThrowIfFailed(s_swapChain->GetBuffer(i, IID_PPV_ARGS(s_renderTargets[i].ReleaseAndGetAddressOf())));
 			device->CreateRenderTargetView(s_renderTargets[i].Get(), nullptr, handle);
+			Dbg::ThrowIfFailed(s_renderTargets[i]->SetName(L"FrameBuffer"));
 			handle.Offset(1, s_rtvDescriptorSize);
 		}
 	}
@@ -138,6 +140,7 @@ namespace {
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clearVal,
 			IID_PPV_ARGS(s_depthResource.ReleaseAndGetAddressOf())));
+		Dbg::ThrowIfFailed(s_depthResource->SetName(L"DepthRenderTarget"));
 	}
 
 	void createDepthDescHeap(ID3D12Device* device)
@@ -153,6 +156,7 @@ namespace {
 			Dbg::ThrowIfFailed(device->CreateDescriptorHeap(
 				&heapDesc,
 				IID_PPV_ARGS(s_depthDescHeap.ReleaseAndGetAddressOf())));
+			Dbg::ThrowIfFailed(s_depthDescHeap->SetName(L"DescHeap_depthRenderTarget"));
 		}
 		auto handle = s_depthDescHeap->GetCPUDescriptorHandleForHeapStart();
 
