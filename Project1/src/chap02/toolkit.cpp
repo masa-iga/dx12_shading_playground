@@ -162,10 +162,10 @@ namespace {
 		};
 
 		const Vertex triangleVertices[] = {
-			{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f } },
-			{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 1.0f } },
-			{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
-			{ {  1.0f, -1.0f, 0.0f }, { 1.0f, 0.0f } },
+			{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+			{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f } },
+			{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f } },
+			{ {  1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f } },
 		};
 		constexpr UINT vertexBufferSize = sizeof(triangleVertices);
 
