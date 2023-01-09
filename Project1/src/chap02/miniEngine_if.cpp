@@ -14,8 +14,8 @@ namespace {
 	const std::string kTkmPath = "Assets/modelData/sample.tkm";
 	const std::string kFxPath = "Assets/shader/sample.fx";
 	constexpr DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	constexpr UINT kRenderTargetWidth = 3840;
-	constexpr UINT kRenderTargetHeight = 2160;
+	constexpr UINT kRenderTargetWidth = 1920;
+	constexpr UINT kRenderTargetHeight = 1080;
 	constexpr float kRenderTargetClearColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	constexpr FLOAT kDepthClearVal = 1.0f;
 	constexpr UINT kStencilClearVal = 0;
@@ -99,6 +99,9 @@ namespace MiniEngineIf {
 		if (renderToOffscreenBuffer)
 		{
 			renderContext.SetRenderTarget(s_descHeapRt->GetCPUDescriptorHandleForHeapStart(), s_descHeapDrt->GetCPUDescriptorHandleForHeapStart());
+
+			CD3DX12_VIEWPORT vp(s_renderTarget.Get());
+			renderContext.SetViewportAndScissor(vp);
 		}
 
 		s_charaModel.Draw(renderContext);
