@@ -82,7 +82,7 @@ namespace Render {
 	void onRender()
 	{
 		MiniEngineIf::beginFrame();
-		MiniEngineIf::draw();
+		MiniEngineIf::draw(true);
 		MiniEngineIf::endFrame();
 
 		populateCommandList();
@@ -200,12 +200,34 @@ namespace {
 
 		// render texture of MiniEngine to frame buffer
 		{
+			{
+				auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+					MiniEngineIf::getRenderTargetResource(),
+					D3D12_RESOURCE_STATE_RENDER_TARGET,
+					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				s_commandList->ResourceBarrier(1, &barrier);
+			}
+
 			Toolkit::copyTextureToTarget(s_commandList.Get(), MiniEngineIf::getRenderTargetResource());
 		}
 
 		{
 			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 			s_commandList->ResourceBarrier(1, &barrier);
+		}
+
+		// clear render targets passed to MiniEngine
+		{
+			{
+				auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+					MiniEngineIf::getRenderTargetResource(),
+					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+					D3D12_RESOURCE_STATE_RENDER_TARGET);
+				s_commandList->ResourceBarrier(1, &barrier);
+			}
+
+			MiniEngineIf::clearRenderTarget(s_commandList.Get());
+			MiniEngineIf::clearDepthRenderTarget(s_commandList.Get());
 		}
 
 		Dbg::ThrowIfFailed(s_commandList->Close());

@@ -10,5 +10,6 @@ namespace MiniEngineIf {
 	void beginFrame();
 	void endFrame();
 	void clearRenderTarget(ID3D12GraphicsCommandList* commandList);
+	void clearDepthRenderTarget(ID3D12GraphicsCommandList* commandList);
 	void draw(bool renderToOffscreenBuffer = true);
 }

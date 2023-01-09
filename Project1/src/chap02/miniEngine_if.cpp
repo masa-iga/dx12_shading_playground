@@ -14,9 +14,11 @@ namespace {
 	const std::string kTkmPath = "Assets/modelData/sample.tkm";
 	const std::string kFxPath = "Assets/shader/sample.fx";
 	constexpr DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	constexpr UINT kRenderTargetWidth = 1920;
-	constexpr UINT kRenderTargetHeight = 1080;
+	constexpr UINT kRenderTargetWidth = 3840;
+	constexpr UINT kRenderTargetHeight = 2160;
 	constexpr float kRenderTargetClearColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	constexpr FLOAT kDepthClearVal = 1.0f;
+	constexpr UINT kStencilClearVal = 0;
 
 	Model s_charaModel;
 	ComPtr<ID3D12Resource> s_renderTarget = nullptr;
@@ -77,6 +79,17 @@ namespace MiniEngineIf {
 	void clearRenderTarget(ID3D12GraphicsCommandList* commandList)
 	{
 		commandList->ClearRenderTargetView(s_descHeapRt->GetCPUDescriptorHandleForHeapStart(), kRenderTargetClearColor, 0, nullptr);
+	}
+
+	void clearDepthRenderTarget(ID3D12GraphicsCommandList* commandList)
+	{
+		commandList->ClearDepthStencilView(
+			s_descHeapDrt->GetCPUDescriptorHandleForHeapStart(),
+            D3D12_CLEAR_FLAG_DEPTH,
+            kDepthClearVal,
+            kStencilClearVal,
+            0,
+            nullptr);
 	}
 
 	void draw(bool renderToOffscreenBuffer)
@@ -149,7 +162,7 @@ namespace {
 			resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 			const D3D12_CLEAR_VALUE clearVal = {
 				.Format = resourceDesc.Format,
-				.Color = { 0.0f, 0.0f, 0.0f, 0.0f },
+				.DepthStencil = { kDepthClearVal, kStencilClearVal },
 			};
 
 			Dbg::ThrowIfFailed(device->CreateCommittedResource(
