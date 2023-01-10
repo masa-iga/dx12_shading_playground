@@ -38,4 +38,5 @@
 *.pdb
 *.vcxproj.user
 
-Project1/src/chap02/Assets/*
+Project1/src/chap02/Assets/font/*
+Project1/src/chap02/Assets/modelData/*

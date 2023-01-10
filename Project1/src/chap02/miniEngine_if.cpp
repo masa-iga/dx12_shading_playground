@@ -8,11 +8,11 @@
 namespace {
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
-	constexpr std::string getFullPath(const std::string path);
+	constexpr std::string getPathFromAssetDir(const std::string path);
 
-	const std::string kBaseAssetPath = "../../import/hlsl-grimoire-sample/Sample_04_01/Sample_04_01";
-	const std::string kTkmPath = "Assets/modelData/sample.tkm";
-	const std::string kFxPath = "Assets/shader/sample.fx";
+	const std::string kBaseAssetDir = "../../import/hlsl-grimoire-sample/Sample_04_01/Sample_04_01";
+	const std::string kTkmFile = "Assets/modelData/sample.tkm";
+	const std::string kFxFile = "Assets/shader/sample.fx";
 	constexpr DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	constexpr UINT kRenderTargetWidth = 1920;
 	constexpr UINT kRenderTargetHeight = 1080;
@@ -49,8 +49,8 @@ namespace MiniEngineIf {
 
 	void loadModel()
 	{
-		const std::string tkmFilePath = getFullPath(kTkmPath);
-		const std::string fxFilePath = getFullPath(kFxPath);
+		const std::string tkmFilePath = getPathFromAssetDir(kTkmFile);
+		const std::string fxFilePath = kFxFile;
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));
 		Dbg::assert_(std::filesystem::exists(fxFilePath));
 
@@ -206,9 +206,9 @@ namespace {
 		}
 	}
 
-	constexpr std::string getFullPath(const std::string path)
+	constexpr std::string getPathFromAssetDir(const std::string path)
 	{
-		return kBaseAssetPath + "/" + path;
+		return kBaseAssetDir + "/" + path;
 	}
 }
 

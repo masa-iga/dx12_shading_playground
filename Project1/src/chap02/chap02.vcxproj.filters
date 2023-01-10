@@ -16,6 +16,12 @@
     <Filter Include="Shader files">
       <UniqueIdentifier>{ceee8bba-3fe0-4206-92b5-ddfcfe01f32a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Asserts">
+      <UniqueIdentifier>{f27588ad-13f3-4f9e-b302-49350f48341b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Asserts\shaders">
+      <UniqueIdentifier>{04c4e6af-b065-429c-bfb0-845b2108a080}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -95,6 +101,9 @@
   <ItemGroup>
     <FxCompile Include="texCopy.hlsl">
       <Filter>Shader files</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample.fx">
+      <Filter>Asserts\shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
