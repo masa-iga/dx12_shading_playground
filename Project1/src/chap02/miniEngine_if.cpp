@@ -8,11 +8,12 @@
 namespace {
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
+	void loadSampleModel();
+	void loadTeapotModel();
+	void drawInternal(bool renderToOffscreenBuffer);
 	constexpr std::string getPathFromAssetDir(const std::string path);
 
-	const std::string kBaseAssetDir = "../../import/hlsl-grimoire-sample/Sample_04_01/Sample_04_01";
-	const std::string kTkmFile = "Assets/modelData/sample.tkm";
-	const std::string kFxFile = "Assets/shader/sample.fx";
+	const std::string kBaseAssetDir = "../../import/hlsl-grimoire-sample";
 	constexpr DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	constexpr UINT kRenderTargetWidth = 1920;
 	constexpr UINT kRenderTargetHeight = 1080;
@@ -21,6 +22,8 @@ namespace {
 	constexpr UINT kStencilClearVal = 0;
 
 	Model s_charaModel;
+	Model s_teapotModel;
+
 	ComPtr<ID3D12Resource> s_renderTarget = nullptr;
 	ComPtr<ID3D12DescriptorHeap> s_descHeapRt = nullptr;
 	ComPtr<ID3D12Resource> s_depthRenderTarget = nullptr;
@@ -49,16 +52,8 @@ namespace MiniEngineIf {
 
 	void loadModel()
 	{
-		const std::string tkmFilePath = getPathFromAssetDir(kTkmFile);
-		const std::string fxFilePath = kFxFile;
-		Dbg::assert_(std::filesystem::exists(tkmFilePath));
-		Dbg::assert_(std::filesystem::exists(fxFilePath));
-
-		ModelInitData initData = { };
-		initData.m_tkmFilePath = tkmFilePath.c_str();
-		initData.m_fxFilePath = fxFilePath.c_str();
-
-		s_charaModel.Init(initData);
+		loadSampleModel();
+		loadTeapotModel();
 	}
 
 	ID3D12Resource* getRenderTargetResource()
@@ -94,17 +89,7 @@ namespace MiniEngineIf {
 
 	void draw(bool renderToOffscreenBuffer)
 	{
-		auto& renderContext = g_graphicsEngine->GetRenderContext();
-
-		if (renderToOffscreenBuffer)
-		{
-			renderContext.SetRenderTarget(s_descHeapRt->GetCPUDescriptorHandleForHeapStart(), s_descHeapDrt->GetCPUDescriptorHandleForHeapStart());
-
-			CD3DX12_VIEWPORT vp(s_renderTarget.Get());
-			renderContext.SetViewportAndScissor(vp);
-		}
-
-		s_charaModel.Draw(renderContext);
+		drawInternal(renderToOffscreenBuffer);
 	}
 }
 
@@ -204,6 +189,77 @@ namespace {
 				&viewDesc,
 				handle);
 		}
+	}
+
+	void loadSampleModel()
+	{
+		const std::string tkmFile = "Sample_04_01/Sample_04_01/Assets/modelData/sample.tkm";
+		const std::string fxFile = "Assets/shader/sample.fx";
+
+		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+		const std::string fxFilePath = fxFile;
+		Dbg::assert_(std::filesystem::exists(tkmFilePath));
+		Dbg::assert_(std::filesystem::exists(fxFilePath));
+
+		ModelInitData initData = { };
+		initData.m_tkmFilePath = tkmFilePath.c_str();
+		initData.m_fxFilePath = fxFilePath.c_str();
+
+		s_charaModel.Init(initData);
+	}
+
+	void loadTeapotModel()
+	{
+		const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
+		const std::string fxFile = "Sample_04_02/Sample_04_02/Assets/shader/sample.fx";
+
+		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+		const std::string fxFilePath = getPathFromAssetDir(fxFile);
+		Dbg::assert_(std::filesystem::exists(tkmFilePath));
+		Dbg::assert_(std::filesystem::exists(fxFilePath));
+
+		ModelInitData initData = { };
+		initData.m_tkmFilePath = tkmFilePath.c_str();
+		initData.m_fxFilePath = fxFilePath.c_str();
+
+		struct DirectionLight
+		{
+			Vector3 ligDirection;
+			float pad = 0.0f; // TODO: check HLSL behavior if remove this pad
+			Vector3 ligColor;
+		};
+
+		DirectionLight directionLig;
+		{
+			directionLig.ligDirection.x = 1.0f;
+			directionLig.ligDirection.y = -1.0f;
+			directionLig.ligDirection.z = -1.0f;
+			directionLig.ligDirection.Normalize();
+			directionLig.ligColor.x = 0.5f;
+			directionLig.ligColor.y = 0.5f;
+			directionLig.ligColor.z = 0.5f;
+		}
+
+		initData.m_expandConstantBuffer = &directionLig;
+		initData.m_expandConstantBufferSize = sizeof(directionLig);
+
+		s_teapotModel.Init(initData);
+	}
+
+	void drawInternal(bool renderToOffscreenBuffer)
+	{
+		auto& renderContext = g_graphicsEngine->GetRenderContext();
+
+		if (renderToOffscreenBuffer)
+		{
+			renderContext.SetRenderTarget(s_descHeapRt->GetCPUDescriptorHandleForHeapStart(), s_descHeapDrt->GetCPUDescriptorHandleForHeapStart());
+
+			CD3DX12_VIEWPORT vp(s_renderTarget.Get());
+			renderContext.SetViewportAndScissor(vp);
+		}
+
+		s_charaModel.Draw(renderContext);
+		s_teapotModel.Draw(renderContext);
 	}
 
 	constexpr std::string getPathFromAssetDir(const std::string path)
