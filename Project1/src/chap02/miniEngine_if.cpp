@@ -194,7 +194,7 @@ namespace {
 	void loadSampleModel()
 	{
 		const std::string tkmFile = "Sample_04_01/Sample_04_01/Assets/modelData/sample.tkm";
-		const std::string fxFile = "Assets/shader/sample.fx";
+		const std::string fxFile = "Assets/shader/sample_04_01.fx";
 
 		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 		const std::string fxFilePath = fxFile;
@@ -211,10 +211,10 @@ namespace {
 	void loadTeapotModel()
 	{
 		const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
-		const std::string fxFile = "Sample_04_02/Sample_04_02/Assets/shader/sample.fx";
+		const std::string fxFile = "Assets/shader/sample_04_02.fx";
 
 		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-		const std::string fxFilePath = getPathFromAssetDir(fxFile);
+		const std::string fxFilePath = fxFile;
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));
 		Dbg::assert_(std::filesystem::exists(fxFilePath));
 

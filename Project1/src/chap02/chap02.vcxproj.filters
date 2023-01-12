@@ -102,7 +102,10 @@
     <FxCompile Include="texCopy.hlsl">
       <Filter>Shader files</Filter>
     </FxCompile>
-    <FxCompile Include="Assets\shader\sample.fx">
+    <FxCompile Include="Assets\shader\sample_04_01.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_04_02.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
   </ItemGroup>
