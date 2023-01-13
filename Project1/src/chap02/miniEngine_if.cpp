@@ -225,19 +225,20 @@ namespace {
 		struct DirectionLight
 		{
 			Vector3 ligDirection;
-			float pad = 0.0f; // TODO: check HLSL behavior if remove this pad
+			float pad0 = 0.0f;
 			Vector3 ligColor;
+			float pad1 = 0.0f;
 		};
 
-		DirectionLight directionLig;
+		static DirectionLight directionLig; // must be resident in memory because draw() uploads the data to buffer
 		{
 			directionLig.ligDirection.x = 1.0f;
 			directionLig.ligDirection.y = -1.0f;
 			directionLig.ligDirection.z = -1.0f;
 			directionLig.ligDirection.Normalize();
-			directionLig.ligColor.x = 0.5f;
-			directionLig.ligColor.y = 0.5f;
-			directionLig.ligColor.z = 0.5f;
+			directionLig.ligColor.x = 0.3f;
+			directionLig.ligColor.y = 0.3f;
+			directionLig.ligColor.z = 0.3f;
 		}
 
 		initData.m_expandConstantBuffer = &directionLig;
