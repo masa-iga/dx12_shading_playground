@@ -5,8 +5,9 @@
 
 #pragma comment(lib, "hlsl-grimoire-sample_miniEngine.lib")
 
-#define LOAD_MODEL_CHAP_04_01 (1)
-#define LOAD_MODEL_CHAP_04_03 (1)
+#define LOAD_MODEL_CHAP_04_01 (0)
+#define LOAD_MODEL_CHAP_04_03 (0)
+#define LOAD_MODEL_CHAP_05_01 (1)
 
 namespace {
 	struct DirectionLight
@@ -23,8 +24,8 @@ namespace {
 	void createDepthRenderTarget(ID3D12Device* device);
 	void loadModelForChap04_01();
 	void loadModelForChap04_03(DirectionLight* directionLig);
-	void loadSampleModel(const std::string& tkmFilePath, const std::string& fxFilePath);
-	void loadTeapotModel(const std::string& tkmFilePath, const std::string& fxFilePath, DirectionLight* directionLig);
+	void loadModelForChap05_01(DirectionLight* directionLig);
+	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, DirectionLight* directionLig);
 	void drawInternal(bool renderToOffscreenBuffer);
 	constexpr std::string getPathFromAssetDir(const std::string path);
 
@@ -79,6 +80,9 @@ namespace MiniEngineIf {
 #if LOAD_MODEL_CHAP_04_03
 		loadModelForChap04_03(&s_directionLig);
 #endif // #if LOAD_MODEL_CHAP_04_03
+#if LOAD_MODEL_CHAP_05_01
+		loadModelForChap05_01(&s_directionLig);
+#endif // #if LOAD_MODEL_CHAP_05_01
 	}
 
 	ID3D12Resource* getRenderTargetResource()
@@ -222,7 +226,8 @@ namespace {
 		const std::string fxFile = "Assets/shader/sample_04_01.fx";
 		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 		const std::string fxFilePath = fxFile;
-		loadSampleModel(tkmFilePath, fxFilePath);
+		static Model s_model;
+		initModel(tkmFilePath, fxFilePath, &s_model, nullptr);
 	}
 
 	void loadModelForChap04_03(DirectionLight* directionLig)
@@ -231,10 +236,41 @@ namespace {
 		const std::string fxFile = "Assets/shader/sample_04_02.fx";
 		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 		const std::string fxFilePath = fxFile;
-		loadTeapotModel(tkmFilePath, fxFilePath, directionLig);
+		static Model s_model;
+		initModel(tkmFilePath, fxFilePath, &s_model, directionLig);
 	}
 
-	void loadSampleModel(const std::string& tkmFilePath, const std::string& fxFilePath)
+	void loadModelForChap05_01(DirectionLight* directionLig)
+	{
+		{
+			const std::string tkmFile = "Sample_04_01/Sample_04_01/Assets/modelData/sample.tkm";
+			const std::string fxFile = "Assets/shader/sample_04_01.fx";
+			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+			const std::string fxFilePath = fxFile;
+			static Model s_model;
+			initModel(tkmFilePath, fxFilePath, &s_model, nullptr);
+		}
+
+		{
+			const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
+			const std::string fxFile = "Assets/shader/sample_04_02.fx";
+			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+			const std::string fxFilePath = fxFile;
+			static Model s_model;
+			initModel(tkmFilePath, fxFilePath, &s_model, directionLig);
+		}
+
+		{
+			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/bg.tkm";
+			const std::string fxFile = "Assets/shader/sample_04_02.fx";
+			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+			const std::string fxFilePath = fxFile;
+			static Model s_model;
+			initModel(tkmFilePath, fxFilePath, &s_model, directionLig);
+		}
+	}
+
+	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, DirectionLight* directionLig)
 	{
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));
 		Dbg::assert_(std::filesystem::exists(fxFilePath));
@@ -243,25 +279,14 @@ namespace {
 		initData.m_tkmFilePath = tkmFilePath.c_str();
 		initData.m_fxFilePath = fxFilePath.c_str();
 
-		static Model s_charaModel;
-		s_charaModel.Init(initData);
-		s_models.push_back(&s_charaModel);
-	}
+		if (directionLig)
+		{
+			initData.m_expandConstantBuffer = directionLig;
+			initData.m_expandConstantBufferSize = sizeof(*directionLig);
+		}
 
-	void loadTeapotModel(const std::string& tkmFilePath, const std::string& fxFilePath, DirectionLight* directionLig)
-	{
-		Dbg::assert_(std::filesystem::exists(tkmFilePath));
-		Dbg::assert_(std::filesystem::exists(fxFilePath));
-
-		ModelInitData initData = { };
-		initData.m_tkmFilePath = tkmFilePath.c_str();
-		initData.m_fxFilePath = fxFilePath.c_str();
-		initData.m_expandConstantBuffer = directionLig;
-		initData.m_expandConstantBufferSize = sizeof(*directionLig);
-
-		static Model s_teapotModel;
-		s_teapotModel.Init(initData);
-		s_models.push_back(&s_teapotModel);
+		model->Init(initData);
+		s_models.push_back(model);
 	}
 
 	void drawInternal(bool renderToOffscreenBuffer)
