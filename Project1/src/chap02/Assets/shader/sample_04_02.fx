@@ -92,11 +92,17 @@ float3 computeSpecularLight(float3 normal, float3 worldPos)
     return ligColor * t;
 }
 
+float3 computeAmbientLight()
+{
+    return float3(0.3f, 0.3f, 0.3f);
+}
+
 float4 PSMain(SPSIn psIn) : SV_Target0
 {
     const float3 diffuseLig = computeDiffuseLight(psIn.normal);
     const float3 specularLig = computeSpecularLight(psIn.normal, psIn.worldPos);
-    const float3 lig = diffuseLig + specularLig;
+    const float3 ambientLig = computeAmbientLight();
+    const float3 lig = diffuseLig + specularLig + ambientLig;
 
     float4 finalColor = g_texture.Sample(g_sampler, psIn.uv);
     finalColor.xyz *= lig;
