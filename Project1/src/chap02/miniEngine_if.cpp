@@ -5,6 +5,9 @@
 
 #pragma comment(lib, "hlsl-grimoire-sample_miniEngine.lib")
 
+#define LOAD_MODEL_CHAP_04_01 (1)
+#define LOAD_MODEL_CHAP_04_03 (1)
+
 namespace {
 	struct DirectionLight
 	{
@@ -18,6 +21,8 @@ namespace {
 
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
+	void loadModelForChap04_01();
+	void loadModelForChap04_03();
 	void loadSampleModel();
 	void loadTeapotModel();
 	void drawInternal(bool renderToOffscreenBuffer);
@@ -31,8 +36,7 @@ namespace {
 	constexpr FLOAT kDepthClearVal = 1.0f;
 	constexpr UINT kStencilClearVal = 0;
 
-	Model s_charaModel;
-	Model s_teapotModel;
+	std::vector<Model*> s_models;
 	DirectionLight s_directionLig;
 
 	ComPtr<ID3D12Resource> s_renderTarget = nullptr;
@@ -63,8 +67,12 @@ namespace MiniEngineIf {
 
 	void loadModel()
 	{
-		loadSampleModel();
-		loadTeapotModel();
+#if LOAD_MODEL_CHAP_04_01
+		loadModelForChap04_01();
+#endif // #if LOAD_MODEL_CHAP_04_01
+#if LOAD_MODEL_CHAP_04_03
+		loadModelForChap04_03();
+#endif // #if LOAD_MODEL_CHAP_04_03
 	}
 
 	ID3D12Resource* getRenderTargetResource()
@@ -202,6 +210,16 @@ namespace {
 		}
 	}
 
+	void loadModelForChap04_01()
+	{
+		loadSampleModel();
+	}
+
+	void loadModelForChap04_03()
+	{
+		loadTeapotModel();
+	}
+
 	void loadSampleModel()
 	{
 		const std::string tkmFile = "Sample_04_01/Sample_04_01/Assets/modelData/sample.tkm";
@@ -216,7 +234,9 @@ namespace {
 		initData.m_tkmFilePath = tkmFilePath.c_str();
 		initData.m_fxFilePath = fxFilePath.c_str();
 
+		static Model s_charaModel;
 		s_charaModel.Init(initData);
+		s_models.push_back(&s_charaModel);
 	}
 
 	void loadTeapotModel()
@@ -235,7 +255,10 @@ namespace {
 
 		initData.m_expandConstantBuffer = &s_directionLig;
 		initData.m_expandConstantBufferSize = sizeof(s_directionLig);
+
+		static Model s_teapotModel;
 		s_teapotModel.Init(initData);
+		s_models.push_back(&s_teapotModel);
 
 		// this parameter will be uploaded every draw(), then it's safe to update after ModelInitData.Init()
 		{
@@ -262,8 +285,10 @@ namespace {
 			renderContext.SetViewportAndScissor(vp);
 		}
 
-		s_charaModel.Draw(renderContext);
-		s_teapotModel.Draw(renderContext);
+		for (auto model : s_models)
+		{
+			model->Draw(renderContext);
+		}
 	}
 
 	constexpr std::string getPathFromAssetDir(const std::string path)
