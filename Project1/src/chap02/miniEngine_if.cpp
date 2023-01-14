@@ -22,9 +22,9 @@ namespace {
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
 	void loadModelForChap04_01();
-	void loadModelForChap04_03();
-	void loadSampleModel();
-	void loadTeapotModel();
+	void loadModelForChap04_03(DirectionLight* directionLig);
+	void loadSampleModel(const std::string& tkmFilePath, const std::string& fxFilePath);
+	void loadTeapotModel(const std::string& tkmFilePath, const std::string& fxFilePath, DirectionLight* directionLig);
 	void drawInternal(bool renderToOffscreenBuffer);
 	constexpr std::string getPathFromAssetDir(const std::string path);
 
@@ -37,7 +37,6 @@ namespace {
 	constexpr UINT kStencilClearVal = 0;
 
 	std::vector<Model*> s_models;
-	DirectionLight s_directionLig;
 
 	ComPtr<ID3D12Resource> s_renderTarget = nullptr;
 	ComPtr<ID3D12DescriptorHeap> s_descHeapRt = nullptr;
@@ -67,11 +66,18 @@ namespace MiniEngineIf {
 
 	void loadModel()
 	{
+		static DirectionLight s_directionLig = {
+			.ligDirection = { 1.0f, -1.0f, -1.0f},
+			.ligColor = { 0.3f, 0.3f, 0.3f },
+			.eyePos = g_camera3D->GetPosition(),
+		};
+		s_directionLig.ligDirection.Normalize();
+
 #if LOAD_MODEL_CHAP_04_01
 		loadModelForChap04_01();
 #endif // #if LOAD_MODEL_CHAP_04_01
 #if LOAD_MODEL_CHAP_04_03
-		loadModelForChap04_03();
+		loadModelForChap04_03(&s_directionLig);
 #endif // #if LOAD_MODEL_CHAP_04_03
 	}
 
@@ -212,21 +218,24 @@ namespace {
 
 	void loadModelForChap04_01()
 	{
-		loadSampleModel();
-	}
-
-	void loadModelForChap04_03()
-	{
-		loadTeapotModel();
-	}
-
-	void loadSampleModel()
-	{
 		const std::string tkmFile = "Sample_04_01/Sample_04_01/Assets/modelData/sample.tkm";
 		const std::string fxFile = "Assets/shader/sample_04_01.fx";
-
 		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 		const std::string fxFilePath = fxFile;
+		loadSampleModel(tkmFilePath, fxFilePath);
+	}
+
+	void loadModelForChap04_03(DirectionLight* directionLig)
+	{
+		const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
+		const std::string fxFile = "Assets/shader/sample_04_02.fx";
+		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+		const std::string fxFilePath = fxFile;
+		loadTeapotModel(tkmFilePath, fxFilePath, directionLig);
+	}
+
+	void loadSampleModel(const std::string& tkmFilePath, const std::string& fxFilePath)
+	{
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));
 		Dbg::assert_(std::filesystem::exists(fxFilePath));
 
@@ -239,38 +248,20 @@ namespace {
 		s_models.push_back(&s_charaModel);
 	}
 
-	void loadTeapotModel()
+	void loadTeapotModel(const std::string& tkmFilePath, const std::string& fxFilePath, DirectionLight* directionLig)
 	{
-		const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
-		const std::string fxFile = "Assets/shader/sample_04_02.fx";
-
-		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-		const std::string fxFilePath = fxFile;
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));
 		Dbg::assert_(std::filesystem::exists(fxFilePath));
 
 		ModelInitData initData = { };
 		initData.m_tkmFilePath = tkmFilePath.c_str();
 		initData.m_fxFilePath = fxFilePath.c_str();
-
-		initData.m_expandConstantBuffer = &s_directionLig;
-		initData.m_expandConstantBufferSize = sizeof(s_directionLig);
+		initData.m_expandConstantBuffer = directionLig;
+		initData.m_expandConstantBufferSize = sizeof(*directionLig);
 
 		static Model s_teapotModel;
 		s_teapotModel.Init(initData);
 		s_models.push_back(&s_teapotModel);
-
-		// this parameter will be uploaded every draw(), then it's safe to update after ModelInitData.Init()
-		{
-			s_directionLig.ligDirection.x = 1.0f;
-			s_directionLig.ligDirection.y = -1.0f;
-			s_directionLig.ligDirection.z = -1.0f;
-			s_directionLig.ligDirection.Normalize();
-			s_directionLig.ligColor.x = 0.3f;
-			s_directionLig.ligColor.y = 0.3f;
-			s_directionLig.ligColor.z = 0.3f;
-			s_directionLig.eyePos = g_camera3D->GetPosition();
-		}
 	}
 
 	void drawInternal(bool renderToOffscreenBuffer)
