@@ -6,6 +6,16 @@
 #pragma comment(lib, "hlsl-grimoire-sample_miniEngine.lib")
 
 namespace {
+	struct DirectionLight
+	{
+		Vector3 ligDirection;
+		float pad0 = 0.0f;
+		Vector3 ligColor;
+		float pad1 = 0.0f;
+		Vector3 eyePos;
+		float pad2 = 0.0f;
+	};
+
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
 	void loadSampleModel();
@@ -23,6 +33,7 @@ namespace {
 
 	Model s_charaModel;
 	Model s_teapotModel;
+	DirectionLight s_directionLig;
 
 	ComPtr<ID3D12Resource> s_renderTarget = nullptr;
 	ComPtr<ID3D12DescriptorHeap> s_descHeapRt = nullptr;
@@ -222,29 +233,21 @@ namespace {
 		initData.m_tkmFilePath = tkmFilePath.c_str();
 		initData.m_fxFilePath = fxFilePath.c_str();
 
-		struct DirectionLight
-		{
-			Vector3 ligDirection;
-			float pad0 = 0.0f;
-			Vector3 ligColor;
-			float pad1 = 0.0f;
-		};
-
-		static DirectionLight directionLig; // must be resident in memory because draw() uploads the data to buffer
-		{
-			directionLig.ligDirection.x = 1.0f;
-			directionLig.ligDirection.y = -1.0f;
-			directionLig.ligDirection.z = -1.0f;
-			directionLig.ligDirection.Normalize();
-			directionLig.ligColor.x = 0.3f;
-			directionLig.ligColor.y = 0.3f;
-			directionLig.ligColor.z = 0.3f;
-		}
-
-		initData.m_expandConstantBuffer = &directionLig;
-		initData.m_expandConstantBufferSize = sizeof(directionLig);
-
+		initData.m_expandConstantBuffer = &s_directionLig;
+		initData.m_expandConstantBufferSize = sizeof(s_directionLig);
 		s_teapotModel.Init(initData);
+
+		// this parameter will be uploaded every draw(), then it's safe to update after ModelInitData.Init()
+		{
+			s_directionLig.ligDirection.x = 1.0f;
+			s_directionLig.ligDirection.y = -1.0f;
+			s_directionLig.ligDirection.z = -1.0f;
+			s_directionLig.ligDirection.Normalize();
+			s_directionLig.ligColor.x = 0.3f;
+			s_directionLig.ligColor.y = 0.3f;
+			s_directionLig.ligColor.z = 0.3f;
+			s_directionLig.eyePos = g_camera3D->GetPosition();
+		}
 	}
 
 	void drawInternal(bool renderToOffscreenBuffer)

@@ -18,6 +18,7 @@ struct SPSIn
     float4 pos      : SV_POSITION;
     float3 normal   : NORMAL;
     float2 uv       : TEXCOORD0;
+    float3 worldPos : TEXCOORD1;
 };
 
 ///////////////////////////////////////////
@@ -31,11 +32,11 @@ cbuffer ModelCb : register(b0)
     float4x4 mProj;
 };
 
-// step-5 ディレクションライト用のデータを受け取る定数バッファーを用意する
 cbuffer DirectionLightCb : register(b1)
 {
     float3 ligDirection;
     float3 ligColor;
+    float3 eyePos;
 };
 
 ///////////////////////////////////////////
@@ -57,12 +58,10 @@ SPSIn VSMain(SVSIn vsIn, uniform bool hasSkin)
     SPSIn psIn;
 
     psIn.pos = mul(mWorld, vsIn.pos);   // モデルの頂点をワールド座標系に変換
+    psIn.worldPos = psIn.pos;
     psIn.pos = mul(mView, psIn.pos);    // ワールド座標系からカメラ座標系に変換
     psIn.pos = mul(mProj, psIn.pos);    // カメラ座標系からスクリーン座標系に変換
-
-    // step-6 頂点法線をピクセルシェーダーに渡す
     psIn.normal = mul(mWorld, vsIn.normal);
-
     psIn.uv = vsIn.uv;
 
     return psIn;
@@ -71,22 +70,36 @@ SPSIn VSMain(SVSIn vsIn, uniform bool hasSkin)
 /// <summary>
 /// モデル用のピクセルシェーダーのエントリーポイント
 /// </summary>
-float4 PSMain(SPSIn psIn) : SV_Target0
+float3 computeDiffuseLight(float3 normal)
 {
-    // step-7 ピクセルの法線とライトの方向の内積を計算する
-    float t = dot(psIn.normal, ligDirection);
+    float t = dot(normal, ligDirection);
     t *= -1.0f;
-
-    // step-8 内積の結果が0以下なら0にする
     t = clamp(t, 0.0f, 1.0f);
 
-    // step-9 ピクセルが受けているライトの光を求める
-    const float3 diffuseLig = ligColor * t;
+    return ligColor * t;
+}
+
+float3 computeSpecularLight(float3 normal, float3 worldPos)
+{
+    const float3 refVec = reflect(ligDirection, normal);
+    float3 toEye = eyePos - worldPos;
+    toEye = normalize(toEye);
+
+    float t = dot(refVec, toEye);
+    t = clamp(t, 0.0f, 1.0f);
+    t = pow(t, 5.0f);
+
+    return ligColor * t;
+}
+
+float4 PSMain(SPSIn psIn) : SV_Target0
+{
+    const float3 diffuseLig = computeDiffuseLight(psIn.normal);
+    const float3 specularLig = computeSpecularLight(psIn.normal, psIn.worldPos);
+    const float3 lig = diffuseLig + specularLig;
 
     float4 finalColor = g_texture.Sample(g_sampler, psIn.uv);
-
-    // step-10 最終出力カラーに光を乗算する
-    finalColor.xyz *= diffuseLig;
+    finalColor.xyz *= lig;
 
     return finalColor;
 }
