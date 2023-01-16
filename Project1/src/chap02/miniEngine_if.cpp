@@ -10,22 +10,12 @@
 #define LOAD_MODEL_CHAP_05_01 (1)
 
 namespace {
-	struct DirectionLight
-	{
-		Vector3 ligDirection;
-		float pad0 = 0.0f;
-		Vector3 ligColor;
-		float pad1 = 0.0f;
-		Vector3 eyePos;
-		float pad2 = 0.0f;
-	};
-
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
 	void loadModelForChap04_01();
-	void loadModelForChap04_03(DirectionLight* directionLig);
-	void loadModelForChap05_01(DirectionLight* directionLig);
-	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, DirectionLight* directionLig);
+	void loadModelForChap04_03();
+	void loadModelForChap05_01();
+	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize);
 	void drawInternal(bool renderToOffscreenBuffer);
 	constexpr std::string getPathFromAssetDir(const std::string path);
 
@@ -67,21 +57,14 @@ namespace MiniEngineIf {
 
 	void loadModel()
 	{
-		static DirectionLight s_directionLig = {
-			.ligDirection = { 1.0f, -1.0f, -1.0f},
-			.ligColor = { 0.3f, 0.3f, 0.3f },
-			.eyePos = g_camera3D->GetPosition(),
-		};
-		s_directionLig.ligDirection.Normalize();
-
 #if LOAD_MODEL_CHAP_04_01
 		loadModelForChap04_01();
 #endif // #if LOAD_MODEL_CHAP_04_01
 #if LOAD_MODEL_CHAP_04_03
-		loadModelForChap04_03(&s_directionLig);
+		loadModelForChap04_03();
 #endif // #if LOAD_MODEL_CHAP_04_03
 #if LOAD_MODEL_CHAP_05_01
-		loadModelForChap05_01(&s_directionLig);
+		loadModelForChap05_01();
 #endif // #if LOAD_MODEL_CHAP_05_01
 	}
 
@@ -227,50 +210,82 @@ namespace {
 		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 		const std::string fxFilePath = fxFile;
 		static Model s_model;
-		initModel(tkmFilePath, fxFilePath, &s_model, nullptr);
+		initModel(tkmFilePath, fxFilePath, &s_model, nullptr, 0);
 	}
 
-	void loadModelForChap04_03(DirectionLight* directionLig)
+	void loadModelForChap04_03()
 	{
+		struct DirectionLight
+		{
+			Vector3 ligDirection;
+			float pad0 = 0.0f;
+			Vector3 ligColor;
+			float pad1 = 0.0f;
+			Vector3 eyePos;
+			float pad2 = 0.0f;
+		};
+
+		static DirectionLight s_directionLig = {
+			.ligDirection = { 1.0f, -1.0f, -1.0f},
+			.ligColor = { 0.3f, 0.3f, 0.3f },
+			.eyePos = g_camera3D->GetPosition(),
+		};
+		s_directionLig.ligDirection.Normalize();
+
 		const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
 		const std::string fxFile = "Assets/shader/sample_04_02.fx";
 		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 		const std::string fxFilePath = fxFile;
 		static Model s_model;
-		initModel(tkmFilePath, fxFilePath, &s_model, directionLig);
+		initModel(tkmFilePath, fxFilePath, &s_model, &s_directionLig, sizeof(s_directionLig));
 	}
 
-	void loadModelForChap05_01(DirectionLight* directionLig)
+	void loadModelForChap05_01()
 	{
+		g_camera3D->SetPosition({ 0.0f, 50.0f, 200.0f });
+		g_camera3D->SetTarget({ 0.0f, 50.0f, 0.0f });
+
+		struct Light
 		{
-			const std::string tkmFile = "Sample_04_01/Sample_04_01/Assets/modelData/sample.tkm";
-			const std::string fxFile = "Assets/shader/sample_04_01.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, nullptr);
-		}
+			Vector3 dirDirection;
+			float pad0 = 0.0f;
+			Vector3 dirColor;
+			float pad1 = 0.0f;
+			Vector3 eyePos;
+			float pad2 = 0.0f;
+			Vector3 ambientLight;
+			float pad3 = 0.0f;
+		};
+
+		static Light s_light = {
+			.dirDirection = { 1.0f, -1.0f, -1.0f},
+			.dirColor = { 0.5f, 0.5f, 0.5f },
+			.eyePos = g_camera3D->GetPosition(),
+			.ambientLight = { 0.3f, 0.3f, 0.3f },
+		};
+		s_light.dirDirection.Normalize();
 
 		{
-			const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
-			const std::string fxFile = "Assets/shader/sample_04_02.fx";
+			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/teapot.tkm";
+			const std::string fxFile = "Assets/shader/sample_05_01.fx";
 			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, directionLig);
+			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
+			s_model.UpdateWorldMatrix({ 0.0f, 20.0f, 0.0f }, g_quatIdentity, g_vec3One);
 		}
 
 		{
 			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/bg.tkm";
-			const std::string fxFile = "Assets/shader/sample_04_02.fx";
+			const std::string fxFile = "Assets/shader/sample_05_01.fx";
 			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, directionLig);
+			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
 		}
 	}
 
-	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, DirectionLight* directionLig)
+	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize)
 	{
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));
 		Dbg::assert_(std::filesystem::exists(fxFilePath));
@@ -279,10 +294,10 @@ namespace {
 		initData.m_tkmFilePath = tkmFilePath.c_str();
 		initData.m_fxFilePath = fxFilePath.c_str();
 
-		if (directionLig)
+		if (constantBuffer && constantBufferSize > 0)
 		{
-			initData.m_expandConstantBuffer = directionLig;
-			initData.m_expandConstantBufferSize = sizeof(*directionLig);
+			initData.m_expandConstantBuffer = constantBuffer;
+			initData.m_expandConstantBufferSize = static_cast<int32_t>(constantBufferSize);
 		}
 
 		model->Init(initData);
