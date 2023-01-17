@@ -76,7 +76,7 @@ namespace Render {
 
 	void onUpdate()
 	{
-		;
+		MiniEngineIf::handleInput();
 	}
 
 	void onRender()

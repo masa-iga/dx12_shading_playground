@@ -16,6 +16,7 @@ namespace {
 	void loadModelForChap04_03();
 	void loadModelForChap05_01();
 	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize);
+	void handleInputInternal();
 	void drawInternal(bool renderToOffscreenBuffer);
 	constexpr std::string getPathFromAssetDir(const std::string path);
 
@@ -97,6 +98,11 @@ namespace MiniEngineIf {
             kStencilClearVal,
             0,
             nullptr);
+	}
+
+	void handleInput()
+	{
+		handleInputInternal();
 	}
 
 	void draw(bool renderToOffscreenBuffer)
@@ -240,6 +246,9 @@ namespace {
 		initModel(tkmFilePath, fxFilePath, &s_model, &s_directionLig, sizeof(s_directionLig));
 	}
 
+	Vector3* s_ptLightPosition = nullptr;
+	Model* s_lightModel = nullptr;
+
 	void loadModelForChap05_01()
 	{
 		g_camera3D->SetPosition({ 0.0f, 50.0f, 200.0f });
@@ -251,19 +260,30 @@ namespace {
 			float pad0 = 0.0f;
 			Vector3 dirColor;
 			float pad1 = 0.0f;
-			Vector3 eyePos;
+
+			Vector3 ptPosition;
 			float pad2 = 0.0f;
-			Vector3 ambientLight;
+			Vector3 ptColor;
+			float ptRange = 0.0f;
+
+			Vector3 eyePos;
 			float pad3 = 0.0f;
+
+			Vector3 ambientLight;
+			float pad4 = 0.0f;
 		};
 
 		static Light s_light = {
 			.dirDirection = { 1.0f, -1.0f, -1.0f},
 			.dirColor = { 0.5f, 0.5f, 0.5f },
+			.ptPosition = { 0.0f, 50.0f, 50.0f },
+			.ptColor = { 15.0f, 0.0f, 0.0f },
+			.ptRange = 100.0f,
 			.eyePos = g_camera3D->GetPosition(),
 			.ambientLight = { 0.3f, 0.3f, 0.3f },
 		};
 		s_light.dirDirection.Normalize();
+		s_ptLightPosition = &s_light.ptPosition;
 
 		{
 			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/teapot.tkm";
@@ -282,6 +302,16 @@ namespace {
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
 			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
+		}
+
+		{
+			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/light.tkm";
+			const std::string fxFile = "Assets/shader/other/light.fx";
+			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+			const std::string fxFilePath = fxFile;
+			static Model s_model;
+			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
+			s_lightModel = &s_model;
 		}
 	}
 
@@ -302,6 +332,30 @@ namespace {
 
 		model->Init(initData);
 		s_models.push_back(model);
+	}
+
+	void handleInputInternal()
+	{
+#if LOAD_MODEL_CHAP_05_01
+		if (s_ptLightPosition)
+		{
+			s_ptLightPosition->x -= g_pad[0]->GetLStickXF();
+
+			if (g_pad[0]->IsPress(enButtonB))
+			{
+				s_ptLightPosition->y += g_pad[0]->GetLStickYF();
+			}
+			else
+			{
+				s_ptLightPosition->z -= g_pad[0]->GetLStickYF();
+			}
+		}
+
+		if (s_lightModel && s_ptLightPosition)
+		{
+			s_lightModel->UpdateWorldMatrix(*s_ptLightPosition, g_quatIdentity, g_vec3One);
+		}
+#endif // #if LOAD_MODEL_CHAP_05_01
 	}
 
 	void drawInternal(bool renderToOffscreenBuffer)
