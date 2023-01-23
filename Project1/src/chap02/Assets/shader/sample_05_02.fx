@@ -41,7 +41,12 @@ cbuffer DirectionLightCb : register(b1)
     float3 ptColor;         // ポイントライトのカラー
     float ptRange;          // ポイントライトの影響範囲
 
-    // step-5 スポットライトのデータにアクセスするための変数を追加する
+    // スポットライトのデータにアクセスするための変数を追加する
+    float3 spPosition;
+    float3 spColor;
+    float spRange;
+    float3 spDirection;
+    float spAngle;
 
     float3 eyePos;          // 視点の位置
     float3 ambientLight;    // アンビエントライト
@@ -99,28 +104,44 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     // スポットライトによるライティングを計算する
     // ほとんどポイントライトと同じ
 
-    // step-6 サーフェイスに入射するスポットライトの光の向きを計算する
+    // サーフェイスに入射するスポットライトの光の向きを計算する
+    float3 ligDir = psIn.worldPos - spPosition;
+    ligDir = normalize(ligDir);
 
-    // step-7 減衰なしのLambert拡散反射光を計算する
+    // 減衰なしのLambert拡散反射光を計算する
+    float3 diffuseSpotLight = CalcLambertDiffuse(ligDir, spColor, psIn.normal);
 
-    // step-8 減衰なしのPhong鏡面反射光を計算する
+    // 減衰なしのPhong鏡面反射光を計算する
+    float3 specularSpotLight = CalcPhongSpecular(ligDir, spColor, psIn.worldPos, psIn.normal);
 
-    // step-9 距離による影響率を計算する
+    // 距離による影響率を計算する
+    float3 distance = length(psIn.worldPos - ptPosition);
+    float affect = 1.0f - distance / ptRange;
+    affect = clamp(affect, 0.0f, 1.0f);
+    affect = pow(affect, 3.0f);
 
-    // step-10 影響率を乗算して反射光を弱める
+    // 影響率を乗算して反射光を弱める
+    diffuseSpotLight *= affect;
+    specularSpotLight *= affect;
 
-    // step-11 入射光と射出方向の角度を求める
+    // 入射光と射出方向の角度を求める
+    float angle = acos(dot(spDirection, ligDir));
 
-    // step-12 角度による影響率を求める
+    // 角度による影響率を求める
+    affect = 1.0f - (angle / spAngle);
+    affect = clamp(affect, 0.0f, 1.0f);
 
-    // step-13 角度による影響率を反射光に乗算して、影響を弱める
+    // 角度による影響率を反射光に乗算して、影響を弱める
+    diffuseSpotLight *= affect;
+    specularSpotLight *= affect;
 
     // ディレクションライト+ポイントライト+環境光を求める
     float3 finalLig = directionLig
                     + pointLig
                     + ambientLight;
 
-    // step-14 スポットライトの反射光を最終的な反射光に足し算する
+    // スポットライトの反射光を最終的な反射光に足し算する
+    finalLig += diffuseSpotLight + specularSpotLight;
 
     float4 finalColor = g_texture.Sample(g_sampler, psIn.uv);
 

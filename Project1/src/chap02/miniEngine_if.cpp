@@ -320,6 +320,9 @@ namespace {
 		}
 	}
 
+	Vector3* s_spDirection = nullptr;
+	Vector3* s_spPosition = nullptr;
+
 	void loadModelForChap05_02()
 	{
 		g_camera3D->SetPosition({ 0.0f, 50.0f, 200.0f });
@@ -337,34 +340,38 @@ namespace {
 			Vector3 ptColor;
 			float ptRange = 0.0f;
 
-			Vector3 eyePos;
+			Vector3 spPosition;
 			float pad3 = 0.0f;
+			Vector3 spColor;
+			float spRange = 0.0f;
+			Vector3 spDirection;
+			float spAngle = 0.0f;
+
+			Vector3 eyePos;
+			float pad4 = 0.0f;
 
 			Vector3 ambientLight;
-			float pad4 = 0.0f;
+			float pad5 = 0.0f;
 		};
 
 		static Light s_light = {
 			.dirDirection = { 1.0f, -1.0f, -1.0f},
 			.dirColor = { 0.5f, 0.5f, 0.5f },
 			.ptPosition = { 0.0f, 50.0f, 50.0f },
-			.ptColor = { 15.0f, 0.0f, 0.0f },
+			.ptColor = { 0.0f, 0.0f, 0.0f },
 			.ptRange = 100.0f,
+			.spPosition = { 0.0f, 50.0f, 0.0f },
+			.spColor = { 10.0f, 10.0f, 10.0f },
+			.spRange = 300.0f,
+			.spDirection = { 1.0f, -1.0f, 1.0f },
+			.spAngle = Math::DegToRad(25.0f),
 			.eyePos = g_camera3D->GetPosition(),
 			.ambientLight = { 0.3f, 0.3f, 0.3f },
 		};
 		s_light.dirDirection.Normalize();
-		s_ptLightPosition = &s_light.ptPosition;
-
-		{
-			const std::string tkmFile = "Sample_05_02/Sample_05_02/Assets/modelData/teapot.tkm";
-			const std::string fxFile = "Assets/shader/sample_05_02.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-			s_model.UpdateWorldMatrix({ 0.0f, 20.0f, 0.0f }, g_quatIdentity, g_vec3One);
-		}
+		s_light.spDirection.Normalize();
+		s_spDirection = &s_light.spDirection;
+		s_spPosition = &s_light.spPosition;
 
 		{
 			const std::string tkmFile = "Sample_05_02/Sample_05_02/Assets/modelData/bg.tkm";
@@ -427,6 +434,47 @@ namespace {
 			s_lightModel->UpdateWorldMatrix(*s_ptLightPosition, g_quatIdentity, g_vec3One);
 		}
 #endif // #if LOAD_MODEL_CHAP_05_01
+
+#if LOAD_MODEL_CHAP_05_02
+		Quaternion qRot = Quaternion::Identity;
+
+		if (s_spDirection)
+		{
+			Quaternion qRotY;
+			qRotY.SetRotationY(g_pad[0]->GetRStickXF() * 0.01f);
+
+			qRotY.Apply(*s_spDirection);
+
+			Vector3 rotAxis;
+			rotAxis.Cross(g_vec3AxisY, *s_spDirection);
+			Quaternion qRotX;
+			qRotX.SetRotation(rotAxis, g_pad[0]->GetRStickYF() * 0.01f);
+
+			qRotX.Apply(*s_spDirection);
+
+			qRot.SetRotation({ 0.0f, 0.0f, -1.0f }, *s_spDirection);
+		}
+
+		if (s_spPosition)
+		{
+			s_spPosition->x -= g_pad[0]->GetLStickXF();
+
+			if (g_pad[0]->IsPress(enButtonB))
+			{
+				s_spPosition->y += g_pad[0]->GetLStickYF();
+			}
+			else
+			{
+				s_spPosition->z -= g_pad[0]->GetLStickYF();
+			}
+
+			if (s_lightModel)
+			{
+				s_lightModel->UpdateWorldMatrix(*s_spPosition, qRot, g_vec3One);
+			}
+		}
+
+#endif // #if LOAD_MODEL_CHAP_05_02
 	}
 
 	void drawInternal(bool renderToOffscreenBuffer)
