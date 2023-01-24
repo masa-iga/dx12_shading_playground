@@ -183,6 +183,7 @@ call :copyFiles
     <ClCompile Include="miniEngine_if.cpp" />
     <ClCompile Include="render_d3d12.cpp" />
     <ClCompile Include="model_simple_triangle.cpp" />
+    <ClCompile Include="setup_models.cpp" />
     <ClCompile Include="swapchain_d3d12.cpp" />
     <ClCompile Include="toolkit.cpp" />
     <ClCompile Include="util.cpp" />
@@ -196,6 +197,7 @@ call :copyFiles
     <ClInclude Include="miniEngine_if.h" />
     <ClInclude Include="render_d3d12.h" />
     <ClInclude Include="model_simple_triangle.h" />
+    <ClInclude Include="setup_models.h" />
     <ClInclude Include="swapchain_d3d12.h" />
     <ClInclude Include="toolkit.h" />
     <ClInclude Include="util.h" />
