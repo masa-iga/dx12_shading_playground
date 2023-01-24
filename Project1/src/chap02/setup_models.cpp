@@ -18,10 +18,9 @@ namespace {
 
 	std::vector<Model*> s_models;
 
-	Vector3* s_ptLightPosition = nullptr; // TODO: how to handle this ?
-	Model* s_lightModel = nullptr; // TODO: how to handle this ?
-	Vector3* s_spDirection = nullptr; // TODO: how to handle this ?
-	Vector3* s_spPosition = nullptr; // TODO: how to handle this ?
+	Model* s_updateModel = nullptr;
+	Vector3* s_updateLightPos = nullptr;
+	Vector3* s_updateLightDirection = nullptr;
 }
 
 void Models::loadModel(Chapter chapter)
@@ -150,7 +149,7 @@ namespace {
 			.ambientLight = { 0.3f, 0.3f, 0.3f },
 		};
 		s_light.dirDirection.Normalize();
-		s_ptLightPosition = &s_light.ptPosition;
+		s_updateLightPos = &s_light.ptPosition;
 
 		{
 			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/teapot.tkm";
@@ -178,7 +177,7 @@ namespace {
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
 			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-			s_lightModel = &s_model;
+			s_updateModel = &s_model;
 		}
 	}
 
@@ -229,8 +228,8 @@ namespace {
 		};
 		s_light.dirDirection.Normalize();
 		s_light.spDirection.Normalize();
-		s_spDirection = &s_light.spDirection;
-		s_spPosition = &s_light.spPosition;
+		s_updateLightDirection = &s_light.spDirection;
+		s_updateLightPos = &s_light.spPosition;
 
 		{
 			const std::string tkmFile = "Sample_05_02/Sample_05_02/Assets/modelData/bg.tkm";
@@ -248,70 +247,61 @@ namespace {
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
 			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-			s_lightModel = &s_model;
+			s_updateModel = &s_model;
 		}
 	}
 
 	void handleInputForChap05_01()
 	{
-		if (s_ptLightPosition)
-		{
-			s_ptLightPosition->x -= g_pad[0]->GetLStickXF();
+		if (!s_updateLightPos || !s_updateModel)
+			return;
 
-			if (g_pad[0]->IsPress(enButtonB))
-			{
-				s_ptLightPosition->y += g_pad[0]->GetLStickYF();
-			}
-			else
-			{
-				s_ptLightPosition->z -= g_pad[0]->GetLStickYF();
-			}
+		s_updateLightPos->x -= g_pad[0]->GetLStickXF();
+
+		if (g_pad[0]->IsPress(enButtonB))
+		{
+			s_updateLightPos->y += g_pad[0]->GetLStickYF();
+		}
+		else
+		{
+			s_updateLightPos->z -= g_pad[0]->GetLStickYF();
 		}
 
-		if (s_lightModel && s_ptLightPosition)
-		{
-			s_lightModel->UpdateWorldMatrix(*s_ptLightPosition, g_quatIdentity, g_vec3One);
-		}
+		s_updateModel->UpdateWorldMatrix(*s_updateLightPos, g_quatIdentity, g_vec3One);
 	}
 
 	void handleInputForChap05_02()
 	{
-		Quaternion qRot = Quaternion::Identity;
+		if (!s_updateLightDirection || !s_updateLightPos || !s_updateModel)
+			return;
 
-		if (s_spDirection)
+		s_updateLightPos->x -= g_pad[0]->GetLStickXF();
+
+		if (g_pad[0]->IsPress(enButtonB))
+		{
+			s_updateLightPos->y += g_pad[0]->GetLStickYF();
+		}
+		else
+		{
+			s_updateLightPos->z -= g_pad[0]->GetLStickYF();
+		}
+
 		{
 			Quaternion qRotY;
 			qRotY.SetRotationY(g_pad[0]->GetRStickXF() * 0.01f);
-
-			qRotY.Apply(*s_spDirection);
+			qRotY.Apply(*s_updateLightDirection);
 
 			Vector3 rotAxis;
-			rotAxis.Cross(g_vec3AxisY, *s_spDirection);
+			rotAxis.Cross(g_vec3AxisY, *s_updateLightDirection);
+
 			Quaternion qRotX;
 			qRotX.SetRotation(rotAxis, g_pad[0]->GetRStickYF() * 0.01f);
-
-			qRotX.Apply(*s_spDirection);
-
-			qRot.SetRotation({ 0.0f, 0.0f, -1.0f }, *s_spDirection);
+			qRotX.Apply(*s_updateLightDirection);
 		}
 
-		if (s_spPosition)
-		{
-			s_spPosition->x -= g_pad[0]->GetLStickXF();
+		Quaternion qRot = Quaternion::Identity;
+		qRot.SetRotation({ 0.0f, 0.0f, -1.0f }, *s_updateLightDirection);
 
-			if (g_pad[0]->IsPress(enButtonB))
-			{
-				s_spPosition->y += g_pad[0]->GetLStickYF();
-			}
-			else
-			{
-				s_spPosition->z -= g_pad[0]->GetLStickYF();
-			}
-
-			if (s_lightModel)
-			{
-				s_lightModel->UpdateWorldMatrix(*s_spPosition, qRot, g_vec3One);
-			}
-		}
+		s_updateModel->UpdateWorldMatrix(*s_updateLightPos, qRot, g_vec3One);
 	}
 }
