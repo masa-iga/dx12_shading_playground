@@ -115,7 +115,7 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     float3 specularSpotLight = CalcPhongSpecular(ligDir, spColor, psIn.worldPos, psIn.normal);
 
     // 距離による影響率を計算する
-    float3 distance = length(psIn.worldPos - ptPosition);
+    float3 distance = length(psIn.worldPos - spPosition);
     float affect = 1.0f - distance / ptRange;
     affect = clamp(affect, 0.0f, 1.0f);
     affect = pow(affect, 3.0f);
@@ -125,11 +125,12 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     specularSpotLight *= affect;
 
     // 入射光と射出方向の角度を求める
-    float angle = acos(dot(spDirection, ligDir));
+    float angle = abs(acos(dot(ligDir, spDirection)));
 
     // 角度による影響率を求める
     affect = 1.0f - (angle / spAngle);
     affect = clamp(affect, 0.0f, 1.0f);
+    affect = pow(affect, 0.5f);
 
     // 角度による影響率を反射光に乗算して、影響を弱める
     diffuseSpotLight *= affect;
