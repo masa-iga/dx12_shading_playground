@@ -116,7 +116,7 @@ float4 PSMain(SPSIn psIn) : SV_Target0
 
     // 距離による影響率を計算する
     float3 distance = length(psIn.worldPos - spPosition);
-    float affect = 1.0f - distance / ptRange;
+    float affect = 1.0f - distance / spRange;
     affect = clamp(affect, 0.0f, 1.0f);
     affect = pow(affect, 3.0f);
 
