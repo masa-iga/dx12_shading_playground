@@ -9,11 +9,11 @@ public:
 		k05_01,
 		k05_02,
 	};
-	// TODO: modify interface
-	void loadModel(Chapter chapter);
-	void handleInput(Chapter chapter);
-
+	void loadModel();
+	void handleInput();
 	void draw(RenderContext& renderContext);
 
 private:
+	void loadModelInternal(Chapter chapter);
+	void handleInputInternal(Chapter chapter);
 };

@@ -6,11 +6,6 @@
 
 #pragma comment(lib, "hlsl-grimoire-sample_miniEngine.lib")
 
-#define LOAD_MODEL_CHAP_04_01 (0)
-#define LOAD_MODEL_CHAP_04_03 (0)
-#define LOAD_MODEL_CHAP_05_01 (0)
-#define LOAD_MODEL_CHAP_05_02 (1)
-
 namespace {
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
@@ -54,18 +49,7 @@ namespace MiniEngineIf {
 
 	void loadModel()
 	{
-#if LOAD_MODEL_CHAP_04_01
-		s_models.loadModel(Models::Chapter::k04_01);
-#endif // #if LOAD_MODEL_CHAP_04_01
-#if LOAD_MODEL_CHAP_04_03
-		s_models.loadModel(Models::Chapter::k04_03);
-#endif // #if LOAD_MODEL_CHAP_04_03
-#if LOAD_MODEL_CHAP_05_01
-		s_models.loadModel(Models::Chapter::k05_01);
-#endif // #if LOAD_MODEL_CHAP_05_01
-#if LOAD_MODEL_CHAP_05_02
-		s_models.loadModel(Models::Chapter::k05_02);
-#endif // #if LOAD_MODEL_CHAP_05_02
+		s_models.loadModel();
 	}
 
 	ID3D12Resource* getRenderTargetResource()
@@ -210,13 +194,7 @@ namespace {
 
 	void handleInputInternal()
 	{
-#if LOAD_MODEL_CHAP_05_01
-		s_models.handleInput(Models::Chapter::k05_01);
-#endif // #if LOAD_MODEL_CHAP_05_01
-
-#if LOAD_MODEL_CHAP_05_02
-		s_models.handleInput(Models::Chapter::k05_02);
-#endif // #if LOAD_MODEL_CHAP_05_02
+		s_models.handleInput();
 	}
 
 	void drawInternal(bool renderToOffscreenBuffer)

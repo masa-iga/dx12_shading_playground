@@ -4,6 +4,11 @@
 #include "../../import/hlsl-grimoire-sample/MiniEngine/MiniEngine.h"
 #include "debug_win.h"
 
+#define LOAD_MODEL_CHAP_04_01 (0)
+#define LOAD_MODEL_CHAP_04_03 (0)
+#define LOAD_MODEL_CHAP_05_01 (0)
+#define LOAD_MODEL_CHAP_05_02 (1)
+
 namespace {
 	const std::string kBaseAssetDir = "../../import/hlsl-grimoire-sample";
 
@@ -23,7 +28,47 @@ namespace {
 	Vector3* s_updateLightDirection = nullptr;
 }
 
-void Models::loadModel(Chapter chapter)
+void Models::loadModel()
+{
+#if LOAD_MODEL_CHAP_04_01
+		loadModelInternal(Models::Chapter::k04_01);
+#endif // #if LOAD_MODEL_CHAP_04_01
+#if LOAD_MODEL_CHAP_04_03
+		loadModelInternal(Models::Chapter::k04_03);
+#endif // #if LOAD_MODEL_CHAP_04_03
+#if LOAD_MODEL_CHAP_05_01
+		loadModelInternal(Models::Chapter::k05_01);
+#endif // #if LOAD_MODEL_CHAP_05_01
+#if LOAD_MODEL_CHAP_05_02
+		loadModelInternal(Models::Chapter::k05_02);
+#endif // #if LOAD_MODEL_CHAP_05_02
+}
+
+void Models::handleInput()
+{
+#if LOAD_MODEL_CHAP_04_01
+		handleInputInternal(Models::Chapter::k04_01);
+#endif // #if LOAD_MODEL_CHAP_04_01
+#if LOAD_MODEL_CHAP_04_03
+		handleInputInternal(Models::Chapter::k04_03);
+#endif // #if LOAD_MODEL_CHAP_04_03
+#if LOAD_MODEL_CHAP_05_01
+		handleInputInternal(Models::Chapter::k05_01);
+#endif // #if LOAD_MODEL_CHAP_05_01
+#if LOAD_MODEL_CHAP_05_02
+		handleInputInternal(Models::Chapter::k05_02);
+#endif // #if LOAD_MODEL_CHAP_05_02
+}
+
+void Models::draw(RenderContext& renderContext)
+{
+	for (auto model : s_models)
+	{
+		model->Draw(renderContext);
+	}
+}
+
+void Models::loadModelInternal(Chapter chapter)
 {
 	switch (chapter) {
 	case Chapter::k04_01: loadModelForChap04_01(); break;
@@ -34,7 +79,7 @@ void Models::loadModel(Chapter chapter)
 	}
 }
 
-void Models::handleInput(Chapter chapter)
+void Models::handleInputInternal(Chapter chapter)
 {
 	switch (chapter) {
 	case Chapter::k04_01: break;
@@ -42,14 +87,6 @@ void Models::handleInput(Chapter chapter)
 	case Chapter::k05_01: handleInputForChap05_01(); break;
 	case Chapter::k05_02: handleInputForChap05_02(); break;
 	default: break;
-	}
-}
-
-void Models::draw(RenderContext& renderContext)
-{
-	for (auto model : s_models)
-	{
-		model->Draw(renderContext);
 	}
 }
 
