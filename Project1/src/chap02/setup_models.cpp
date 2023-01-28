@@ -9,7 +9,8 @@
 #define LOAD_MODEL_CHAP_05_01 (0)
 #define LOAD_MODEL_CHAP_05_02 (0)
 #define LOAD_MODEL_CHAP_05_03 (0)
-#define LOAD_MODEL_CHAP_05_04 (1)
+#define LOAD_MODEL_CHAP_05_04 (0)
+#define LOAD_MODEL_CHAP_06_01 (1)
 
 namespace {
 	const std::string kBaseAssetDir = "../../import/hlsl-grimoire-sample";
@@ -22,14 +23,17 @@ namespace {
 	void loadModelForChap05_02();
 	void loadModelForChap05_03();
 	void loadModelForChap05_04();
+	void loadModelForChap06_01();
 	void handleInputForChap05_01();
 	void handleInputForChap05_02();
 	void handleInputForChap05_03();
 	void handleInputForChap05_04();
+	void handleInputForChap06_01();
 
 	std::vector<Model*> s_models;
 
 	Model* s_updateModel = nullptr;
+	Vector3* s_updateEyePos = nullptr;
 	Vector3* s_updateLightPos = nullptr;
 	Vector3* s_updateLightDirection = nullptr;
 }
@@ -54,6 +58,9 @@ void Models::loadModel()
 #if LOAD_MODEL_CHAP_05_04
 		loadModelInternal(Models::Chapter::k05_04);
 #endif // #if LOAD_MODEL_CHAP_05_04
+#if LOAD_MODEL_CHAP_06_01
+		loadModelInternal(Models::Chapter::k06_01);
+#endif // #if LOAD_MODEL_CHAP_06_01
 }
 
 void Models::handleInput()
@@ -76,6 +83,9 @@ void Models::handleInput()
 #if LOAD_MODEL_CHAP_05_04
 		handleInputInternal(Models::Chapter::k05_04);
 #endif // #if LOAD_MODEL_CHAP_05_04
+#if LOAD_MODEL_CHAP_06_01
+		handleInputInternal(Models::Chapter::k06_01);
+#endif // #if LOAD_MODEL_CHAP_06_01
 }
 
 void Models::draw(RenderContext& renderContext)
@@ -95,6 +105,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k05_02: loadModelForChap05_02(); break;
 	case Chapter::k05_03: loadModelForChap05_03(); break;
 	case Chapter::k05_04: loadModelForChap05_04(); break;
+	case Chapter::k06_01: loadModelForChap06_01(); break;
 	default: break;
 	}
 }
@@ -108,6 +119,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k05_02: handleInputForChap05_02(); break;
 	case Chapter::k05_03: handleInputForChap05_03(); break;
 	case Chapter::k05_04: handleInputForChap05_04(); break;
+	case Chapter::k06_01: handleInputForChap06_01(); break;
 	default: break;
 	}
 }
@@ -403,6 +415,44 @@ namespace {
 		}
 	}
 
+	void loadModelForChap06_01()
+	{
+		g_camera3D->SetPosition({ 0.0f, 200.0f, 300.0f });
+		g_camera3D->SetTarget({ 0.0f, 100.0f, 0.0f });
+
+		struct Light {
+			Vector3 direction;
+			float pad0 = 0.0f;
+			Vector4 color;
+			Vector3 eyePos;
+			float specRow = 0.0f;
+			Vector3 ambientLight;
+			float pad1 = 0.0f;
+		};
+
+		static Light s_light = {
+			.direction = { 1.0f, -1.0f, -1.0f },
+			.pad0 = 0.0f,
+			.color = { 0.6f, 0.6f, 0.6f, 0.0f },
+			.eyePos = g_camera3D->GetPosition(),
+			.specRow = 5.0f,
+			.ambientLight = { 0.4f, 0.4f, 0.4f },
+			.pad1 = 0.0f,
+		};
+		s_updateEyePos = &s_light.eyePos;
+		s_updateLightDirection = &s_light.direction;
+
+		{
+			const std::string tkmFile = "Sample_06_01/Sample_06_01/Assets/modelData/sample.tkm";
+			const std::string fxFile = "Assets/shader/sample_06_01.fx";
+			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+			const std::string fxFilePath = fxFile;
+			static Model s_model;
+			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
+			s_model.UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, g_vec3One);
+		}
+	}
+
 	void handleInputForChap05_01()
 	{
 		if (!s_updateLightPos || !s_updateModel)
@@ -475,5 +525,39 @@ namespace {
 		Quaternion qRotY;
 		qRotY.SetRotation(g_vec3AxisY, g_pad[0]->GetLStickXF() * 0.02f);
 		qRotY.Apply(*s_updateLightDirection);
+	}
+
+	void handleInputForChap06_01()
+	{
+		if (!s_updateLightDirection || !s_updateEyePos)
+			return;
+
+		Quaternion qRot;
+
+		if (g_pad[0]->IsPress(enButtonRight))
+		{
+			qRot.SetRotationDegY(1.0f);
+		}
+		else
+		{
+			qRot.SetRotationDegY(-1.0f);
+		}
+		qRot.Apply(*s_updateLightDirection);
+
+		qRot.SetRotationDegY(g_pad[0]->GetLStickXF());
+		Vector3 camPos = g_camera3D->GetPosition();
+		qRot.Apply(camPos);
+		g_camera3D->SetPosition(camPos);
+
+		Vector3 rotAxis;
+		Vector3 toPos = g_camera3D->GetPosition() - g_camera3D->GetTarget();
+		Vector3 dir = toPos;
+		dir.Normalize();
+		rotAxis.Cross(dir, g_vec3AxisY);
+		qRot.SetRotationDeg(rotAxis, g_pad[0]->GetLStickYF());
+		qRot.Apply(toPos);
+		g_camera3D->SetPosition(g_camera3D->GetTarget() + toPos);
+
+		*s_updateEyePos = g_camera3D->GetPosition();
 	}
 }
