@@ -9,6 +9,7 @@ public:
 		k05_01,
 		k05_02,
 		k05_03,
+		k05_04,
 	};
 	void loadModel();
 	void handleInput();

@@ -8,7 +8,8 @@
 #define LOAD_MODEL_CHAP_04_03 (0)
 #define LOAD_MODEL_CHAP_05_01 (0)
 #define LOAD_MODEL_CHAP_05_02 (0)
-#define LOAD_MODEL_CHAP_05_03 (1)
+#define LOAD_MODEL_CHAP_05_03 (0)
+#define LOAD_MODEL_CHAP_05_04 (1)
 
 namespace {
 	const std::string kBaseAssetDir = "../../import/hlsl-grimoire-sample";
@@ -20,9 +21,11 @@ namespace {
 	void loadModelForChap05_01();
 	void loadModelForChap05_02();
 	void loadModelForChap05_03();
+	void loadModelForChap05_04();
 	void handleInputForChap05_01();
 	void handleInputForChap05_02();
 	void handleInputForChap05_03();
+	void handleInputForChap05_04();
 
 	std::vector<Model*> s_models;
 
@@ -48,6 +51,9 @@ void Models::loadModel()
 #if LOAD_MODEL_CHAP_05_03
 		loadModelInternal(Models::Chapter::k05_03);
 #endif // #if LOAD_MODEL_CHAP_05_03
+#if LOAD_MODEL_CHAP_05_04
+		loadModelInternal(Models::Chapter::k05_04);
+#endif // #if LOAD_MODEL_CHAP_05_04
 }
 
 void Models::handleInput()
@@ -67,6 +73,9 @@ void Models::handleInput()
 #if LOAD_MODEL_CHAP_05_03
 		handleInputInternal(Models::Chapter::k05_03);
 #endif // #if LOAD_MODEL_CHAP_05_03
+#if LOAD_MODEL_CHAP_05_04
+		handleInputInternal(Models::Chapter::k05_04);
+#endif // #if LOAD_MODEL_CHAP_05_04
 }
 
 void Models::draw(RenderContext& renderContext)
@@ -85,6 +94,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k05_01: loadModelForChap05_01(); break;
 	case Chapter::k05_02: loadModelForChap05_02(); break;
 	case Chapter::k05_03: loadModelForChap05_03(); break;
+	case Chapter::k05_04: loadModelForChap05_04(); break;
 	default: break;
 	}
 }
@@ -97,6 +107,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k05_01: handleInputForChap05_01(); break;
 	case Chapter::k05_02: handleInputForChap05_02(); break;
 	case Chapter::k05_03: handleInputForChap05_03(); break;
+	case Chapter::k05_04: handleInputForChap05_04(); break;
 	default: break;
 	}
 }
@@ -338,6 +349,60 @@ namespace {
 		}
 	}
 
+	void loadModelForChap05_04()
+	{
+		g_camera3D->SetPosition({ 0.0f, 50.0f, 200.0f });
+		g_camera3D->SetTarget({ 0.0f, 50.0f, 0.0f });
+
+		struct Light
+		{
+			Vector3 dirDirection;
+			float pad0 = 0.0f;
+			Vector3 dirColor;
+			float pad1 = 0.0f;
+
+			Vector3 eyePos;
+			float pad2 = 0.0f;
+
+			Vector3 ambientLight;
+			float pad3 = 0.0f;
+
+			Vector3 groundColor;
+			float pad4 = 0.0f;
+			Vector3 skyColor;
+			float pad5 = 0.0f;
+			Vector3 groundNormal;
+		};
+
+		static Light s_light = {
+			.dirDirection = { 0.0f, 0.0f, 1.0f },
+			.pad0 = 0.0f,
+			.dirColor = { 0.5f, 0.5f, 0.5f },
+			.pad1 = 0.0f,
+			.eyePos = g_camera3D->GetPosition(),
+			.pad2 = 0.0f,
+			.ambientLight = { 0.3f, 0.3f, 0.3f },
+			.pad3 = 0.0f,
+			.groundColor = { 0.7f, 0.5f, 0.3f },
+			.pad4 = 0.0f,
+			.skyColor = { 0.15f, 0.7f, 0.95f },
+			.pad5 = 0.0f,
+			.groundNormal = { 0.0f, 1.0f, 0.0f },
+		};
+		s_light.dirDirection.Normalize();
+		s_updateLightDirection = &s_light.dirDirection;
+
+		{
+			const std::string tkmFile = "Sample_05_04/Sample_05_04/Assets/modelData/teapot.tkm";
+			const std::string fxFile = "Assets/shader/sample_05_04.fx";
+			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
+			const std::string fxFilePath = fxFile;
+			static Model s_model;
+			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
+			s_model.UpdateWorldMatrix({ 0.0f, 20.0f, 0.0f }, g_quatIdentity, g_vec3One);
+		}
+	}
+
 	void handleInputForChap05_01()
 	{
 		if (!s_updateLightPos || !s_updateModel)
@@ -393,6 +458,16 @@ namespace {
 	}
 
 	void handleInputForChap05_03()
+	{
+		if (!s_updateLightDirection)
+			return;
+
+		Quaternion qRotY;
+		qRotY.SetRotation(g_vec3AxisY, g_pad[0]->GetLStickXF() * 0.02f);
+		qRotY.Apply(*s_updateLightDirection);
+	}
+
+	void handleInputForChap05_04()
 	{
 		if (!s_updateLightDirection)
 			return;
