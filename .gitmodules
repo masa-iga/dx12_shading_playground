@@ -7,3 +7,6 @@
 [submodule "Project1/import/DirectXTex"]
 	path = Project1/import/DirectXTex
 	url = git@github.com:microsoft/DirectXTex.git
+[submodule "Project1/import/imgui"]
+	path = Project1/import/imgui
+	url = git@github.com:ocornut/imgui.git
