@@ -95,14 +95,11 @@ namespace {
 
 		::RegisterClass(&wc);
 
-		struct Window {
-			int32_t x = CW_USEDEFAULT;
-			int32_t y = CW_USEDEFAULT;
-			int32_t width = Config::kRenderTargetWidth;
-			int32_t height = Config::kRenderTargetHeight;
-		};
-
-		Window window;
+		::RECT wrc = { 0, 0, Config::kRenderTargetWidth, Config::kRenderTargetHeight };
+		{
+			auto b = ::AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+			Dbg::assert_(b == 1);
+		}
 
 		// create the window
 		*hwnd = ::CreateWindowEx(
@@ -110,10 +107,10 @@ namespace {
 			className,
 			windowName,
 			WS_OVERLAPPEDWINDOW,
-			window.x,
-			window.y,
-			window.width,
-			window.height,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			wrc.right - wrc.left,
+			wrc.bottom - wrc.top,
 			NULL,
 			NULL,
 			hInstance,
