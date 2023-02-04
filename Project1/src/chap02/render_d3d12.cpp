@@ -3,6 +3,7 @@
 #include <wrl/client.h>
 #include "config.h"
 #include "debug_win.h"
+#include "imgui_if.h"
 #include "miniEngine_if.h"
 #include "model_simple_triangle.h"
 #include "swapchain_d3d12.h"
@@ -32,13 +33,14 @@ namespace {
 }
 
 namespace Render {
-	void setup(ID3D12Device* device, HWND hwnd)
+	void setup(ID3D12Device* device, HWND hwndForImgui, HWND hwndForMiniEngine)
 	{
 		createCommandAllocator(device);
 		createCommandQueue(device);
 
-		MiniEngineIf::init(device, hwnd, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
+		MiniEngineIf::init(device, hwndForMiniEngine, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 		Toolkit::init(device);
+		ImguiIf::init(device, hwndForImgui);
 	}
 
 	void loadAssets(ID3D12Device* device)
@@ -104,6 +106,7 @@ namespace Render {
 		waitForPreviousFrame();
 		CloseHandle(s_fenceEvent);
 		MiniEngineIf::end();
+		ImguiIf::shutdown();
 	}
 
 	ID3D12CommandQueue* getCommandQueue()
@@ -209,6 +212,11 @@ namespace {
 			}
 
 			Toolkit::copyTextureToTarget(s_commandList.Get(), MiniEngineIf::getRenderTargetResource());
+		}
+
+		// UI
+		{
+			ImguiIf::draw(s_commandList.Get());
 		}
 
 		{

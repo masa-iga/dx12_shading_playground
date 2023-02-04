@@ -131,6 +131,9 @@ namespace {
 
 	LRESULT CALLBACK WindowProcMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		if (ImguiIf::handleInput(hwnd, uMsg, wParam, lParam))
+			return true;
+
 		switch (uMsg) {
 		case WM_DESTROY:
 			::PostQuitMessage(0);

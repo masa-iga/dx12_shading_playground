@@ -4,7 +4,7 @@
 #include <windows.h>
 
 namespace Render {
-	void setup(ID3D12Device* device, HWND hwnd);
+	void setup(ID3D12Device* device, HWND hwndForImgui, HWND hwndForMiniEngine);
 	void loadAssets(ID3D12Device* device);
 	void onUpdate();
 	void onRender();
