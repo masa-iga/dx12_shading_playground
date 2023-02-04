@@ -3,6 +3,7 @@
 #include <filesystem>
 #include "../../import/hlsl-grimoire-sample/MiniEngine/MiniEngine.h"
 #include "debug_win.h"
+#include "miniEngine_if.h"
 
 #define LOAD_MODEL_CHAP_04_01 (0)
 #define LOAD_MODEL_CHAP_04_03 (0)
@@ -458,15 +459,15 @@ namespace {
 		if (!s_updateLightPos || !s_updateModel)
 			return;
 
-		s_updateLightPos->x -= g_pad[0]->GetLStickXF();
+		s_updateLightPos->x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
 
-		if (g_pad[0]->IsPress(enButtonB))
+		if (MiniEngineIf::isPress(MiniEngineIf::Button::kB))
 		{
-			s_updateLightPos->y += g_pad[0]->GetLStickYF();
+			s_updateLightPos->y += MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
 		}
 		else
 		{
-			s_updateLightPos->z -= g_pad[0]->GetLStickYF();
+			s_updateLightPos->z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);;
 		}
 
 		s_updateModel->UpdateWorldMatrix(*s_updateLightPos, g_quatIdentity, g_vec3One);
@@ -477,27 +478,27 @@ namespace {
 		if (!s_updateLightDirection || !s_updateLightPos || !s_updateModel)
 			return;
 
-		s_updateLightPos->x -= g_pad[0]->GetLStickXF();
+		s_updateLightPos->x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
 
-		if (g_pad[0]->IsPress(enButtonB))
+		if (MiniEngineIf::isPress(MiniEngineIf::Button::kB))
 		{
-			s_updateLightPos->y += g_pad[0]->GetLStickYF();
+			s_updateLightPos->y += MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);;
 		}
 		else
 		{
-			s_updateLightPos->z -= g_pad[0]->GetLStickYF();
+			s_updateLightPos->z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
 		}
 
 		{
 			Quaternion qRotY;
-			qRotY.SetRotationY(g_pad[0]->GetRStickXF() * 0.01f);
+			qRotY.SetRotationY(MiniEngineIf::getStick(MiniEngineIf::StickType::kRX) * 0.01f);
 			qRotY.Apply(*s_updateLightDirection);
 
 			Vector3 rotAxis;
 			rotAxis.Cross(g_vec3AxisY, *s_updateLightDirection);
 
 			Quaternion qRotX;
-			qRotX.SetRotation(rotAxis, g_pad[0]->GetRStickYF() * 0.01f);
+			qRotX.SetRotation(rotAxis, MiniEngineIf::getStick(MiniEngineIf::StickType::kRY) * 0.01f);
 			qRotX.Apply(*s_updateLightDirection);
 		}
 
@@ -513,7 +514,7 @@ namespace {
 			return;
 
 		Quaternion qRotY;
-		qRotY.SetRotation(g_vec3AxisY, g_pad[0]->GetLStickXF() * 0.02f);
+		qRotY.SetRotation(g_vec3AxisY, MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.02f);
 		qRotY.Apply(*s_updateLightDirection);
 	}
 
@@ -523,7 +524,7 @@ namespace {
 			return;
 
 		Quaternion qRotY;
-		qRotY.SetRotation(g_vec3AxisY, g_pad[0]->GetLStickXF() * 0.02f);
+		qRotY.SetRotation(g_vec3AxisY, MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.02f);
 		qRotY.Apply(*s_updateLightDirection);
 	}
 
@@ -534,17 +535,17 @@ namespace {
 
 		Quaternion qRot;
 
-		if (g_pad[0]->IsPress(enButtonRight))
+		if (MiniEngineIf::isPress(MiniEngineIf::Button::kRight))
 		{
 			qRot.SetRotationDegY(1.0f);
 		}
-		else
+		else if (MiniEngineIf::isPress(MiniEngineIf::Button::kLeft))
 		{
 			qRot.SetRotationDegY(-1.0f);
 		}
 		qRot.Apply(*s_updateLightDirection);
 
-		qRot.SetRotationDegY(g_pad[0]->GetLStickXF());
+		qRot.SetRotationDegY(MiniEngineIf::getStick(MiniEngineIf::StickType::kLX));
 		Vector3 camPos = g_camera3D->GetPosition();
 		qRot.Apply(camPos);
 		g_camera3D->SetPosition(camPos);
@@ -554,7 +555,7 @@ namespace {
 		Vector3 dir = toPos;
 		dir.Normalize();
 		rotAxis.Cross(dir, g_vec3AxisY);
-		qRot.SetRotationDeg(rotAxis, g_pad[0]->GetLStickYF());
+		qRot.SetRotationDeg(rotAxis, MiniEngineIf::getStick(MiniEngineIf::StickType::kLY));
 		qRot.Apply(toPos);
 		g_camera3D->SetPosition(g_camera3D->GetTarget() + toPos);
 

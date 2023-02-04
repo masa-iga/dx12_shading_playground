@@ -92,6 +92,24 @@ namespace MiniEngineIf {
 	{
 		drawInternal(renderToOffscreenBuffer);
 	}
+
+	float getStick(StickType type)
+	{
+		switch (type) {
+		case StickType::kLX: return g_pad[0]->GetLStickXF();
+		case StickType::kLY: return g_pad[0]->GetLStickYF();
+		case StickType::kRX: return g_pad[0]->GetRStickXF();
+		case StickType::kRY: return g_pad[0]->GetRStickYF();
+		default: break;
+		}
+
+		return 0.0f;
+	}
+
+	bool isPress(Button button)
+	{
+		return g_pad[0]->IsPress(static_cast<EnButton>(button));
+	}
 }
 
 namespace {
