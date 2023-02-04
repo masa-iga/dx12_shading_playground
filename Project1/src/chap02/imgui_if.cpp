@@ -17,6 +17,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 namespace {
 	constexpr int32_t kNumFramesInFlight = 3;
 	ComPtr<ID3D12DescriptorHeap> s_descHeap = nullptr;
+
+	void setWindowPositionAndSize();
 }
 
 namespace ImguiIf {
@@ -83,17 +85,7 @@ namespace ImguiIf {
 	{
 		ImGui::Begin("Performance");
 		{
-			// set position and size
-			{
-				constexpr float kWidth = 500.0f;
-				constexpr float kHeight = 300.0f;
-
-				constexpr ImVec2 winPos = { static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.f };
-				ImGui::SetWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);
-
-				constexpr ImVec2 winSize = { kWidth, kHeight };
-				ImGui::SetWindowSize(winSize, ImGuiCond_::ImGuiCond_Once);
-			}
+			setWindowPositionAndSize();
 
 			ImGui::Text("Hello world");
 
@@ -117,5 +109,19 @@ namespace ImguiIf {
 
 		list->SetDescriptorHeaps(1, s_descHeap.GetAddressOf());
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), list);
+	}
+}
+
+namespace {
+	void setWindowPositionAndSize()
+	{
+		constexpr float kWidth = 500.0f;
+		constexpr float kHeight = 300.0f;
+
+		constexpr ImVec2 winPos = { static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.0f };
+		ImGui::SetWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);
+
+		constexpr ImVec2 winSize = { kWidth, kHeight };
+		ImGui::SetWindowSize(winSize, ImGuiCond_::ImGuiCond_Once);
 	}
 }
