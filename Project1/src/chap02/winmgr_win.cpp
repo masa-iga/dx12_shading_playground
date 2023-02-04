@@ -1,5 +1,6 @@
 #include "winmgr_win.h"
 #include <windows.h>
+#include "config.h"
 #include "debug_win.h"
 #include "imgui_if.h"
 
@@ -97,8 +98,8 @@ namespace {
 		struct Window {
 			int32_t x = CW_USEDEFAULT;
 			int32_t y = CW_USEDEFAULT;
-			int32_t width = CW_USEDEFAULT;
-			int32_t height = CW_USEDEFAULT;
+			int32_t width = Config::kRenderTargetWidth;
+			int32_t height = Config::kRenderTargetHeight;
 		};
 
 		Window window;

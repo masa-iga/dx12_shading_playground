@@ -1,10 +1,11 @@
 #pragma once
 #include <windows.h>
+#include <d3d12.h>
 #include <d3dcompiler.h>
 
 namespace Config {
-	constexpr static UINT kRenderTargetWidth = 3840;
-	constexpr static UINT kRenderTargetHeight = 2160;
+	constexpr static UINT kRenderTargetWidth = 1920;
+	constexpr static UINT kRenderTargetHeight = 1080;
 	constexpr static DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
 	constexpr static UINT kRenderTargetBufferCount = 2;
 
