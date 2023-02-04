@@ -176,6 +176,7 @@ namespace {
 	{
 		Dbg::ThrowIfFailed(s_commandAllocator->Reset());
 		Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
+		ImguiIf::startFrame();
 
 		{
 			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -216,7 +217,8 @@ namespace {
 
 		// UI
 		{
-			ImguiIf::draw(s_commandList.Get());
+			ImguiIf::update();
+			ImguiIf::render(s_commandList.Get());
 		}
 
 		{

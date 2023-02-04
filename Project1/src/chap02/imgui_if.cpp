@@ -72,46 +72,50 @@ namespace ImguiIf {
 		return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
 	}
 
-	void draw(ID3D12GraphicsCommandList* pCommandList)
+	void startFrame()
 	{
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
+	}
+
+	void update()
+	{
+		ImGui::Begin("Performance");
 		{
-#if 1
+			// set position and size
 			{
-				ImGui::Begin("Hello, world!");
-#if 1
-				{
-					const ImVec2 winPos = { 100.f, 100.f };
-					ImGui::SetWindowPos(winPos);
+				constexpr float kWidth = 500.0f;
+				constexpr float kHeight = 300.0f;
 
-					const ImVec2 winSize = { 1000.f, 1000.f };
-					ImGui::SetWindowSize(winSize, ImGuiCond_::ImGuiCond_FirstUseEver);
-				}
-#endif
+				constexpr ImVec2 winPos = { static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.f };
+				ImGui::SetWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);
 
-				ImGui::Text("Hello world");
-
-				if (ImGui::Button("Save"))
-				{
-					;
-				}
-
-				char buf[128];
-				ImGui::InputText("string", buf, IM_ARRAYSIZE(buf));
-
-				float f = 0.0f;
-				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-
-				ImGui::End();
+				constexpr ImVec2 winSize = { kWidth, kHeight };
+				ImGui::SetWindowSize(winSize, ImGuiCond_::ImGuiCond_Once);
 			}
-#endif
+
+			ImGui::Text("Hello world");
+
+			if (ImGui::Button("Save"))
+			{
+				;
+			}
+
+			char buf[128];
+			ImGui::InputText("string", buf, IM_ARRAYSIZE(buf));
+
+			float f = 0.0f;
+			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		}
-		// TODO: check viewport
+		ImGui::End();
+	}
+
+	void render(ID3D12GraphicsCommandList* list)
+	{
 		ImGui::Render();
 
-		pCommandList->SetDescriptorHeaps(1, s_descHeap.GetAddressOf());
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), pCommandList);
+		list->SetDescriptorHeaps(1, s_descHeap.GetAddressOf());
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), list);
 	}
 }
