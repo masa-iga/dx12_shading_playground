@@ -1,6 +1,7 @@
 #include "winmgr_win.h"
 #include <windows.h>
 #include "debug_win.h"
+#include "imgui_if.h"
 
 #define ENABLE_MINI_ENGINE_WINDOW (0)
 
@@ -85,19 +86,33 @@ namespace {
 	{
 		// Register the window class
 		WNDCLASS wc = { };
-		wc.lpfnWndProc = wndproc;
-		wc.hInstance = hInstance;
-		wc.lpszClassName = className;
+		{
+			wc.lpfnWndProc = wndproc;
+			wc.hInstance = hInstance;
+			wc.lpszClassName = className;
+		}
 
-		RegisterClass(&wc);
+		::RegisterClass(&wc);
+
+		struct Window {
+			int32_t x = CW_USEDEFAULT;
+			int32_t y = CW_USEDEFAULT;
+			int32_t width = CW_USEDEFAULT;
+			int32_t height = CW_USEDEFAULT;
+		};
+
+		Window window;
 
 		// create the window
-		*hwnd = CreateWindowEx(
+		*hwnd = ::CreateWindowEx(
 			0,
 			className,
 			windowName,
 			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+			window.x,
+			window.y,
+			window.width,
+			window.height,
 			NULL,
 			NULL,
 			hInstance,
@@ -118,7 +133,7 @@ namespace {
 	{
 		switch (uMsg) {
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			::PostQuitMessage(0);
 			return 0;
 
 		case WM_KEYDOWN:
@@ -129,21 +144,21 @@ namespace {
 			break;
 		}
 
-		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+		return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 
 	LRESULT WindowProcMiniEngine(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		switch (uMsg) {
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			::PostQuitMessage(0);
 			return 0;
 
 		default:
 			break;
 		}
 
-		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+		return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 
 	HRESULT handleKeyDownMain(WPARAM wParam, LPARAM lParam)
