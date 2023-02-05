@@ -74,6 +74,18 @@ namespace ImguiIf {
 		return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
 	}
 
+	float* s_pLight[3] = { };
+	float* s_pEye[3] = { };
+	void registerParams(float* lx, float* ly, float* lz, float* ex, float* ey, float* ez)
+	{
+		s_pLight[0] = lx;
+		s_pLight[1] = ly;
+		s_pLight[2] = lz;
+		s_pEye[0] = ex;
+		s_pEye[1] = ey;
+		s_pEye[2] = ez;
+	}
+
 	void startFrame()
 	{
 		ImGui_ImplDX12_NewFrame();
@@ -83,22 +95,15 @@ namespace ImguiIf {
 
 	void update()
 	{
-		ImGui::Begin("Performance");
+		ImGui::Begin("Rendering params");
 		{
 			setWindowPositionAndSize();
 
-			ImGui::Text("Hello world");
-
-			if (ImGui::Button("Save"))
+			if (s_pLight[0])
 			{
-				;
+				ImGui::Text("Direction light : (%.2f %.2f %.2f)\n", *s_pLight[0], *s_pLight[1], *s_pLight[2]);
+				ImGui::Text("Eye             : (%.2f %.2f %.2f)\n", *s_pEye[0], *s_pEye[1], *s_pEye[2]);
 			}
-
-			char buf[128];
-			ImGui::InputText("string", buf, IM_ARRAYSIZE(buf));
-
-			float f = 0.0f;
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		}
 		ImGui::End();
 	}
@@ -116,7 +121,7 @@ namespace {
 	void setWindowPositionAndSize()
 	{
 		constexpr float kWidth = 500.0f;
-		constexpr float kHeight = 300.0f;
+		constexpr float kHeight = 100.0f;
 
 		constexpr ImVec2 winPos = { static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.0f };
 		ImGui::SetWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);

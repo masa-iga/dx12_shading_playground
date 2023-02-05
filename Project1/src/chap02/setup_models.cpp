@@ -3,6 +3,7 @@
 #include <filesystem>
 #include "../../import/hlsl-grimoire-sample/MiniEngine/MiniEngine.h"
 #include "debug_win.h"
+#include "imgui_if.h"
 #include "miniEngine_if.h"
 
 #define LOAD_MODEL_CHAP_04_01 (0)
@@ -452,6 +453,14 @@ namespace {
 			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
 			s_model.UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, g_vec3One);
 		}
+
+		ImguiIf::registerParams(&s_updateLightDirection->x,
+			&s_updateLightDirection->y,
+			&s_updateLightDirection->z,
+			&s_updateEyePos->x,
+			&s_updateEyePos->y,
+			&s_updateEyePos->z
+		);
 	}
 
 	void handleInputForChap05_01()
