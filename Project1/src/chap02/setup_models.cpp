@@ -542,32 +542,41 @@ namespace {
 		if (!s_updateLightDirection || !s_updateEyePos)
 			return;
 
-		Quaternion qRot;
-
-		if (MiniEngineIf::isPress(MiniEngineIf::Button::kRight))
 		{
-			qRot.SetRotationDegY(1.0f);
+			Quaternion qRot;
+
+			if (MiniEngineIf::isPress(MiniEngineIf::Button::kRight))
+			{
+				qRot.SetRotationDegY(1.0f);
+			}
+			else if (MiniEngineIf::isPress(MiniEngineIf::Button::kLeft))
+			{
+				qRot.SetRotationDegY(-1.0f);
+			}
+			qRot.Apply(*s_updateLightDirection);
 		}
-		else if (MiniEngineIf::isPress(MiniEngineIf::Button::kLeft))
+
+		// rotate camera
 		{
-			qRot.SetRotationDegY(-1.0f);
+			Quaternion qRot;
+			qRot.SetRotationDegY(MiniEngineIf::getStick(MiniEngineIf::StickType::kLX));
+			Vector3 camPos = g_camera3D->GetPosition();
+			qRot.Apply(camPos);
+			g_camera3D->SetPosition(camPos);
 		}
-		qRot.Apply(*s_updateLightDirection);
 
-		qRot.SetRotationDegY(MiniEngineIf::getStick(MiniEngineIf::StickType::kLX));
-		Vector3 camPos = g_camera3D->GetPosition();
-		qRot.Apply(camPos);
-		g_camera3D->SetPosition(camPos);
+		{
+			Vector3 toPos = g_camera3D->GetPosition() - g_camera3D->GetTarget();
+			Vector3 dir = toPos;
+			dir.Normalize();
+			Vector3 rotAxis;
+			rotAxis.Cross(dir, g_vec3AxisY);
+			Quaternion qRot;
+			qRot.SetRotationDeg(rotAxis, MiniEngineIf::getStick(MiniEngineIf::StickType::kLY));
+			qRot.Apply(toPos);
+			g_camera3D->SetPosition(g_camera3D->GetTarget() + toPos);
 
-		Vector3 rotAxis;
-		Vector3 toPos = g_camera3D->GetPosition() - g_camera3D->GetTarget();
-		Vector3 dir = toPos;
-		dir.Normalize();
-		rotAxis.Cross(dir, g_vec3AxisY);
-		qRot.SetRotationDeg(rotAxis, MiniEngineIf::getStick(MiniEngineIf::StickType::kLY));
-		qRot.Apply(toPos);
-		g_camera3D->SetPosition(g_camera3D->GetTarget() + toPos);
-
-		*s_updateEyePos = g_camera3D->GetPosition();
+			*s_updateEyePos = g_camera3D->GetPosition();
+		}
 	}
 }
