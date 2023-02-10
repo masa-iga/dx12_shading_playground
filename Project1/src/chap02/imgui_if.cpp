@@ -1,6 +1,8 @@
 #include "imgui_if.h"
+#include <array>
 #include <d3dx12.h>
 #include <dxgi1_4.h>
+#include <vector>
 #include <wrl.h>
 #include "../../import/imgui/imgui.h"
 #include "../../import/imgui/backends/imgui_impl_win32.h"
@@ -13,10 +15,20 @@
 using namespace Microsoft::WRL;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+template LRESULT ImguiIf::printParams<int>(ParamType type, const std::string& str, const std::vector<int*>& ptrs);
+template LRESULT ImguiIf::printParams<float>(ParamType type, const std::string& str, const std::vector<float*>& ptrs);
 
 namespace {
+	struct Log {
+		ImguiIf::ParamType m_type = ImguiIf::ParamType::kInt;
+		size_t m_num = 0;
+		std::string m_str = "";
+		std::array<const void*, 4> m_ptrs = { nullptr, nullptr, nullptr, nullptr };
+	};
+
 	constexpr int32_t kNumFramesInFlight = 3;
 	ComPtr<ID3D12DescriptorHeap> s_descHeap = nullptr;
+	std::vector<Log> s_logs;
 
 	void setWindowPositionAndSize();
 }
@@ -74,18 +86,6 @@ namespace ImguiIf {
 		return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
 	}
 
-	float* s_pLight[3] = { };
-	float* s_pEye[3] = { };
-	void registerParams(float* lx, float* ly, float* lz, float* ex, float* ey, float* ez)
-	{
-		s_pLight[0] = lx;
-		s_pLight[1] = ly;
-		s_pLight[2] = lz;
-		s_pEye[0] = ex;
-		s_pEye[1] = ey;
-		s_pEye[2] = ez;
-	}
-
 	void startFrame()
 	{
 		ImGui_ImplDX12_NewFrame();
@@ -99,10 +99,40 @@ namespace ImguiIf {
 		{
 			setWindowPositionAndSize();
 
-			if (s_pLight[0])
+			for (const Log& log : s_logs)
 			{
-				ImGui::Text("Direction light : (%.2f %.2f %.2f)\n", *s_pLight[0], *s_pLight[1], *s_pLight[2]);
-				ImGui::Text("Eye             : (%.2f %.2f %.2f)\n", *s_pEye[0], *s_pEye[1], *s_pEye[2]);
+				if (log.m_type == ParamType::kInt)
+				{
+					std::array<const int32_t*, 4> p = { reinterpret_cast<const int32_t*>(log.m_ptrs[0])
+						, reinterpret_cast<const int32_t*>(log.m_ptrs[1])
+						, reinterpret_cast<const int32_t*>(log.m_ptrs[2])
+						, reinterpret_cast<const int32_t*>(log.m_ptrs[3])
+					};
+
+					switch (log.m_num) {
+					case 1: ImGui::Text("%s: %d\n", log.m_str.c_str(), *p.at(0)); break;
+					case 2: ImGui::Text("%s: (%d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
+					case 3: ImGui::Text("%s: (%d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
+					case 4: ImGui::Text("%s: (%d %d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
+					default: break;
+					}
+				}
+				else if (log.m_type == ParamType::kFloat)
+				{
+					std::array<const float*, 4> p = { reinterpret_cast<const float*>(log.m_ptrs[0])
+						, reinterpret_cast<const float*>(log.m_ptrs[1])
+						, reinterpret_cast<const float*>(log.m_ptrs[2])
+						, reinterpret_cast<const float*>(log.m_ptrs[3])
+					};
+
+					switch (log.m_num) {
+					case 1: ImGui::Text("%s: %.2f\n", log.m_str.c_str(), *p.at(0)); break;
+					case 2: ImGui::Text("%s: (%.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
+					case 3: ImGui::Text("%s: (%.2f %.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
+					case 4: ImGui::Text("%s: (%.2f %.2f %.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
+					default: break;
+					}
+				}
 			}
 		}
 		ImGui::End();
@@ -115,6 +145,38 @@ namespace ImguiIf {
 		list->SetDescriptorHeaps(1, s_descHeap.GetAddressOf());
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), list);
 	}
+
+	template<typename T>
+	LRESULT printParams(ParamType type, const std::string& str, const std::vector<T*>& ptrs)
+	{
+		if (ptrs.size() == 0)
+			return S_OK;
+
+		if (ptrs.size() > 4)
+			return E_FAIL;
+
+		Log log = { };
+		log.m_num = 0;
+
+		for (int32_t i = 0; i < ptrs.size(); ++i)
+		{
+			if (ptrs.at(i) == nullptr)
+				break;
+
+			log.m_ptrs.at(i) = reinterpret_cast<const void*>(ptrs.at(i));
+			log.m_num++;
+		}
+
+		if (log.m_num == 0)
+			return S_OK;
+
+		log.m_type = type;
+		log.m_str = str;
+		s_logs.emplace_back(log);
+
+		return S_OK;
+	}
+
 }
 
 namespace {

@@ -454,13 +454,8 @@ namespace {
 			s_model.UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, g_vec3One);
 		}
 
-		ImguiIf::registerParams(&s_updateLightDirection->x,
-			&s_updateLightDirection->y,
-			&s_updateLightDirection->z,
-			&s_updateEyePos->x,
-			&s_updateEyePos->y,
-			&s_updateEyePos->z
-		);
+		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "Direct light", std::vector<float*>{ &s_updateLightDirection->x, & s_updateLightDirection->y, & s_updateLightDirection->z });
+		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "Eye         ", std::vector<float*>{ &s_updateEyePos->x, & s_updateEyePos->y, & s_updateEyePos->z });
 	}
 
 	void handleInputForChap05_01()
