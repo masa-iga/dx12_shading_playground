@@ -19,11 +19,10 @@ cbuffer LightCb : register(b1)
 // 頂点シェーダーへの入力
 struct SVSIn
 {
-    float4 pos : POSITION;  // モデルの頂点座標
+    float4 pos : POSITION; // モデルの頂点座標
     float3 normal : NORMAL; // 法線
-
-    // step-1 頂点シェーダーの入力に接ベクトルと従ベクトルを追加
-
+    float3 tangent : TANGENT0;
+    float3 biNormal : BINORMAL0;
     float2 uv : TEXCOORD0;  // UV座標
 };
 
@@ -32,17 +31,15 @@ struct SPSIn
 {
     float4 pos : SV_POSITION;       // スクリーン空間でのピクセルの座標
     float3 normal : NORMAL;         // 法線
-
-    // step-2 ピクセルシェーダーの入力に接ベクトルと従ベクトルを追加
-
+    float3 tangent : TANGENT0;
+    float3 biNormal : BINORMAL0;
     float2 uv : TEXCOORD0;          // UV座標
     float3 worldPos : TEXCOORD1;    // ワールド空間でのピクセルの座標
 };
 
 // モデルテクスチャ
 Texture2D<float4> g_texture : register(t0);
-
-// step-3 法線マップにアクセスするための変数を追加
+Texture2D<float4> g_normalMap : register(t1);
 
 // サンプラーステート
 sampler g_sampler : register(s0);
@@ -56,8 +53,8 @@ SPSIn VSMain(SVSIn vsIn)
     psIn.pos = mul(mView, psIn.pos);
     psIn.pos = mul(mProj, psIn.pos);
     psIn.normal = normalize(mul(mWorld, vsIn.normal));
-
-    // step-4 接ベクトルと従ベクトルをワールド空間に変換する
+    psIn.tangent = normalize(mul(mWorld, vsIn.tangent));
+    psIn.biNormal = normalize(mul(mWorld, vsIn.biNormal));
 
     psIn.uv = vsIn.uv;
     return psIn;
@@ -71,9 +68,12 @@ float4 PSMain(SPSIn psIn) : SV_Target0
 
     float3 normal =  psIn.normal;
 
-    // step-5 法線マップからタンジェントスペースの法線をサンプリングする
+    float3 localNormal = g_normalMap.Sample(g_sampler, psIn.uv);
+    localNormal = (localNormal - 0.5f) * 2.0f;
 
-    // step-6 タンジェントスペースの法線をワールドスペースに変換する
+    normal = localNormal.x * psIn.tangent
+    + localNormal.y * psIn.biNormal
+    + localNormal.z * normal;
 
     // 拡散反射光を計算する
     float3 lig = 0.0f;
