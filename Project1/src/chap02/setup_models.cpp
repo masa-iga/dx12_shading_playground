@@ -417,6 +417,8 @@ namespace {
 		}
 	}
 
+	int* s_enableTangentSpaceNormal = nullptr;
+
 	void loadModelForChap06_01()
 	{
 		g_camera3D->SetPosition({ 0.0f, 200.0f, 300.0f });
@@ -430,6 +432,7 @@ namespace {
 			float specRow = 0.0f;
 			Vector3 ambientLight;
 			float pad1 = 0.0f;
+			int32_t enableTangentSpaceNormal = 0;
 		};
 
 		static Light s_light = {
@@ -443,6 +446,7 @@ namespace {
 		};
 		s_updateEyePos = &s_light.eyePos;
 		s_updateLightDirection = &s_light.direction;
+		s_enableTangentSpaceNormal = &s_light.enableTangentSpaceNormal;
 
 		{
 			const std::string tkmFile = "Sample_06_01/Sample_06_01/Assets/modelData/sample.tkm";
@@ -456,6 +460,7 @@ namespace {
 
 		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "Direct light", std::vector<float*>{ &s_updateLightDirection->x, & s_updateLightDirection->y, & s_updateLightDirection->z });
 		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "Eye         ", std::vector<float*>{ &s_updateEyePos->x, & s_updateEyePos->y, & s_updateEyePos->z });
+		ImguiIf::printParams<int>(ImguiIf::ParamType::kInt, "TangentNormal", std::vector<int*>{ s_enableTangentSpaceNormal });
 	}
 
 	void handleInputForChap05_01()
@@ -572,6 +577,20 @@ namespace {
 			g_camera3D->SetPosition(g_camera3D->GetTarget() + toPos);
 
 			*s_updateEyePos = g_camera3D->GetPosition();
+		}
+
+		{
+			if (s_enableTangentSpaceNormal)
+			{
+				if (MiniEngineIf::isPress(MiniEngineIf::Button::kA))
+				{
+					*s_enableTangentSpaceNormal = 1;
+				}
+				else if (MiniEngineIf::isPress(MiniEngineIf::Button::kB))
+				{
+					*s_enableTangentSpaceNormal = 0;
+				}
+			}
 		}
 	}
 }
