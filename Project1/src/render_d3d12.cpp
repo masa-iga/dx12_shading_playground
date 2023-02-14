@@ -25,6 +25,7 @@ namespace {
 	HANDLE s_fenceEvent = nullptr;
 	UINT s_frameIndex = 0;
 	Timestamp s_timestamp;
+	float s_gpuTimeInUsec = 0.0f;
 
 	void createCommandAllocator(ID3D12Device* device);
 	void createCommandQueue(ID3D12Device* device);
@@ -45,9 +46,9 @@ namespace Render {
 		MiniEngineIf::init(device, hwndForMiniEngine, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 		Toolkit::init(device);
 		ImguiIf::init(device, hwndForImgui);
+		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "GPU time [us]", std::vector<float*>{ &s_gpuTimeInUsec });
 		s_timestamp.init(device);
 		s_timestamp.setGpuFreq(s_commandQueue.Get());
-
 	}
 
 	void loadAssets(ID3D12Device* device)
@@ -188,6 +189,7 @@ namespace {
 		Dbg::ThrowIfFailed(s_commandAllocator->Reset());
 		Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
 		ImguiIf::startFrame();
+		s_gpuTimeInUsec = static_cast<float>(s_timestamp.computeDiffInUsec(Timestamp::Point::kFrameBegin, Timestamp::Point::kFrameEnd));
 		s_timestamp.flip();
 		s_timestamp.query(s_commandList.Get(), Timestamp::Point::kFrameBegin);
 	}
