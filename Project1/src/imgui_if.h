@@ -6,7 +6,8 @@
 
 namespace ImguiIf {
 	enum class ParamType {
-		kInt,
+		kInt32,
+		kUint64,
 		kFloat,
 	};
 

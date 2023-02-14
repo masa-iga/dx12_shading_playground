@@ -15,12 +15,13 @@
 using namespace Microsoft::WRL;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-template LRESULT ImguiIf::printParams<int>(ParamType type, const std::string& str, const std::vector<int*>& ptrs);
+template LRESULT ImguiIf::printParams<int32_t>(ParamType type, const std::string& str, const std::vector<int32_t*>& ptrs);
+template LRESULT ImguiIf::printParams<uint64_t>(ParamType type, const std::string& str, const std::vector<uint64_t*>& ptrs);
 template LRESULT ImguiIf::printParams<float>(ParamType type, const std::string& str, const std::vector<float*>& ptrs);
 
 namespace {
 	struct Log {
-		ImguiIf::ParamType m_type = ImguiIf::ParamType::kInt;
+		ImguiIf::ParamType m_type = ImguiIf::ParamType::kInt32;
 		size_t m_num = 0;
 		std::string m_str = "";
 		std::array<const void*, 4> m_ptrs = { nullptr, nullptr, nullptr, nullptr };
@@ -101,7 +102,7 @@ namespace ImguiIf {
 
 			for (const Log& log : s_logs)
 			{
-				if (log.m_type == ParamType::kInt)
+				if (log.m_type == ParamType::kInt32)
 				{
 					std::array<const int32_t*, 4> p = { reinterpret_cast<const int32_t*>(log.m_ptrs[0])
 						, reinterpret_cast<const int32_t*>(log.m_ptrs[1])
@@ -114,6 +115,21 @@ namespace ImguiIf {
 					case 2: ImGui::Text("%s: (%d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
 					case 3: ImGui::Text("%s: (%d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
 					case 4: ImGui::Text("%s: (%d %d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
+					default: break;
+					}
+				}
+				else if (log.m_type == ParamType::kUint64)
+				{
+					std::array<const uint64_t*, 4> p = { reinterpret_cast<const uint64_t*>(log.m_ptrs[0])
+						, reinterpret_cast<const uint64_t*>(log.m_ptrs[1])
+						, reinterpret_cast<const uint64_t*>(log.m_ptrs[2])
+						, reinterpret_cast<const uint64_t*>(log.m_ptrs[3])
+					};
+					switch (log.m_num) {
+					case 1: ImGui::Text("%s: %zd\n", log.m_str.c_str(), *p.at(0)); break;
+					case 2: ImGui::Text("%s: (%zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
+					case 3: ImGui::Text("%s: (%zd %zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
+					case 4: ImGui::Text("%s: (%zd %zd %zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
 					default: break;
 					}
 				}
