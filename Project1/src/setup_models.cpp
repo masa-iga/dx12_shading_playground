@@ -460,7 +460,7 @@ namespace {
 
 		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "Direct light", std::vector<float*>{ &s_updateLightDirection->x, & s_updateLightDirection->y, & s_updateLightDirection->z });
 		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "Eye         ", std::vector<float*>{ &s_updateEyePos->x, & s_updateEyePos->y, & s_updateEyePos->z });
-		ImguiIf::printParams<int>(ImguiIf::ParamType::kInt, "TangentNormal", std::vector<int*>{ s_enableTangentSpaceNormal });
+		ImguiIf::printParams<int32_t>(ImguiIf::ParamType::kInt32, "TangentNormal", std::vector<int32_t*>{ s_enableTangentSpaceNormal });
 	}
 
 	void handleInputForChap05_01()
