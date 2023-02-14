@@ -8,6 +8,7 @@
 #include "model_simple_triangle.h"
 #include "swapchain_d3d12.h"
 #include "toolkit.h"
+#include "timestamp.h"
 
 #pragma comment(lib, "D3DCompiler.lib")
 
@@ -23,12 +24,15 @@ namespace {
 	UINT64 s_fenceValue = 0;
 	HANDLE s_fenceEvent = nullptr;
 	UINT s_frameIndex = 0;
+	Timestamp s_timestamp;
 
 	void createCommandAllocator(ID3D12Device* device);
 	void createCommandQueue(ID3D12Device* device);
 	void createCommandList(ID3D12Device* device);
 	void createFence(ID3D12Device* device);
 	void waitForPreviousFrame();
+	void startFrame();
+	void endFrame();
 	void populateCommandList();
 }
 
@@ -41,6 +45,9 @@ namespace Render {
 		MiniEngineIf::init(device, hwndForMiniEngine, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 		Toolkit::init(device);
 		ImguiIf::init(device, hwndForImgui);
+		s_timestamp.init(device);
+		s_timestamp.setGpuFreq(s_commandQueue.Get());
+
 	}
 
 	void loadAssets(ID3D12Device* device)
@@ -83,11 +90,15 @@ namespace Render {
 
 	void onRender()
 	{
+		startFrame();
+
 		MiniEngineIf::beginFrame();
 		MiniEngineIf::draw(true);
 		MiniEngineIf::endFrame();
 
 		populateCommandList();
+
+		endFrame();
 
 		ID3D12CommandList* ppCommandLists[] = { s_commandList.Get() };
 		s_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
@@ -172,12 +183,25 @@ namespace {
 		s_frameIndex = SwapChain::getSwapChain()->GetCurrentBackBufferIndex();
 	}
 
-	void populateCommandList()
+	void startFrame()
 	{
 		Dbg::ThrowIfFailed(s_commandAllocator->Reset());
 		Dbg::ThrowIfFailed(s_commandList->Reset(s_commandAllocator.Get(), nullptr));
 		ImguiIf::startFrame();
+		s_timestamp.flip();
+		s_timestamp.query(s_commandList.Get(), Timestamp::Point::kFrameBegin);
+	}
 
+	void endFrame()
+	{
+		s_timestamp.query(s_commandList.Get(), Timestamp::Point::kFrameEnd);
+		s_timestamp.resolve(s_commandList.Get());
+
+		Dbg::ThrowIfFailed(s_commandList->Close());
+	}
+
+	void populateCommandList()
+	{
 		{
 			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(SwapChain::getRtResource(s_frameIndex), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 			s_commandList->ResourceBarrier(1, &barrier);
@@ -239,7 +263,5 @@ namespace {
 			MiniEngineIf::clearRenderTarget(s_commandList.Get());
 			MiniEngineIf::clearDepthRenderTarget(s_commandList.Get());
 		}
-
-		Dbg::ThrowIfFailed(s_commandList->Close());
 	}
 }

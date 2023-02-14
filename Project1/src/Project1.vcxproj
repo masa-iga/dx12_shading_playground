@@ -186,6 +186,7 @@ call :copyFiles
     <ClCompile Include="model_simple_triangle.cpp" />
     <ClCompile Include="setup_models.cpp" />
     <ClCompile Include="swapchain_d3d12.cpp" />
+    <ClCompile Include="timestamp.cpp" />
     <ClCompile Include="toolkit.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="winmgr_win.cpp" />
@@ -201,6 +202,7 @@ call :copyFiles
     <ClInclude Include="model_simple_triangle.h" />
     <ClInclude Include="setup_models.h" />
     <ClInclude Include="swapchain_d3d12.h" />
+    <ClInclude Include="timestamp.h" />
     <ClInclude Include="toolkit.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="winmgr_win.h" />
