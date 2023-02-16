@@ -19,6 +19,9 @@ template LRESULT ImguiIf::printParams<int32_t>(ParamType type, const std::string
 template LRESULT ImguiIf::printParams<uint64_t>(ParamType type, const std::string& str, const std::vector<uint64_t*>& ptrs);
 template LRESULT ImguiIf::printParams<float>(ParamType type, const std::string& str, const std::vector<float*>& ptrs);
 
+constexpr float kWidth = 500.0f;
+constexpr float kHeight = 130.0f;
+
 namespace {
 	struct Log {
 		ImguiIf::ParamType m_type = ImguiIf::ParamType::kInt32;
@@ -198,9 +201,6 @@ namespace ImguiIf {
 namespace {
 	void setWindowPositionAndSize()
 	{
-		constexpr float kWidth = 500.0f;
-		constexpr float kHeight = 100.0f;
-
 		constexpr ImVec2 winPos = { static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.0f };
 		ImGui::SetWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);
 
