@@ -37,15 +37,15 @@ namespace WinMgr {
 		MSG msg = { };
 		const UINT wMsgFilterMin = 0;
 		const UINT wMsgFilterMax = 0;
+		const UINT wRemoveMsg = PM_REMOVE;
 
-		BOOL ret = GetMessage(&msg, NULL, wMsgFilterMin, wMsgFilterMax);
-		Dbg::assert_(ret != -1);
+		BOOL ret = ::PeekMessage(&msg, NULL, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 
-		if (ret > 0)
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		if (ret == 0)
+			return s_breakLoop;
+
+		::TranslateMessage(&msg);
+		::DispatchMessage(&msg);
 
 		return s_breakLoop;
 	}
