@@ -24,7 +24,15 @@ namespace {
 }
 
 namespace Util {
+	std::string getPathFromAssetDir(const std::string& path)
+	{
+		const std::string kBaseAssetDir = "../import/hlsl-grimoire-sample";
+		return kBaseAssetDir + "/" + path;
+	}
+}
+
 #if defined(_WIN32) || defined(_WIN64)
+namespace Util {
 	HRESULT compileVsShader(ComPtr<ID3DBlob>& shaderBlob, LPCWSTR shaderFile, LPCSTR entrypoint)
 	{
 		return compileShader(shaderBlob, shaderFile, entrypoint, Config::kVsVersion);
@@ -45,8 +53,8 @@ namespace Util {
 		Dbg::ThrowIfFailed(resource->GetHeapProperties(&hp, &hf));
 		Dbg::print("  heap: %s %s %s flag 0x%x\n", getNameOfD3d12HeapType(hp.Type), getNameOfD3d12CpuPageProperty(hp.CPUPageProperty), getNameOfD3d12MemoryPool(hp.MemoryPoolPreference), hf);
 	}
+} // namespace Util
 #endif // #if defined(_WIN32) || defined(_WIN64)
-}
 
 namespace {
 #if defined(_WIN32) || defined(_WIN64)

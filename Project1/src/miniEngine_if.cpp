@@ -110,6 +110,16 @@ namespace MiniEngineIf {
 	{
 		return g_pad[0]->IsPress(static_cast<EnButton>(button));
 	}
+
+	Camera* getCamera2D()
+	{
+		return g_camera2D;
+	}
+
+	Camera* getCamera3D()
+	{
+		return g_camera3D;
+	}
 }
 
 namespace {

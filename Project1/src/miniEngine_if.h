@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include <windows.h>
+class Camera;
 
 namespace MiniEngineIf {
 	enum class StickType {
@@ -41,4 +42,6 @@ namespace MiniEngineIf {
 	void draw(bool renderToOffscreenBuffer = true);
 	float getStick(StickType type);
 	bool isPress(Button button);
+	Camera* getCamera2D();
+	Camera* getCamera3D();
 }
