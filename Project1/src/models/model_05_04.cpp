@@ -8,9 +8,29 @@
 #include "../util.h"
 
 namespace {
+	struct Light
+	{
+		Vector3 dirDirection;
+		float pad0 = 0.0f;
+		Vector3 dirColor;
+		float pad1 = 0.0f;
+
+		Vector3 eyePos;
+		float pad2 = 0.0f;
+
+		Vector3 ambientLight;
+		float pad3 = 0.0f;
+
+		Vector3 groundColor;
+		float pad4 = 0.0f;
+		Vector3 skyColor;
+		float pad5 = 0.0f;
+		Vector3 groundNormal;
+	};
+
 	const std::string tkmFile = "Sample_05_04/Sample_05_04/Assets/modelData/teapot.tkm";
 	const std::string fxFile = "Assets/shader/sample_05_04.fx";
-	Vector3* s_updateLightDirection = nullptr;
+	Light* s_pLight = nullptr;
 } // namespace anonymous
 
 namespace ModelHandler {
@@ -18,26 +38,6 @@ namespace ModelHandler {
 	{
 		MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 50.0f, 200.0f });
 		MiniEngineIf::getCamera3D()->SetTarget({ 0.0f, 50.0f, 0.0f });
-
-		struct Light
-		{
-			Vector3 dirDirection;
-			float pad0 = 0.0f;
-			Vector3 dirColor;
-			float pad1 = 0.0f;
-
-			Vector3 eyePos;
-			float pad2 = 0.0f;
-
-			Vector3 ambientLight;
-			float pad3 = 0.0f;
-
-			Vector3 groundColor;
-			float pad4 = 0.0f;
-			Vector3 skyColor;
-			float pad5 = 0.0f;
-			Vector3 groundNormal;
-		};
 
 		static Light s_light = {
 			.dirDirection = { 0.0f, 0.0f, 1.0f },
@@ -55,7 +55,7 @@ namespace ModelHandler {
 			.groundNormal = { 0.0f, 1.0f, 0.0f },
 		};
 		s_light.dirDirection.Normalize();
-		s_updateLightDirection = &s_light.dirDirection;
+		s_pLight = &s_light;
 
 		{
 			const std::string tkmFilePath = Util::getPathFromAssetDir(tkmFile);
@@ -69,11 +69,11 @@ namespace ModelHandler {
 
 	void handleInputForChap05_04()
 	{
-		if (!s_updateLightDirection)
+		if (s_pLight == nullptr)
 			return;
 
 		Quaternion qRotY;
 		qRotY.SetRotation(g_vec3AxisY, MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.02f);
-		qRotY.Apply(*s_updateLightDirection);
+		qRotY.Apply(s_pLight->dirDirection);
 	}
 } // namespace ModelHandler
