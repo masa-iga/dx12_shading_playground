@@ -1,7 +1,7 @@
 #include "model_06_01.h"
 #include <filesystem>
 #include "MiniEngine.h"
-#include "model_utility.h"
+#include "model_util.h"
 #include "../debug_win.h"
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
@@ -45,7 +45,7 @@ namespace ModelHandler {
 			const std::string tkmFilePath = Util::getPathFromAssetDir(tkmFile);
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
-			ModelUtility::initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
+			ModelUtil::initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
 			models.push_back(&s_model);
 			s_model.UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, g_vec3One);
 		}

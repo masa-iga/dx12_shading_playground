@@ -1,9 +1,9 @@
-#include "model_utility.h"
+#include "model_util.h"
 #include <filesystem>
 #include "MiniEngine.h"
 #include "../debug_win.h"
 
-namespace ModelUtility {
+namespace ModelUtil {
 	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize)
 	{
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));
@@ -21,4 +21,4 @@ namespace ModelUtility {
 
 		model->Init(initData);
 	}
-} // namespace ModelUtility
+} // namespace ModelUtil

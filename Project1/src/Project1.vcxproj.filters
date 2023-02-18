@@ -75,8 +75,11 @@
     <ClCompile Include="models\model_05_04.cpp">
       <Filter>ソース ファイル\models</Filter>
     </ClCompile>
-    <ClCompile Include="models\model_utility.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="models\model_05_03.cpp">
+      <Filter>ソース ファイル\models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\model_util.cpp">
+      <Filter>ソース ファイル\models</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -128,7 +131,10 @@
     <ClInclude Include="models\model_05_04.h">
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
-    <ClInclude Include="models\model_utility.h">
+    <ClInclude Include="models\model_util.h">
+      <Filter>ソース ファイル\models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\model_05_03.h">
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
   </ItemGroup>

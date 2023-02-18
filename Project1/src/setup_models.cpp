@@ -5,6 +5,7 @@
 #include "debug_win.h"
 #include "imgui_if.h"
 #include "miniEngine_if.h"
+#include "models/model_05_03.h"
 #include "models/model_05_04.h"
 #include "models/model_06_01.h"
 
@@ -12,9 +13,9 @@
 #define LOAD_MODEL_CHAP_04_03 (0)
 #define LOAD_MODEL_CHAP_05_01 (0)
 #define LOAD_MODEL_CHAP_05_02 (0)
-#define LOAD_MODEL_CHAP_05_03 (0)
+#define LOAD_MODEL_CHAP_05_03 (1)
 #define LOAD_MODEL_CHAP_05_04 (0)
-#define LOAD_MODEL_CHAP_06_01 (1)
+#define LOAD_MODEL_CHAP_06_01 (0)
 
 namespace {
 	const std::string kBaseAssetDir = "../import/hlsl-grimoire-sample";
@@ -25,10 +26,8 @@ namespace {
 	void loadModelForChap04_03();
 	void loadModelForChap05_01();
 	void loadModelForChap05_02();
-	void loadModelForChap05_03();
 	void handleInputForChap05_01();
 	void handleInputForChap05_02();
-	void handleInputForChap05_03();
 
 	std::vector<Model*> s_models;
 
@@ -36,7 +35,7 @@ namespace {
 	Vector3* s_updateEyePos = nullptr;
 	Vector3* s_updateLightPos = nullptr;
 	Vector3* s_updateLightDirection = nullptr;
-}
+} // namespace anonymous
 
 void Models::loadModel()
 {
@@ -103,7 +102,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k04_03: loadModelForChap04_03(); break;
 	case Chapter::k05_01: loadModelForChap05_01(); break;
 	case Chapter::k05_02: loadModelForChap05_02(); break;
-	case Chapter::k05_03: loadModelForChap05_03(); break;
+	case Chapter::k05_03: ModelHandler::loadModelForChap05_03(s_models); break;
 	case Chapter::k05_04: ModelHandler::loadModelForChap05_04(s_models); break;
 	case Chapter::k06_01: ModelHandler::loadModelForChap06_01(s_models); break;
 	default: break;
@@ -117,7 +116,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k04_03: break;
 	case Chapter::k05_01: handleInputForChap05_01(); break;
 	case Chapter::k05_02: handleInputForChap05_02(); break;
-	case Chapter::k05_03: handleInputForChap05_03(); break;
+	case Chapter::k05_03: ModelHandler::handleInputForChap05_03(); break;
 	case Chapter::k05_04: ModelHandler::handleInputForChap05_04(); break;
 	case Chapter::k06_01: ModelHandler::handleInputForChap06_01(); break;
 	default: break;
@@ -322,47 +321,6 @@ namespace {
 		}
 	}
 
-	void loadModelForChap05_03()
-	{
-		g_camera3D->SetPosition({ 0.0f, 30.0f, 200.0f });
-		g_camera3D->SetTarget({ 0.0f, 30.0f, 0.0f });
-
-		struct Light
-		{
-			Vector3 dirDirection;
-			float pad0 = 0.0f;
-			Vector3 dirColor;
-			float pad1 = 0.0f;
-
-			Vector3 eyePos;
-			float pad2 = 0.0f;
-
-			Vector3 ambientLight;
-			float pad3 = 0.0f;
-		};
-
-		static Light s_light = {
-			.dirDirection = { 0.0f, 0.0f, 1.0f },
-			.dirColor = { 0.5f, 0.5f, 0.5f},
-			.eyePos = g_camera3D->GetPosition(),
-			.ambientLight = { 0.3f, 0.3f, 0.3f },
-		};
-		s_light.dirDirection.Normalize();
-		s_updateLightDirection = &s_light.dirDirection;
-
-		{
-			const std::string tkmFile = "Sample_05_03/Sample_05_03/Assets/modelData/teapot.tkm";
-			const std::string fxFile = "Assets/shader/sample_05_03.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-			s_model.UpdateWorldMatrix({ 0.0f, 20.0f, 0.0f }, g_quatIdentity, g_vec3One);
-		}
-	}
-
-	int* s_enableTangentSpaceNormal = nullptr;
-
 	void handleInputForChap05_01()
 	{
 		if (!s_updateLightPos || !s_updateModel)
@@ -416,14 +374,4 @@ namespace {
 
 		s_updateModel->UpdateWorldMatrix(*s_updateLightPos, qRot, g_vec3One);
 	}
-
-	void handleInputForChap05_03()
-	{
-		if (!s_updateLightDirection)
-			return;
-
-		Quaternion qRotY;
-		qRotY.SetRotation(g_vec3AxisY, MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.02f);
-		qRotY.Apply(*s_updateLightDirection);
-	}
-}
+} // namespace anonymous

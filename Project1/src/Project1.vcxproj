@@ -182,9 +182,10 @@ call :copyFiles
     <ClCompile Include="imgui_if.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="miniEngine_if.cpp" />
+    <ClCompile Include="models\model_05_03.cpp" />
     <ClCompile Include="models\model_05_04.cpp" />
     <ClCompile Include="models\model_06_01.cpp" />
-    <ClCompile Include="models\model_utility.cpp" />
+    <ClCompile Include="models\model_util.cpp" />
     <ClCompile Include="render_d3d12.cpp" />
     <ClCompile Include="model_simple_triangle.cpp" />
     <ClCompile Include="setup_models.cpp" />
@@ -201,9 +202,10 @@ call :copyFiles
     <ClInclude Include="device_d3d12.h" />
     <ClInclude Include="imgui_if.h" />
     <ClInclude Include="miniEngine_if.h" />
+    <ClInclude Include="models\model_05_03.h" />
     <ClInclude Include="models\model_05_04.h" />
     <ClInclude Include="models\model_06_01.h" />
-    <ClInclude Include="models\model_utility.h" />
+    <ClInclude Include="models\model_util.h" />
     <ClInclude Include="render_d3d12.h" />
     <ClInclude Include="model_simple_triangle.h" />
     <ClInclude Include="setup_models.h" />
