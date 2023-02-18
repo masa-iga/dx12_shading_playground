@@ -1,5 +1,4 @@
 #include "util.h"
-#include <string>
 #if defined(_WIN32) || defined(_WIN64)
 #include <d3dcompiler.h>
 #endif // #if defined(_WIN32) || defined(_WIN64)
@@ -12,24 +11,16 @@
 using namespace Microsoft::WRL;
 #endif // #if defined(_WIN32) || defined(_WIN64)
 
-namespace {
 #if defined(_WIN32) || defined(_WIN64)
+namespace {
 	HRESULT compileShader(ComPtr<ID3DBlob>& shaderBlob, LPCWSTR shaderFile, LPCSTR entrypoint, LPCSTR target);
 	const char* getNameOfD3d12HeapType(D3D12_HEAP_TYPE type);
 	const char* getNameOfD3d12CpuPageProperty(D3D12_CPU_PAGE_PROPERTY prop);
 	const char* getNameOfD3d12MemoryPool(D3D12_MEMORY_POOL mpool);
 	const char* getNameOfD3d12DxgiFormat(DXGI_FORMAT format);
 	const char* getNameOfD3d12TextureLayout(D3D12_TEXTURE_LAYOUT layout);
+} // namespace anonymous
 #endif // #if defined(_WIN32) || defined(_WIN64)
-}
-
-namespace Util {
-	std::string getPathFromAssetDir(const std::string& path)
-	{
-		const std::string kBaseAssetDir = "../import/hlsl-grimoire-sample";
-		return kBaseAssetDir + "/" + path;
-	}
-}
 
 #if defined(_WIN32) || defined(_WIN64)
 namespace Util {
@@ -56,8 +47,8 @@ namespace Util {
 } // namespace Util
 #endif // #if defined(_WIN32) || defined(_WIN64)
 
-namespace {
 #if defined(_WIN32) || defined(_WIN64)
+namespace {
 	HRESULT compileShader(ComPtr<ID3DBlob>& shaderBlob, LPCWSTR shaderFile, LPCSTR entrypoint, LPCSTR target)
 	{
 		ComPtr<ID3DBlob> error = nullptr;
@@ -254,6 +245,6 @@ namespace {
 		}
 		return "Unknown !!";
 	}
+} // namespace anonymous
 #endif // #if defined(_WIN32) || defined(_WIN64)
-}
 #pragma warning(pop)

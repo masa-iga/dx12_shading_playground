@@ -1,7 +1,6 @@
 #pragma once
 #include <algorithm>
 #include <cstdint>
-#include <string>
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
 #include <d3d12.h>
@@ -9,7 +8,6 @@
 #endif // #if defined(_WIN32) || defined(_WIN64)
 
 namespace Util {
-	std::string getPathFromAssetDir(const std::string& path);
 	template <class T>
 	const UINT getAlignedContantBufferSize(T size)
 	{

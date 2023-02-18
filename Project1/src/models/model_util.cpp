@@ -4,6 +4,12 @@
 #include "../debug_win.h"
 
 namespace ModelUtil {
+	std::string getPathFromAssetDir(const std::string& path)
+	{
+		const std::string kBaseAssetDir = "../import/hlsl-grimoire-sample";
+		return kBaseAssetDir + "/" + path;
+	}
+
 	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize)
 	{
 		Dbg::assert_(std::filesystem::exists(tkmFilePath));

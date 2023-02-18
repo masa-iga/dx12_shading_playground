@@ -5,7 +5,6 @@
 #include "../debug_win.h"
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
-#include "../util.h"
 
 namespace {
 	struct Light {
@@ -42,7 +41,7 @@ namespace ModelHandler {
 		s_pLight = &s_light;
 
 		{
-			const std::string tkmFilePath = Util::getPathFromAssetDir(tkmFile);
+			const std::string tkmFilePath = ModelUtil::getPathFromAssetDir(tkmFile);
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
 			ModelUtil::initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
