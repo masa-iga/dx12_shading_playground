@@ -1,6 +1,7 @@
 #include "model_06_01.h"
 #include <filesystem>
 #include "MiniEngine.h"
+#include "model_utility.h"
 #include "../debug_win.h"
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
@@ -9,9 +10,6 @@
 namespace {
 	const std::string tkmFile = "Sample_06_01/Sample_06_01/Assets/modelData/sample.tkm";
 	const std::string fxFile = "Assets/shader/sample_06_01.fx";
-
-	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize);
-
 	Model* s_updateModel = nullptr;
 	Vector3* s_updateEyePos = nullptr;
 	Vector3* s_updateLightPos = nullptr;
@@ -53,7 +51,7 @@ namespace ModelHandler {
 			const std::string tkmFilePath = Util::getPathFromAssetDir(tkmFile);
 			const std::string fxFilePath = fxFile;
 			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
+			ModelUtility::initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
 			models.push_back(&s_model);
 			s_model.UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, g_vec3One);
 		}
@@ -122,23 +120,3 @@ namespace ModelHandler {
 		}
 	}
 } // namespace ModelHandler
-
-namespace {
-	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize)
-	{
-		Dbg::assert_(std::filesystem::exists(tkmFilePath));
-		Dbg::assert_(std::filesystem::exists(fxFilePath));
-
-		ModelInitData initData = { };
-		initData.m_tkmFilePath = tkmFilePath.c_str();
-		initData.m_fxFilePath = fxFilePath.c_str();
-
-		if (constantBuffer && constantBufferSize > 0)
-		{
-			initData.m_expandConstantBuffer = constantBuffer;
-			initData.m_expandConstantBufferSize = static_cast<int32_t>(constantBufferSize);
-		}
-
-		model->Init(initData);
-	}
-} // namespace anonymous
