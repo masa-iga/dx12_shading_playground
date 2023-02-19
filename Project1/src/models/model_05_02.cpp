@@ -85,7 +85,7 @@ namespace ModelHandler {
 
 	void handleInputForChap05_02()
 	{
-		if (s_pLight == nullptr)
+		if (s_pLight == nullptr || s_pModel == nullptr)
 			return;
 
 		s_pLight->spPosition.x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);

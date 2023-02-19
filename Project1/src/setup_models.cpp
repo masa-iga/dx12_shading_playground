@@ -5,6 +5,7 @@
 #include "debug_win.h"
 #include "imgui_if.h"
 #include "miniEngine_if.h"
+#include "models/model_05_01.h"
 #include "models/model_05_02.h"
 #include "models/model_05_03.h"
 #include "models/model_05_04.h"
@@ -12,8 +13,8 @@
 
 #define LOAD_MODEL_CHAP_04_01 (0)
 #define LOAD_MODEL_CHAP_04_03 (0)
-#define LOAD_MODEL_CHAP_05_01 (0)
-#define LOAD_MODEL_CHAP_05_02 (1)
+#define LOAD_MODEL_CHAP_05_01 (1)
+#define LOAD_MODEL_CHAP_05_02 (0)
 #define LOAD_MODEL_CHAP_05_03 (0)
 #define LOAD_MODEL_CHAP_05_04 (0)
 #define LOAD_MODEL_CHAP_06_01 (0)
@@ -25,8 +26,6 @@ namespace {
 	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize);
 	void loadModelForChap04_01();
 	void loadModelForChap04_03();
-	void loadModelForChap05_01();
-	void handleInputForChap05_01();
 
 	std::vector<Model*> s_models;
 
@@ -99,7 +98,7 @@ void Models::loadModelInternal(Chapter chapter)
 	switch (chapter) {
 	case Chapter::k04_01: loadModelForChap04_01(); break;
 	case Chapter::k04_03: loadModelForChap04_03(); break;
-	case Chapter::k05_01: loadModelForChap05_01(); break;
+	case Chapter::k05_01: ModelHandler::loadModelForChap05_01(s_models); break;
 	case Chapter::k05_02: ModelHandler::loadModelForChap05_02(s_models); break;
 	case Chapter::k05_03: ModelHandler::loadModelForChap05_03(s_models); break;
 	case Chapter::k05_04: ModelHandler::loadModelForChap05_04(s_models); break;
@@ -113,7 +112,7 @@ void Models::handleInputInternal(Chapter chapter)
 	switch (chapter) {
 	case Chapter::k04_01: break;
 	case Chapter::k04_03: break;
-	case Chapter::k05_01: handleInputForChap05_01(); break;
+	case Chapter::k05_01: ModelHandler::handleInputForChap05_01(); break;
 	case Chapter::k05_02: ModelHandler::handleInputForChap05_02(); break;
 	case Chapter::k05_03: ModelHandler::handleInputForChap05_03(); break;
 	case Chapter::k05_04: ModelHandler::handleInputForChap05_04(); break;
@@ -182,90 +181,5 @@ namespace {
 		const std::string fxFilePath = fxFile;
 		static Model s_model;
 		initModel(tkmFilePath, fxFilePath, &s_model, &s_directionLig, sizeof(s_directionLig));
-	}
-
-	void loadModelForChap05_01()
-	{
-		g_camera3D->SetPosition({ 0.0f, 50.0f, 200.0f });
-		g_camera3D->SetTarget({ 0.0f, 50.0f, 0.0f });
-
-		struct Light
-		{
-			Vector3 dirDirection;
-			float pad0 = 0.0f;
-			Vector3 dirColor;
-			float pad1 = 0.0f;
-
-			Vector3 ptPosition;
-			float pad2 = 0.0f;
-			Vector3 ptColor;
-			float ptRange = 0.0f;
-
-			Vector3 eyePos;
-			float pad3 = 0.0f;
-
-			Vector3 ambientLight;
-			float pad4 = 0.0f;
-		};
-
-		static Light s_light = {
-			.dirDirection = { 1.0f, -1.0f, -1.0f},
-			.dirColor = { 0.5f, 0.5f, 0.5f },
-			.ptPosition = { 0.0f, 50.0f, 50.0f },
-			.ptColor = { 15.0f, 0.0f, 0.0f },
-			.ptRange = 100.0f,
-			.eyePos = g_camera3D->GetPosition(),
-			.ambientLight = { 0.3f, 0.3f, 0.3f },
-		};
-		s_light.dirDirection.Normalize();
-		s_updateLightPos = &s_light.ptPosition;
-
-		{
-			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/teapot.tkm";
-			const std::string fxFile = "Assets/shader/sample_05_01.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-			s_model.UpdateWorldMatrix({ 0.0f, 20.0f, 0.0f }, g_quatIdentity, g_vec3One);
-		}
-
-		{
-			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/bg.tkm";
-			const std::string fxFile = "Assets/shader/sample_05_01.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-		}
-
-		{
-			const std::string tkmFile = "Sample_05_01/Sample_05_01/Assets/modelData/light.tkm";
-			const std::string fxFile = "Assets/shader/other/light.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-			s_updateModel = &s_model;
-		}
-	}
-
-	void handleInputForChap05_01()
-	{
-		if (!s_updateLightPos || !s_updateModel)
-			return;
-
-		s_updateLightPos->x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
-
-		if (MiniEngineIf::isPress(MiniEngineIf::Button::kB))
-		{
-			s_updateLightPos->y += MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
-		}
-		else
-		{
-			s_updateLightPos->z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);;
-		}
-
-		s_updateModel->UpdateWorldMatrix(*s_updateLightPos, g_quatIdentity, g_vec3One);
 	}
 } // namespace anonymous
