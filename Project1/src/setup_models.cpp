@@ -5,6 +5,7 @@
 #include "debug_win.h"
 #include "imgui_if.h"
 #include "miniEngine_if.h"
+#include "models/model_04_03.h"
 #include "models/model_05_01.h"
 #include "models/model_05_02.h"
 #include "models/model_05_03.h"
@@ -12,8 +13,8 @@
 #include "models/model_06_01.h"
 
 #define LOAD_MODEL_CHAP_04_01 (0)
-#define LOAD_MODEL_CHAP_04_03 (0)
-#define LOAD_MODEL_CHAP_05_01 (1)
+#define LOAD_MODEL_CHAP_04_03 (1)
+#define LOAD_MODEL_CHAP_05_01 (0)
 #define LOAD_MODEL_CHAP_05_02 (0)
 #define LOAD_MODEL_CHAP_05_03 (0)
 #define LOAD_MODEL_CHAP_05_04 (0)
@@ -25,14 +26,8 @@ namespace {
 	constexpr std::string getPathFromAssetDir(const std::string path);
 	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize);
 	void loadModelForChap04_01();
-	void loadModelForChap04_03();
 
 	std::vector<Model*> s_models;
-
-	Model* s_updateModel = nullptr;
-	Vector3* s_updateEyePos = nullptr;
-	Vector3* s_updateLightPos = nullptr;
-	Vector3* s_updateLightDirection = nullptr;
 } // namespace anonymous
 
 void Models::loadModel()
@@ -97,7 +92,7 @@ void Models::loadModelInternal(Chapter chapter)
 {
 	switch (chapter) {
 	case Chapter::k04_01: loadModelForChap04_01(); break;
-	case Chapter::k04_03: loadModelForChap04_03(); break;
+	case Chapter::k04_03: ModelHandler::loadModelForChap04_03(s_models); break;
 	case Chapter::k05_01: ModelHandler::loadModelForChap05_01(s_models); break;
 	case Chapter::k05_02: ModelHandler::loadModelForChap05_02(s_models); break;
 	case Chapter::k05_03: ModelHandler::loadModelForChap05_03(s_models); break;
@@ -111,7 +106,7 @@ void Models::handleInputInternal(Chapter chapter)
 {
 	switch (chapter) {
 	case Chapter::k04_01: break;
-	case Chapter::k04_03: break;
+	case Chapter::k04_03: ModelHandler::handleInputForChap04_03(); break;
 	case Chapter::k05_01: ModelHandler::handleInputForChap05_01(); break;
 	case Chapter::k05_02: ModelHandler::handleInputForChap05_02(); break;
 	case Chapter::k05_03: ModelHandler::handleInputForChap05_03(); break;
@@ -154,32 +149,5 @@ namespace {
 		const std::string fxFilePath = fxFile;
 		static Model s_model;
 		initModel(tkmFilePath, fxFilePath, &s_model, nullptr, 0);
-	}
-
-	void loadModelForChap04_03()
-	{
-		struct DirectionLight
-		{
-			Vector3 ligDirection;
-			float pad0 = 0.0f;
-			Vector3 ligColor;
-			float pad1 = 0.0f;
-			Vector3 eyePos;
-			float pad2 = 0.0f;
-		};
-
-		static DirectionLight s_directionLig = {
-			.ligDirection = { 1.0f, -1.0f, -1.0f},
-			.ligColor = { 0.3f, 0.3f, 0.3f },
-			.eyePos = g_camera3D->GetPosition(),
-		};
-		s_directionLig.ligDirection.Normalize();
-
-		const std::string tkmFile = "Sample_04_02/Sample_04_02/Assets/modelData/teapot.tkm";
-		const std::string fxFile = "Assets/shader/sample_04_02.fx";
-		const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-		const std::string fxFilePath = fxFile;
-		static Model s_model;
-		initModel(tkmFilePath, fxFilePath, &s_model, &s_directionLig, sizeof(s_directionLig));
 	}
 } // namespace anonymous
