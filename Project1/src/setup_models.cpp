@@ -5,6 +5,7 @@
 #include "debug_win.h"
 #include "imgui_if.h"
 #include "miniEngine_if.h"
+#include "models/model_05_02.h"
 #include "models/model_05_03.h"
 #include "models/model_05_04.h"
 #include "models/model_06_01.h"
@@ -12,8 +13,8 @@
 #define LOAD_MODEL_CHAP_04_01 (0)
 #define LOAD_MODEL_CHAP_04_03 (0)
 #define LOAD_MODEL_CHAP_05_01 (0)
-#define LOAD_MODEL_CHAP_05_02 (0)
-#define LOAD_MODEL_CHAP_05_03 (1)
+#define LOAD_MODEL_CHAP_05_02 (1)
+#define LOAD_MODEL_CHAP_05_03 (0)
 #define LOAD_MODEL_CHAP_05_04 (0)
 #define LOAD_MODEL_CHAP_06_01 (0)
 
@@ -25,9 +26,7 @@ namespace {
 	void loadModelForChap04_01();
 	void loadModelForChap04_03();
 	void loadModelForChap05_01();
-	void loadModelForChap05_02();
 	void handleInputForChap05_01();
-	void handleInputForChap05_02();
 
 	std::vector<Model*> s_models;
 
@@ -101,7 +100,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k04_01: loadModelForChap04_01(); break;
 	case Chapter::k04_03: loadModelForChap04_03(); break;
 	case Chapter::k05_01: loadModelForChap05_01(); break;
-	case Chapter::k05_02: loadModelForChap05_02(); break;
+	case Chapter::k05_02: ModelHandler::loadModelForChap05_02(s_models); break;
 	case Chapter::k05_03: ModelHandler::loadModelForChap05_03(s_models); break;
 	case Chapter::k05_04: ModelHandler::loadModelForChap05_04(s_models); break;
 	case Chapter::k06_01: ModelHandler::loadModelForChap06_01(s_models); break;
@@ -115,7 +114,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k04_01: break;
 	case Chapter::k04_03: break;
 	case Chapter::k05_01: handleInputForChap05_01(); break;
-	case Chapter::k05_02: handleInputForChap05_02(); break;
+	case Chapter::k05_02: ModelHandler::handleInputForChap05_02(); break;
 	case Chapter::k05_03: ModelHandler::handleInputForChap05_03(); break;
 	case Chapter::k05_04: ModelHandler::handleInputForChap05_04(); break;
 	case Chapter::k06_01: ModelHandler::handleInputForChap06_01(); break;
@@ -251,76 +250,6 @@ namespace {
 		}
 	}
 
-	void loadModelForChap05_02()
-	{
-		g_camera3D->SetPosition({ 0.0f, 50.0f, 200.0f });
-		g_camera3D->SetTarget({ 0.0f, 50.0f, 0.0f });
-
-		struct Light
-		{
-			Vector3 dirDirection;
-			float pad0 = 0.0f;
-			Vector3 dirColor;
-			float pad1 = 0.0f;
-
-			Vector3 ptPosition;
-			float pad2 = 0.0f;
-			Vector3 ptColor;
-			float ptRange = 0.0f;
-
-			Vector3 spPosition;
-			float pad3 = 0.0f;
-			Vector3 spColor;
-			float spRange = 0.0f;
-			Vector3 spDirection;
-			float spAngle = 0.0f;
-
-			Vector3 eyePos;
-			float pad4 = 0.0f;
-
-			Vector3 ambientLight;
-			float pad5 = 0.0f;
-		};
-
-		static Light s_light = {
-			.dirDirection = { 1.0f, -1.0f, -1.0f},
-			.dirColor = { 0.5f, 0.5f, 0.5f },
-			.ptPosition = { 0.0f, 50.0f, 50.0f },
-			.ptColor = { 0.0f, 0.0f, 0.0f },
-			.ptRange = 100.0f,
-			.spPosition = { 0.0f, 50.0f, 0.0f },
-			.spColor = { 10.0f, 10.0f, 10.0f },
-			.spRange = 300.0f,
-			.spDirection = { 1.0f, -1.0f, 1.0f },
-			.spAngle = Math::DegToRad(25.0f),
-			.eyePos = g_camera3D->GetPosition(),
-			.ambientLight = { 0.3f, 0.3f, 0.3f },
-		};
-		s_light.dirDirection.Normalize();
-		s_light.spDirection.Normalize();
-		s_updateLightDirection = &s_light.spDirection;
-		s_updateLightPos = &s_light.spPosition;
-
-		{
-			const std::string tkmFile = "Sample_05_02/Sample_05_02/Assets/modelData/bg.tkm";
-			const std::string fxFile = "Assets/shader/sample_05_02.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-		}
-
-		{
-			const std::string tkmFile = "Sample_05_02/Sample_05_02/Assets/modelData/light.tkm";
-			const std::string fxFile = "Assets/shader/other/light.fx";
-			const std::string tkmFilePath = getPathFromAssetDir(tkmFile);
-			const std::string fxFilePath = fxFile;
-			static Model s_model;
-			initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
-			s_updateModel = &s_model;
-		}
-	}
-
 	void handleInputForChap05_01()
 	{
 		if (!s_updateLightPos || !s_updateModel)
@@ -338,40 +267,5 @@ namespace {
 		}
 
 		s_updateModel->UpdateWorldMatrix(*s_updateLightPos, g_quatIdentity, g_vec3One);
-	}
-
-	void handleInputForChap05_02()
-	{
-		if (!s_updateLightDirection || !s_updateLightPos || !s_updateModel)
-			return;
-
-		s_updateLightPos->x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
-
-		if (MiniEngineIf::isPress(MiniEngineIf::Button::kB))
-		{
-			s_updateLightPos->y += MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);;
-		}
-		else
-		{
-			s_updateLightPos->z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
-		}
-
-		{
-			Quaternion qRotY;
-			qRotY.SetRotationY(MiniEngineIf::getStick(MiniEngineIf::StickType::kRX) * 0.01f);
-			qRotY.Apply(*s_updateLightDirection);
-
-			Vector3 rotAxis;
-			rotAxis.Cross(g_vec3AxisY, *s_updateLightDirection);
-
-			Quaternion qRotX;
-			qRotX.SetRotation(rotAxis, MiniEngineIf::getStick(MiniEngineIf::StickType::kRY) * 0.01f);
-			qRotX.Apply(*s_updateLightDirection);
-		}
-
-		Quaternion qRot = Quaternion::Identity;
-		qRot.SetRotation({ 0.0f, 0.0f, -1.0f }, *s_updateLightDirection);
-
-		s_updateModel->UpdateWorldMatrix(*s_updateLightPos, qRot, g_vec3One);
 	}
 } // namespace anonymous
