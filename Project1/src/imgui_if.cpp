@@ -15,31 +15,104 @@
 using namespace Microsoft::WRL;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-template LRESULT ImguiIf::printParams<int32_t>(ParamType type, const std::string& str, const std::vector<int32_t*>& ptrs);
-template LRESULT ImguiIf::printParams<uint64_t>(ParamType type, const std::string& str, const std::vector<uint64_t*>& ptrs);
-template LRESULT ImguiIf::printParams<float>(ParamType type, const std::string& str, const std::vector<float*>& ptrs);
-
-constexpr float kWidth = 500.0f;
-constexpr float kHeight = 130.0f;
+template LRESULT ImguiIf::printParams<int32_t>(VarType type, const std::string& str, const std::vector<int32_t*>& ptrs, ParamType kind);
+template LRESULT ImguiIf::printParams<uint64_t>(VarType type, const std::string& str, const std::vector<uint64_t*>& ptrs, ParamType kind);
+template LRESULT ImguiIf::printParams<float>(VarType type, const std::string& str, const std::vector<float*>& ptrs, ParamType kind);
 
 namespace {
 	struct Log {
-		ImguiIf::ParamType m_type = ImguiIf::ParamType::kInt32;
+		ImguiIf::VarType m_type = ImguiIf::VarType::kInt32;
 		size_t m_num = 0;
 		std::string m_str = "";
 		std::array<const void*, 4> m_ptrs = { nullptr, nullptr, nullptr, nullptr };
 	};
 
+	const char winTitle[] = "Rendering params";
+	constexpr float kWidth = 500.0f;
+	constexpr float kHeight = 130.0f;
 	constexpr int32_t kNumFramesInFlight = 3;
 	ComPtr<ID3D12DescriptorHeap> s_descHeap = nullptr;
 	std::vector<Log> s_logs;
 
 	void setWindowPositionAndSize();
+
+	template<typename T>
+	LRESULT printParamsFrame(ImguiIf::VarType type, const std::string& str, const std::vector<T*>& ptrs)
+	{
+		if (type != ImguiIf::VarType::kUint64)
+			return E_FAIL;
+
+		if (ptrs.size() != 1)
+			return E_FAIL;
+
+		if (ptrs.at(0) == nullptr)
+			return S_OK;
+
+		s_logs.at(static_cast<uint32_t>(ImguiIf::ParamType::kFrame)) = { type,  1, str, { ptrs.at(0), nullptr, nullptr, nullptr } };
+
+		return S_OK;
+	}
+
+	template<typename T>
+	LRESULT printParamsGpuTime(ImguiIf::VarType type, const std::string& str, const std::vector<T*>& ptrs)
+	{
+		if (type != ImguiIf::VarType::kFloat)
+			return E_FAIL;
+
+		if (ptrs.size() != 1)
+			return E_FAIL;
+
+		if (ptrs.at(0) == nullptr)
+			return S_OK;
+
+		s_logs.at(static_cast<uint32_t>(ImguiIf::ParamType::kGpuTime)) = { type,  1, str, { ptrs.at(0), nullptr, nullptr, nullptr } };
+
+		return S_OK;
+	}
+
+	template<typename T>
+	LRESULT printParamsGeneral(ImguiIf::VarType type, const std::string& str, const std::vector<T*>& ptrs)
+	{
+		if (ptrs.size() == 0)
+			return S_OK;
+
+		if (ptrs.size() > 4)
+			return E_FAIL;
+
+		Log log = {
+			.m_type = type,
+			.m_num = 0,
+			.m_str = str,
+			.m_ptrs = { nullptr, nullptr, nullptr, nullptr },
+		};
+
+		for (int32_t i = 0; i < ptrs.size(); ++i)
+		{
+			if (ptrs.at(i) == nullptr)
+				break;
+
+			log.m_ptrs.at(i) = reinterpret_cast<const void*>(ptrs.at(i));
+			log.m_num++;
+		}
+
+		if (log.m_num == 0)
+			return S_OK;
+
+		s_logs.emplace_back(log);
+
+		return S_OK;
+	}
 }
 
 namespace ImguiIf {
 	void init(ID3D12Device* device, HWND hwnd)
 	{
+		s_logs.resize(2);
+		{
+			s_logs.at(0) = { ImguiIf::VarType::kUint64, 0, "Frame", { nullptr, nullptr, nullptr, nullptr } };
+			s_logs.at(1) = { ImguiIf::VarType::kUint64, 0, "GpuTime", { nullptr, nullptr, nullptr, nullptr } };
+		}
+
 		IMGUI_CHECKVERSION();
 
 		auto context = ImGui::CreateContext();
@@ -99,13 +172,13 @@ namespace ImguiIf {
 
 	void update()
 	{
-		ImGui::Begin("Rendering params");
+		ImGui::Begin(winTitle);
 		{
 			setWindowPositionAndSize();
 
 			for (const Log& log : s_logs)
 			{
-				if (log.m_type == ParamType::kInt32)
+				if (log.m_type == VarType::kInt32)
 				{
 					std::array<const int32_t*, 4> p = { reinterpret_cast<const int32_t*>(log.m_ptrs[0])
 						, reinterpret_cast<const int32_t*>(log.m_ptrs[1])
@@ -114,14 +187,14 @@ namespace ImguiIf {
 					};
 
 					switch (log.m_num) {
-					case 1: ImGui::Text("%s: %d\n", log.m_str.c_str(), *p.at(0)); break;
-					case 2: ImGui::Text("%s: (%d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
-					case 3: ImGui::Text("%s: (%d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
-					case 4: ImGui::Text("%s: (%d %d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
+					case 1: ImGui::Text("%-13s: %d\n", log.m_str.c_str(), *p.at(0)); break;
+					case 2: ImGui::Text("%-13s: (%d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
+					case 3: ImGui::Text("%-13s: (%d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
+					case 4: ImGui::Text("%-13s: (%d %d %d %d)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
 					default: break;
 					}
 				}
-				else if (log.m_type == ParamType::kUint64)
+				else if (log.m_type == VarType::kUint64)
 				{
 					std::array<const uint64_t*, 4> p = { reinterpret_cast<const uint64_t*>(log.m_ptrs[0])
 						, reinterpret_cast<const uint64_t*>(log.m_ptrs[1])
@@ -129,14 +202,14 @@ namespace ImguiIf {
 						, reinterpret_cast<const uint64_t*>(log.m_ptrs[3])
 					};
 					switch (log.m_num) {
-					case 1: ImGui::Text("%s: %zd\n", log.m_str.c_str(), *p.at(0)); break;
-					case 2: ImGui::Text("%s: (%zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
-					case 3: ImGui::Text("%s: (%zd %zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
-					case 4: ImGui::Text("%s: (%zd %zd %zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
+					case 1: ImGui::Text("%-13s: %zd\n", log.m_str.c_str(), *p.at(0)); break;
+					case 2: ImGui::Text("%-13s: (%zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
+					case 3: ImGui::Text("%-13s: (%zd %zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
+					case 4: ImGui::Text("%-13s: (%zd %zd %zd %zd)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
 					default: break;
 					}
 				}
-				else if (log.m_type == ParamType::kFloat)
+				else if (log.m_type == VarType::kFloat)
 				{
 					std::array<const float*, 4> p = { reinterpret_cast<const float*>(log.m_ptrs[0])
 						, reinterpret_cast<const float*>(log.m_ptrs[1])
@@ -145,10 +218,10 @@ namespace ImguiIf {
 					};
 
 					switch (log.m_num) {
-					case 1: ImGui::Text("%s: %.2f\n", log.m_str.c_str(), *p.at(0)); break;
-					case 2: ImGui::Text("%s: (%.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
-					case 3: ImGui::Text("%s: (%.2f %.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
-					case 4: ImGui::Text("%s: (%.2f %.2f %.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
+					case 1: ImGui::Text("%-13s: %.2f\n", log.m_str.c_str(), *p.at(0)); break;
+					case 2: ImGui::Text("%-13s: (%.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1)); break;
+					case 3: ImGui::Text("%-13s: (%.2f %.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2)); break;
+					case 4: ImGui::Text("%-13s: (%.2f %.2f %.2f %.2f)\n", log.m_str.c_str(), *p.at(0), *p.at(1), *p.at(2), *p.at(3)); break;
 					default: break;
 					}
 				}
@@ -166,32 +239,14 @@ namespace ImguiIf {
 	}
 
 	template<typename T>
-	LRESULT printParams(ParamType type, const std::string& str, const std::vector<T*>& ptrs)
+	LRESULT printParams(VarType type, const std::string& str, const std::vector<T*>& ptrs, ParamType kind)
 	{
-		if (ptrs.size() == 0)
-			return S_OK;
-
-		if (ptrs.size() > 4)
-			return E_FAIL;
-
-		Log log = { };
-		log.m_num = 0;
-
-		for (int32_t i = 0; i < ptrs.size(); ++i)
-		{
-			if (ptrs.at(i) == nullptr)
-				break;
-
-			log.m_ptrs.at(i) = reinterpret_cast<const void*>(ptrs.at(i));
-			log.m_num++;
+		switch (kind) {
+		case ParamType::kFrame: return printParamsFrame<T>(type, str, ptrs);
+		case ParamType::kGpuTime: return printParamsGpuTime<T>(type, str, ptrs);
+		case ParamType::kGeneral: return printParamsGeneral<T>(type, str, ptrs);
+		default: break;
 		}
-
-		if (log.m_num == 0)
-			return S_OK;
-
-		log.m_type = type;
-		log.m_str = str;
-		s_logs.emplace_back(log);
 
 		return S_OK;
 	}

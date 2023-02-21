@@ -6,6 +6,12 @@
 
 namespace ImguiIf {
 	enum class ParamType {
+		kFrame,
+		kGpuTime,
+		kGeneral,
+	};
+
+	enum class VarType {
 		kInt32,
 		kUint64,
 		kFloat,
@@ -19,5 +25,5 @@ namespace ImguiIf {
 	void render(ID3D12GraphicsCommandList* pCommandList);
 
 	template <typename T>
-	LRESULT printParams(ParamType type, const std::string& str, const std::vector<T*>& ptrs);
+	LRESULT printParams(VarType type, const std::string& str, const std::vector<T*>& ptrs, ParamType kind = ParamType::kGeneral);
 }

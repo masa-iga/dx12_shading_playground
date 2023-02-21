@@ -46,7 +46,7 @@ namespace Render {
 		MiniEngineIf::init(device, hwndForMiniEngine, Config::kRenderTargetWidth, Config::kRenderTargetHeight);
 		Toolkit::init(device);
 		ImguiIf::init(device, hwndForImgui);
-		ImguiIf::printParams<float>(ImguiIf::ParamType::kFloat, "GPU time [us]", std::vector<float*>{ &s_gpuTimeInUsec });
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "GPU time [us]", std::vector<float*>{ &s_gpuTimeInUsec }, ImguiIf::ParamType::kGpuTime);
 		s_timestamp.init(device);
 		s_timestamp.setGpuFreq(s_commandQueue.Get());
 	}
