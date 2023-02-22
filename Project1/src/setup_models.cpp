@@ -1,6 +1,5 @@
 #include "setup_models.h"
 #include <cstring>
-#include <filesystem>
 #include "../import/hlsl-grimoire-sample/MiniEngine/MiniEngine.h"
 #include "debug_win.h"
 #include "imgui_if.h"
