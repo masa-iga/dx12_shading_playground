@@ -18,7 +18,7 @@ namespace {
 	};
 
 	const std::string tkmFile = "Sample_06_02/Sample_06_02/Assets/modelData/sample.tkm";
-	const std::string fxFile = "Sample_06_02/Sample_06_02/Assets/shader/sample.fx";
+	const std::string fxFile = "Assets/shader/sample_06_02.fx";
 	Light* s_pLight = nullptr;
 }
 
@@ -41,8 +41,7 @@ namespace ModelHandler {
 
 		{
 			const std::string tkmFilePath = ModelUtil::getPathFromAssetDir(tkmFile);
-			//const std::string fxFilePath = fxFile;
-			const std::string fxFilePath = ModelUtil::getPathFromAssetDir(fxFile);
+			const std::string fxFilePath = fxFile;
 			static Model s_model;
 			ModelUtil::initModel(tkmFilePath, fxFilePath, &s_model, &s_light, sizeof(s_light));
 			models.push_back(&s_model);
