@@ -29,12 +29,14 @@ namespace {
 
 	const char winTitle[] = "Rendering params";
 	constexpr float kWidth = 500.0f;
-	constexpr float kHeight = 130.0f;
 	constexpr int32_t kNumFramesInFlight = 3;
 	ComPtr<ID3D12DescriptorHeap> s_descHeap = nullptr;
 	std::vector<Log> s_logs;
 
-	void setWindowPositionAndSize();
+	void setWindowPositionAndSize(ImVec2 winPos, ImVec2 winSize);
+	bool isParamNumChanged();
+	std::pair<float, float> computeWinPos();
+	std::pair<float, float> computeWinSize();
 
 	template<typename T>
 	LRESULT printParamsFrame(ImguiIf::VarType type, const std::string& str, const std::vector<T*>& ptrs)
@@ -174,7 +176,12 @@ namespace ImguiIf {
 	{
 		ImGui::Begin(winTitle);
 		{
-			setWindowPositionAndSize();
+			if (isParamNumChanged())
+			{
+				const ImVec2 winPos = { computeWinPos().first,  computeWinPos().second };
+				const ImVec2 winSize = { computeWinSize().first,  computeWinSize().second };
+				setWindowPositionAndSize(winPos, winSize);
+			}
 
 			for (const Log& log : s_logs)
 			{
@@ -254,12 +261,33 @@ namespace ImguiIf {
 }
 
 namespace {
-	void setWindowPositionAndSize()
+	void setWindowPositionAndSize(ImVec2 winPos, ImVec2 winSize)
 	{
-		constexpr ImVec2 winPos = { static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.0f };
 		ImGui::SetWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);
-
-		constexpr ImVec2 winSize = { kWidth, kHeight };
 		ImGui::SetWindowSize(winSize, ImGuiCond_::ImGuiCond_Once);
+	}
+
+	bool isParamNumChanged()
+	{
+		static size_t s_prevSize = 0;
+		const size_t curSize = s_logs.size();
+
+		if (curSize == s_prevSize)
+			return false;
+
+		s_prevSize = curSize;
+		return true;
+	}
+
+	std::pair<float, float> computeWinPos()
+	{
+		return std::pair<float, float>(static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.0f);
+	}
+
+	std::pair<float, float> computeWinSize()
+	{
+		constexpr size_t kHeightPerNum = 25;
+		const size_t num = s_logs.size();
+		return std::pair<float, float>(kWidth, static_cast<float>(kHeightPerNum * num));
 	}
 }
