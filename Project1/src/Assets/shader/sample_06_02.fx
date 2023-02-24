@@ -17,6 +17,7 @@ cbuffer LightCb : register(b1)
     float3 eyePos;          // カメラの視点
     float specPow;          // スペキュラの絞り
     float3 ambientLight;    // 環境光
+    int enableSpecularMap;
 };
 
 // 頂点シェーダーへの入力
@@ -57,7 +58,8 @@ Texture2D<float4> g_texture : register(t0);
 // 法線マップにアクセスするための変数
 Texture2D<float4> g_normalMap : register(t1);
 
-// step-1 スペキュラマップにアクセスするための変数を追加
+// スペキュラマップにアクセスするための変数を追加
+Texture2D<float4> g_specularMap : register(t2);
 
 // サンプラーステート
 sampler g_sampler : register(s0);
@@ -101,9 +103,14 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     // このサンプルでは鏡面反射の効果を分かりやすくするために10倍にしている
     float3 specLig = CalcPhongSpecular(normal, psIn.worldPos) * 10.0f;
 
-    // step-2 スペキュラマップからスペキュラ反射の強さをサンプリング
+    // スペキュラマップからスペキュラ反射の強さをサンプリング
+    const float specPower = g_specularMap.Sample(g_sampler, psIn.uv).r;
 
-    // step-3 鏡面反射の強さを鏡面反射光に乗算する
+    // 鏡面反射の強さを鏡面反射光に乗算する
+    if (enableSpecularMap)
+    {
+        specLig *= specPower * 10.0f;
+    }
 
     // 拡散反射、鏡面反射、環境光を合算して最終的な反射光を計算する
     float3 lig = diffuseLig + specLig + ambientLight;

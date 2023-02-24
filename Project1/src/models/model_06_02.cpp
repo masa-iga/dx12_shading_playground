@@ -14,7 +14,7 @@ namespace {
 		Vector3 eyePos;
 		float specRow = 0.0f;
 		Vector3 ambientLight;
-		float pad1 = 0.0f;
+		int32_t enableSpecularMap = 0;
 	};
 
 	const std::string tkmFile = "Sample_06_02/Sample_06_02/Assets/modelData/sample.tkm";
@@ -35,7 +35,7 @@ namespace ModelHandler {
 			.eyePos = MiniEngineIf::getCamera3D()->GetPosition(),
 			.specRow = 5.0f,
 			.ambientLight = { 0.4f, 0.4f, 0.4f },
-			.pad1 = 0.0f,
+			.enableSpecularMap = 1,
 		};
 		s_pLight = &s_light;
 
@@ -51,6 +51,7 @@ namespace ModelHandler {
 		{
 			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Direct light", std::vector<float*>{ &(s_pLight->direction.x), & (s_pLight->direction.y), & (s_pLight->direction.z) });
 			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Eye         ", std::vector<float*>{ &(s_pLight->eyePos.x), &(s_pLight->eyePos.y), &(s_pLight->eyePos.z) });
+			ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "SpecularMap ", std::vector<int32_t*>{ &(s_pLight->enableSpecularMap)});
 		}
 	}
 
@@ -90,6 +91,17 @@ namespace ModelHandler {
 			MiniEngineIf::getCamera3D()->SetPosition(MiniEngineIf::getCamera3D()->GetTarget() + toPos);
 
 			s_pLight->eyePos = MiniEngineIf::getCamera3D()->GetPosition();
+		}
+
+		{
+			if (MiniEngineIf::isPress(MiniEngineIf::Button::kA))
+			{
+				s_pLight->enableSpecularMap= 1;
+			}
+			else if (MiniEngineIf::isPress(MiniEngineIf::Button::kB))
+			{
+				s_pLight->enableSpecularMap= 0;
+			}
 		}
 	}
 } // namespace ModelHandler
