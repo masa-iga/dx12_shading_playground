@@ -13,7 +13,7 @@ namespace ModelUtil {
 	std::wstring getPathFromAssetDirWstr(const std::wstring& path)
 	{
 		const std::wstring kBaseAssetDir = L"../import/hlsl-grimoire-sample";
-		return kBaseAssetDir + path;
+		return kBaseAssetDir + L"/" + path;
 	}
 
 	void initModel(const std::string& tkmFilePath, const std::string& fxFilePath, Model* model, void* constantBuffer, size_t constantBufferSize)
@@ -41,7 +41,7 @@ namespace ModelUtil {
 			if (i == initData.m_expandShaderResoruceView.size())
 				break;
 
-			initData.m_expandShaderResoruceView[i] = shaderResources.at(i);
+			initData.m_expandShaderResoruceView.at(i) = shaderResources.at(i);
 		}
 
 		model->Init(initData);

@@ -100,5 +100,16 @@ namespace ModelHandler {
 		}
 
 		s_pLight->eyePos = MiniEngineIf::getCamera3D()->GetPosition();
+
+		{
+			if (MiniEngineIf::isPress(MiniEngineIf::Button::kA))
+			{
+				s_pLight->enableAmbientMap = 1;
+			}
+			else if (MiniEngineIf::isPress(MiniEngineIf::Button::kB))
+			{
+				s_pLight->enableAmbientMap = 0;
+			}
+		}
 	}
 } // namespace ModelHandler
