@@ -233,8 +233,8 @@ namespace {
 
 			Dbg::ThrowIfFailed(s_texCopyMatrixBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pMatrix)));
 			{
-				constexpr float scale[] = { 0.5f, 0.5f, 0.5f };
-				constexpr float trans[] = { -0.45f, -0.45f, 0.0f };
+				constexpr float scale[] = { 0.75f, 0.75f, 0.75f };
+				constexpr float trans[] = { -0.10f, -0.10f, 0.0f };
 				*pMatrix = DirectX::XMMatrixMultiply(
 					DirectX::XMMatrixScaling(scale[0], scale[1], scale[2]),
 					DirectX::XMMatrixTranslation(trans[0], trans[1], trans[2])

@@ -11,7 +11,7 @@
 
 using namespace Microsoft::WRL;
 
-constexpr float kTrans[] = { 0.25f, 0.25f, 0.0f };
+constexpr float kTrans[] = { 0.75f, -0.75f, 0.0f };
 constexpr wchar_t kDdsFileName[] = L"../import/hlsl-grimoire-sample/Sample_03_02/Sample_03_02/Assets/image/sample_00.dds";
 
 void SimpleTriangleModel::createResource(ID3D12Device* device)
