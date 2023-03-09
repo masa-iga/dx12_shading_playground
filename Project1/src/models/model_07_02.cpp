@@ -1,56 +1,20 @@
 #include "model_07_02.h"
 #include <filesystem>
 #include <memory>
+#include "imodel.h"
 #include "MiniEngine.h"
 #include "model_util.h"
 #include "../debug_win.h"
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
 
-class IModels;
-
-class IModelFactory {
-public:
-	virtual ~IModelFactory() = 0;
-	virtual std::unique_ptr<IModels> create() = 0;
-};
-IModelFactory::~IModelFactory() { }
-
 class ModelFactory_07_02 : public IModelFactory
 {
 public:
 	~ModelFactory_07_02() { }
 	std::unique_ptr<IModels> create();
+	void setCamera3D();
 };
-
-class IModels {
-public:
-	virtual ~IModels() = 0;
-	virtual void createModel() = 0;
-	virtual void handleInput() = 0;
-	void draw(RenderContext& renderContext);
-	std::vector<Model*> getModels();
-
-protected:
-	std::vector<std::unique_ptr<Model>> m_models;
-};
-
-IModels::~IModels() { }
-
-void IModels::draw(RenderContext& renderContext)
-{
-	for (std::unique_ptr<Model>& pModel : m_models)
-		pModel->Draw(renderContext);
-}
-
-std::vector<Model*> IModels::getModels() {
-	std::vector<Model*> ms;
-
-	for (std::unique_ptr<Model>& model : m_models)
-		ms.emplace_back(model.get());
-
-	return ms;
-}
 
 class Models_07_02 : public IModels
 {
@@ -66,14 +30,11 @@ public:
 	};
 
 public:
-	Models_07_02() {
-		Dbg::print("=== %s() was constructed. (0x%p)\n", __func__, this);
-	}
-	~Models_07_02() {
-		Dbg::print("=== %s() was deleted. (0x%p)\n", __func__, this);
-	}
+	Models_07_02() { }
+	~Models_07_02() { }
 	void createModel();
 	void handleInput();
+	void debugRenderParams();
 	void setLight(Light light) { m_light = light; }
 	Light* getLightPtr() { return &m_light; }
 
@@ -88,6 +49,38 @@ private:
 	Texture m_aoMap;
 	Light m_light;
 };
+
+std::unique_ptr<IModels> ModelFactory_07_02::create()
+{
+	std::unique_ptr<Models_07_02> m(new Models_07_02);
+	{
+		Models_07_02::Light light = {
+			.direction = { 1.0f, -1.0f, -1.0f },
+			.pad0 = 0.0f,
+			.color = { 0.0f, 0.0f, 0.0f, 0.0f },
+			.eyePos = MiniEngineIf::getCamera3D()->GetPosition(),
+			.specRow = 5.0f,
+			.ambientLight = { 1.0f, 1.0f, 1.0f },
+			.enableAmbientMap = 1,
+		};
+		m->setLight(light);
+
+		m->createModel();
+
+		for (Model* model : m->getModels())
+		{
+			model->UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, g_vec3One);
+		}
+	}
+
+	return m;
+}
+
+void ModelFactory_07_02::setCamera3D()
+{
+	MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 130.0f, 300.0f });
+	MiniEngineIf::getCamera3D()->SetTarget({ 0.0f, 130.0f, 0.0f });
+}
 
 void Models_07_02::createModel()
 {
@@ -167,41 +160,11 @@ void Models_07_02::handleInput()
 	}
 }
 
-std::unique_ptr<IModels> ModelFactory_07_02::create()
+void Models_07_02::debugRenderParams()
 {
-	MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 130.0f, 300.0f });
-	MiniEngineIf::getCamera3D()->SetTarget({ 0.0f, 130.0f, 0.0f });
-
-	std::unique_ptr<Models_07_02> m(new Models_07_02);
-
-
-	{
-		Models_07_02::Light light = {
-			.direction = { 1.0f, -1.0f, -1.0f },
-			.pad0 = 0.0f,
-			.color = { 0.0f, 0.0f, 0.0f, 0.0f },
-			.eyePos = MiniEngineIf::getCamera3D()->GetPosition(),
-			.specRow = 5.0f,
-			.ambientLight = { 1.0f, 1.0f, 1.0f },
-			.enableAmbientMap = 1,
-		};
-		m->setLight(light);
-
-		m->createModel();
-
-		for (Model* model : m->getModels())
-		{
-			model->UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, g_vec3One);
-		}
-	}
-
-	{
-		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Direct light", std::vector<float*>{ &(m->getLightPtr()->direction.x), & (m->getLightPtr()->direction.y), & (m->getLightPtr()->direction.z) });
-		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Eye         ", std::vector<float*>{ &(m->getLightPtr()->eyePos.x), & (m->getLightPtr()->eyePos.y), & (m->getLightPtr()->eyePos.z) });
-		ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "SpecularMap ", std::vector<int32_t*>{ &(m->getLightPtr()->enableAmbientMap)});
-	}
-
-	return m;
+	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Direct light", std::vector<float*>{ &(m_light.direction.x), & (m_light.direction.y), & (m_light.direction.z) });
+	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Eye         ", std::vector<float*>{ &(m_light.eyePos.x), & (m_light.eyePos.y), & (m_light.eyePos.z) });
+	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "SpecularMap ", std::vector<int32_t*>{ &(m_light.enableAmbientMap)});
 }
 
 namespace ModelHandler {
@@ -210,7 +173,9 @@ namespace ModelHandler {
 	void loadModelForChap07_02(std::vector<Model*>& models)
 	{
 		ModelFactory_07_02 factory;
+		factory.setCamera3D();
 		m = factory.create();
+		m->debugRenderParams();
 		models = m->getModels();
 	}
 

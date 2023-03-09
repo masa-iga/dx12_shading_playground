@@ -102,6 +102,9 @@
     <ClCompile Include="models\model_07_02.cpp">
       <Filter>ソース ファイル\models</Filter>
     </ClCompile>
+    <ClCompile Include="models\imodel.cpp">
+      <Filter>ソース ファイル\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="winmgr_win.h">
@@ -177,6 +180,9 @@
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
     <ClInclude Include="models\model_07_02.h">
+      <Filter>ソース ファイル\models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\imodel.h">
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
   </ItemGroup>
