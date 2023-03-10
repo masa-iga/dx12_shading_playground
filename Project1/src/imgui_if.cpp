@@ -28,12 +28,11 @@ namespace {
 	};
 
 	const char winTitle[] = "Rendering params";
-	constexpr float kWidth = 500.0f;
 	constexpr int32_t kNumFramesInFlight = 3;
 	ComPtr<ID3D12DescriptorHeap> s_descHeap = nullptr;
 	std::vector<Log> s_logs;
 
-	void setWindowPositionAndSize(ImVec2 winPos, ImVec2 winSize);
+	void setNextWindowPositionAndSize(ImVec2 winPos, ImVec2 winSize);
 	bool isParamNumChanged();
 	std::pair<float, float> computeWinPos();
 	std::pair<float, float> computeWinSize();
@@ -174,15 +173,15 @@ namespace ImguiIf {
 
 	void update()
 	{
+		if (isParamNumChanged())
+		{
+			const ImVec2 winPos = { computeWinPos().first,  computeWinPos().second };
+			const ImVec2 winSize = { computeWinSize().first,  computeWinSize().second };
+			setNextWindowPositionAndSize(winPos, winSize);
+		}
+
 		ImGui::Begin(winTitle);
 		{
-			if (isParamNumChanged())
-			{
-				const ImVec2 winPos = { computeWinPos().first,  computeWinPos().second };
-				const ImVec2 winSize = { computeWinSize().first,  computeWinSize().second };
-				setWindowPositionAndSize(winPos, winSize);
-			}
-
 			for (const Log& log : s_logs)
 			{
 				if (log.m_type == VarType::kInt32)
@@ -261,10 +260,10 @@ namespace ImguiIf {
 }
 
 namespace {
-	void setWindowPositionAndSize(ImVec2 winPos, ImVec2 winSize)
+	void setNextWindowPositionAndSize(ImVec2 winPos, ImVec2 winSize)
 	{
-		ImGui::SetWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);
-		ImGui::SetWindowSize(winSize, ImGuiCond_::ImGuiCond_Once);
+		ImGui::SetNextWindowSize(winSize, ImGuiCond_::ImGuiCond_Once);
+		ImGui::SetNextWindowPos(winPos, ImGuiCond_::ImGuiCond_Once);
 	}
 
 	bool isParamNumChanged()
@@ -281,13 +280,11 @@ namespace {
 
 	std::pair<float, float> computeWinPos()
 	{
-		return std::pair<float, float>(static_cast<float>(Config::kRenderTargetWidth) - kWidth, 0.0f);
+		return std::pair<float, float>(0.0f, 0.0f); // left-upper corner
 	}
 
 	std::pair<float, float> computeWinSize()
 	{
-		constexpr size_t kHeightPerNum = 25;
-		const size_t num = s_logs.size();
-		return std::pair<float, float>(kWidth, static_cast<float>(kHeightPerNum * num));
+		return std::pair<float, float>(0.0f, 0.0f); // IMGUI will automatically computes size
 	}
 }
