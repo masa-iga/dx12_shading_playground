@@ -42,6 +42,7 @@ namespace MiniEngineIf {
 	void draw(bool renderToOffscreenBuffer = true);
 	float getStick(StickType type);
 	bool isPress(Button button);
+	bool isTrigger(Button button);
 	Camera* getCamera2D();
 	Camera* getCamera3D();
 }

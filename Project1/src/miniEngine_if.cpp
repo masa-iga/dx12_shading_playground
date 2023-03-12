@@ -111,6 +111,11 @@ namespace MiniEngineIf {
 		return g_pad[0]->IsPress(static_cast<EnButton>(button));
 	}
 
+	bool isTrigger(Button button)
+	{
+		return g_pad[0]->IsTrigger(static_cast<EnButton>(button));
+	}
+
 	Camera* getCamera2D()
 	{
 		return g_camera2D;
