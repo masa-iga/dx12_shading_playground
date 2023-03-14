@@ -42,12 +42,17 @@ public:
 	void handleInput();
 	void setLight(const Light& light) { m_light = light; }
 	Light* getLightPtr() { return &m_light; }
+	void draw(RenderContext& renderContext);
 	void debugRenderParams();
 
 private:
-	const std::string kTkmFile = "Sample_07_02/Sample_07_02/Assets/modelData/monster.tkm";
+	const std::string kTkmMonsterFile = "Sample_07_02/Sample_07_02/Assets/modelData/monster.tkm";
+	const std::string kTkmHumanFile = "Sample_07_02/Sample_07_02/Assets/modelData/Human.tkm";
+	const std::string kTkmLanternFile = "Sample_07_02/Sample_07_02/Assets/modelData/Lantern.tkm";
 	const std::string kFxFile = "Assets/shader/sample_07_02.fx";
-	std::string getTkmFilePath() { return ModelUtil::getPathFromAssetDir(kTkmFile); }
+	std::string getTkmMonsterFilePath() { return ModelUtil::getPathFromAssetDir(kTkmMonsterFile); }
+	std::string getTkmHumanFile() { return ModelUtil::getPathFromAssetDir(kTkmHumanFile); }
+	std::string getTkmLanternFile() { return ModelUtil::getPathFromAssetDir(kTkmLanternFile); }
 	std::string getFxFilePath() { return kFxFile; }
 
 	struct DispSetting
@@ -136,7 +141,7 @@ std::unique_ptr<IModels> ModelFactory_07_02::create()
 		m->resetCamera();
 	}
 
-	return m;
+	return std::move(m);
 }
 
 void Models_07_02::resetCamera()
@@ -147,22 +152,40 @@ void Models_07_02::resetCamera()
 
 void Models_07_02::createModel()
 {
-	const std::string tkmFilePath = getTkmFilePath();
+	const std::string tkmMonsterFilePath = getTkmMonsterFilePath();
+	const std::string tkmHumanFilePath = getTkmHumanFile();
+	const std::string tkmLanternFilePath = getTkmLanternFile();
 	const std::string fxFilePath = getFxFilePath();
-	Dbg::assert_(std::filesystem::exists(tkmFilePath));
+	Dbg::assert_(std::filesystem::exists(tkmMonsterFilePath));
 	Dbg::assert_(std::filesystem::exists(fxFilePath));
 
 	ModelInitData initData = { };
 	{
-		initData.m_tkmFilePath = tkmFilePath.c_str();
+		initData.m_tkmFilePath = tkmMonsterFilePath.c_str();
 		initData.m_fxFilePath = fxFilePath.c_str();
 		initData.m_expandConstantBuffer = &m_light;
 		initData.m_expandConstantBufferSize = sizeof(m_light);
 	}
 
-	std::unique_ptr<Model> model(new Model);
-	model->Init(initData);
-	m_models.emplace_back(std::move(model));
+	{
+		std::unique_ptr<Model> model(new Model);
+		model->Init(initData);
+		m_models.emplace_back(std::move(model));
+	}
+
+	{
+		initData.m_tkmFilePath = tkmHumanFilePath.c_str();
+		std::unique_ptr<Model> model(new Model);
+		model->Init(initData);
+		m_models.emplace_back(std::move(model));
+	}
+
+	{
+		initData.m_tkmFilePath = tkmLanternFilePath.c_str();
+		std::unique_ptr<Model> model(new Model);
+		model->Init(initData);
+		m_models.emplace_back(std::move(model));
+	}
 }
 
 void Models_07_02::handleInput()
@@ -219,6 +242,11 @@ void Models_07_02::handleInput()
 	}
 }
 
+void Models_07_02::draw(RenderContext& renderContext)
+{
+	m_models.at(static_cast<size_t>(m_dispModelNo))->Draw(renderContext);
+}
+
 void Models_07_02::debugRenderParams()
 {
 	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "Camera", std::vector<int32_t*>{ (int32_t*)&m_dispModelNo });
@@ -233,19 +261,12 @@ void Models_07_02::debugRenderParams()
 }
 
 namespace ModelHandler {
-	static std::unique_ptr<IModels> m = nullptr;
-
-	void loadModelForChap07_02(std::vector<Model*>& models)
+	std::unique_ptr<IModels> loadModelForChap07_02()
 	{
 		ModelFactory_07_02 factory;
-		m = factory.create();
-		m->debugRenderParams();
-		models = m->getModels();
-	}
-
-	void handleInputForChap07_02()
-	{
-		m->handleInput();
+		std::unique_ptr<IModels> iModels = factory.create();
+		iModels->debugRenderParams();
+		return std::move(iModels);
 	}
 } // namespace ModelHandler
 

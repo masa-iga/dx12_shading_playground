@@ -4,6 +4,7 @@
 #include "debug_win.h"
 #include "imgui_if.h"
 #include "miniEngine_if.h"
+#include "models/imodel.h"
 #include "models/model_04_01.h"
 #include "models/model_04_03.h"
 #include "models/model_05_01.h"
@@ -28,6 +29,7 @@
 
 namespace {
 	std::vector<Model*> s_models;
+	std::unique_ptr<IModels> s_iModels = nullptr;
 } // namespace anonymous
 
 void Models::loadModel()
@@ -100,6 +102,12 @@ void Models::handleInput()
 
 void Models::draw(RenderContext& renderContext)
 {
+	if (s_iModels != nullptr)
+	{
+		s_iModels->draw(renderContext);
+		return;
+	}
+
 	for (auto model : s_models)
 	{
 		model->Draw(renderContext);
@@ -118,7 +126,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k06_01: ModelHandler::loadModelForChap06_01(s_models); break;
 	case Chapter::k06_02: ModelHandler::loadModelForChap06_02(s_models); break;
 	case Chapter::k06_03: ModelHandler::loadModelForChap06_03(s_models); break;
-	case Chapter::k07_02: ModelHandler::loadModelForChap07_02(s_models); break;
+	case Chapter::k07_02: s_iModels = ModelHandler::loadModelForChap07_02(); break;
 	default: break;
 	}
 }
@@ -135,7 +143,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k06_01: ModelHandler::handleInputForChap06_01(); break;
 	case Chapter::k06_02: ModelHandler::handleInputForChap06_02(); break;
 	case Chapter::k06_03: ModelHandler::handleInputForChap06_03(); break;
-	case Chapter::k07_02: ModelHandler::handleInputForChap07_02(); break;
+	case Chapter::k07_02: s_iModels->handleInput(); break;
 	default: break;
 	}
 }

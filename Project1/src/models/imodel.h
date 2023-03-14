@@ -9,8 +9,8 @@ public:
 	virtual void createModel() = 0;
 	virtual void resetCamera() = 0;
 	virtual void handleInput() = 0;
+	virtual void draw(RenderContext& renderContext);
 	virtual void debugRenderParams() { }
-	void draw(RenderContext& renderContext);
 	std::vector<Model*> getModels();
 
 protected:
