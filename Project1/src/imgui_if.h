@@ -25,5 +25,5 @@ namespace ImguiIf {
 	void render(ID3D12GraphicsCommandList* pCommandList);
 
 	template <typename T>
-	LRESULT printParams(VarType type, const std::string& str, const std::vector<T*>& ptrs, ParamType kind = ParamType::kGeneral);
+	LRESULT printParams(VarType type, const std::string& str, const std::vector<const T*>& ptrs, ParamType kind = ParamType::kGeneral);
 }

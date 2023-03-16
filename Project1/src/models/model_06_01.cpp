@@ -50,9 +50,9 @@ namespace ModelHandler {
 		}
 
 		{
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Direct light", std::vector<float*>{ &(s_pLight->direction.x), & (s_pLight->direction.y), & (s_pLight->direction.z) });
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Eye         ", std::vector<float*>{ &(s_pLight->eyePos.x), &(s_pLight->eyePos.y), &(s_pLight->eyePos.z) });
-			ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "TangentNormal", std::vector<int32_t*>{ &s_pLight->enableTangentSpaceNormal });
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Direct light", std::vector<const float*>{ &(s_pLight->direction.x), & (s_pLight->direction.y), & (s_pLight->direction.z) });
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Eye         ", std::vector<const float*>{ &(s_pLight->eyePos.x), &(s_pLight->eyePos.y), &(s_pLight->eyePos.z) });
+			ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "TangentNormal", std::vector<const int32_t*>{ &s_pLight->enableTangentSpaceNormal });
 		}
 	}
 

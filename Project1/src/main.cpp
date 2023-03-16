@@ -43,7 +43,7 @@ void setup(HINSTANCE hInstance, int nCmdShow)
 	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), Render::getCommandQueue(), WinMgr::getHwndMain());
 	DdsLoaderIf::setDevice(DeviceD3D12::getDevice());
 
-	ImguiIf::printParams<uint64_t>(ImguiIf::VarType::kUint64, "Frame", std::vector<uint64_t*>{ &s_frame }, ImguiIf::ParamType::kFrame);
+	ImguiIf::printParams<uint64_t>(ImguiIf::VarType::kUint64, "Frame", std::vector<const uint64_t*>{ &s_frame }, ImguiIf::ParamType::kFrame);
 }
 
 void load()

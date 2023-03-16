@@ -15,9 +15,9 @@
 using namespace Microsoft::WRL;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-template LRESULT ImguiIf::printParams<int32_t>(VarType type, const std::string& str, const std::vector<int32_t*>& ptrs, ParamType kind);
-template LRESULT ImguiIf::printParams<uint64_t>(VarType type, const std::string& str, const std::vector<uint64_t*>& ptrs, ParamType kind);
-template LRESULT ImguiIf::printParams<float>(VarType type, const std::string& str, const std::vector<float*>& ptrs, ParamType kind);
+template LRESULT ImguiIf::printParams<int32_t>(VarType type, const std::string& str, const std::vector<const int32_t*>& ptrs, ParamType kind);
+template LRESULT ImguiIf::printParams<uint64_t>(VarType type, const std::string& str, const std::vector<const uint64_t*>& ptrs, ParamType kind);
+template LRESULT ImguiIf::printParams<float>(VarType type, const std::string& str, const std::vector<const float*>& ptrs, ParamType kind);
 
 namespace {
 	struct Log {
@@ -38,7 +38,7 @@ namespace {
 	std::pair<float, float> computeWinSize();
 
 	template<typename T>
-	LRESULT printParamsFrame(ImguiIf::VarType type, const std::string& str, const std::vector<T*>& ptrs)
+	LRESULT printParamsFrame(ImguiIf::VarType type, const std::string& str, const std::vector<const T*>& ptrs)
 	{
 		if (type != ImguiIf::VarType::kUint64)
 			return E_FAIL;
@@ -55,7 +55,7 @@ namespace {
 	}
 
 	template<typename T>
-	LRESULT printParamsGpuTime(ImguiIf::VarType type, const std::string& str, const std::vector<T*>& ptrs)
+	LRESULT printParamsGpuTime(ImguiIf::VarType type, const std::string& str, const std::vector<const T*>& ptrs)
 	{
 		if (type != ImguiIf::VarType::kFloat)
 			return E_FAIL;
@@ -72,7 +72,7 @@ namespace {
 	}
 
 	template<typename T>
-	LRESULT printParamsGeneral(ImguiIf::VarType type, const std::string& str, const std::vector<T*>& ptrs)
+	LRESULT printParamsGeneral(ImguiIf::VarType type, const std::string& str, const std::vector<const T*>& ptrs)
 	{
 		if (ptrs.size() == 0)
 			return S_OK;
@@ -245,7 +245,7 @@ namespace ImguiIf {
 	}
 
 	template<typename T>
-	LRESULT printParams(VarType type, const std::string& str, const std::vector<T*>& ptrs, ParamType kind)
+	LRESULT printParams(VarType type, const std::string& str, const std::vector<const T*>& ptrs, ParamType kind)
 	{
 		switch (kind) {
 		case ParamType::kFrame: return printParamsFrame<T>(type, str, ptrs);
