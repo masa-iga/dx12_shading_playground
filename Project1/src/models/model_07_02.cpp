@@ -249,14 +249,18 @@ void Models_07_02::draw(RenderContext& renderContext)
 
 void Models_07_02::debugRenderParams()
 {
-	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "Camera", std::vector<const int32_t*>{ (int32_t*)&m_dispModelNo });
-	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Eye         ", std::vector<const float*>{ &(m_light.eyePos.x), & (m_light.eyePos.y), & (m_light.eyePos.z) });
+	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "Model #", std::vector<const int32_t*>{ (int32_t*)&m_dispModelNo });
+	{
+		const Vector3& target = MiniEngineIf::getCamera3D()->GetTarget();
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Target", std::vector<const float*>{ &target.x, & target.y, & target.z });
+	}
+	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Eye", std::vector<const float*>{ &(m_light.eyePos.x), & (m_light.eyePos.y), & (m_light.eyePos.z) });
 
 	for (uint32_t i = 0; i < _countof(m_light.directionalLight); ++i)
 	{
-		DirectionalLight& dl = m_light.directionalLight[static_cast<size_t>(i)];
 		std::string str = "Direct light" + std::to_string(i);
-		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, str, std::vector<const float*>{ &(dl.direction.x), & (dl.direction.y), & (dl.direction.z) });
+		const DirectionalLight& dl = m_light.directionalLight[static_cast<size_t>(i)];
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, str, std::vector<const float*>{ &dl.direction.x, &dl.direction.y, &dl.direction.z });
 	}
 }
 
