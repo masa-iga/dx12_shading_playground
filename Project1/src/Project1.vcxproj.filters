@@ -231,5 +231,8 @@
     <FxCompile Include="Assets\shader\sample_07_02.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_07_03.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -46,10 +46,10 @@ public:
 	void debugRenderParams();
 
 private:
-	const std::string kTkmMonsterFile = "Sample_07_02/Sample_07_02/Assets/modelData/monster.tkm";
-	const std::string kTkmHumanFile = "Sample_07_02/Sample_07_02/Assets/modelData/Human.tkm";
-	const std::string kTkmLanternFile = "Sample_07_02/Sample_07_02/Assets/modelData/Lantern.tkm";
-	const std::string kFxFile = "Assets/shader/sample_07_02.fx";
+	const std::string kTkmMonsterFile = "Sample_07_03/Sample_07_03/Assets/modelData/monster.tkm";
+	const std::string kTkmHumanFile = "Sample_07_03/Sample_07_03/Assets/modelData/Human.tkm";
+	const std::string kTkmLanternFile = "Sample_07_03/Sample_07_03/Assets/modelData/Lantern.tkm";
+	const std::string kFxFile = "Assets/shader/sample_07_03.fx";
 	std::string getTkmMonsterFilePath() { return ModelUtil::getPathFromAssetDir(kTkmMonsterFile); }
 	std::string getTkmHumanFile() { return ModelUtil::getPathFromAssetDir(kTkmHumanFile); }
 	std::string getTkmLanternFile() { return ModelUtil::getPathFromAssetDir(kTkmLanternFile); }
@@ -118,7 +118,7 @@ std::unique_ptr<IModels> ModelFactory_07_03::create()
 					},
 				},
 				.eyePos = MiniEngineIf::getCamera3D()->GetPosition(),
-				.specPow = 0.5f,
+				.specPow = 5.0f,
 				.ambientLight = { 0.4f, 0.4f, 0.4f },
 				.pad0 = 0.0f,
 			};
