@@ -29,9 +29,9 @@ public:
 
 		DirectionalLight directionalLight[kNumDirectionalLight];
 		Vector3 eyePos;
-		float specPow;
+		float specPow = 0.0f;
 		Vector3 ambientLight;
-		float pad0;
+		int enableFresnelDiffuseLighting = 1;
 	};
 
 public:
@@ -120,7 +120,7 @@ std::unique_ptr<IModels> ModelFactory_07_03::create()
 				.eyePos = MiniEngineIf::getCamera3D()->GetPosition(),
 				.specPow = 5.0f,
 				.ambientLight = { 0.4f, 0.4f, 0.4f },
-				.pad0 = 0.0f,
+				.enableFresnelDiffuseLighting = 1,
 			};
 
 			for (auto& dirLight : light.directionalLight)
@@ -233,12 +233,15 @@ void Models_07_03::handleInput()
 
 	m_light.eyePos = MiniEngineIf::getCamera3D()->GetPosition();
 
+	if (MiniEngineIf::isTrigger(MiniEngineIf::Button::kA))
 	{
-		if (MiniEngineIf::isTrigger(MiniEngineIf::Button::kA))
-		{
-			m_dispModelNo = static_cast<Character>((static_cast<int32_t>(m_dispModelNo) + 1) % static_cast<int32_t>(Character::kNum));
-			resetCamera();
-		}
+		m_dispModelNo = static_cast<Character>((static_cast<int32_t>(m_dispModelNo) + 1) % static_cast<int32_t>(Character::kNum));
+		resetCamera();
+	}
+
+	if (MiniEngineIf::isTrigger(MiniEngineIf::Button::kB))
+	{
+		m_light.enableFresnelDiffuseLighting = m_light.enableFresnelDiffuseLighting == 0 ? 1 : 0;
 	}
 }
 
@@ -262,6 +265,8 @@ void Models_07_03::debugRenderParams()
 		const DirectionalLight& dl = m_light.directionalLight[static_cast<size_t>(i)];
 		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, str, std::vector<const float*>{ &dl.direction.x, &dl.direction.y, &dl.direction.z });
 	}
+
+	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "enableFresnelDiffuseLighting", std::vector<const int32_t*>{ &m_light.enableFresnelDiffuseLighting});
 }
 
 namespace ModelHandler {

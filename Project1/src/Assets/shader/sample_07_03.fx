@@ -32,6 +32,7 @@ cbuffer LightCb : register(b1)
     float3 eyePos;          // カメラの視点
     float specPow;          // スペキュラの絞り
     float3 ambientLight;    // 環境光
+    int enableFresnelDiffuseLighting;
 };
 
 // 頂点シェーダーへの入力
@@ -155,8 +156,34 @@ float CookTorranceSpecular(float3 L, float3 V, float3 N, float metallic)
 /// <param name="roughness">粗さ。0～1の範囲。</param>
 float CalcDiffuseFromFresnel(float3 N, float3 L, float3 V)
 {
-    // step-1 ディズニーベースのフレネル反射による拡散反射を真面目に実装する。
-    return 0.0f;
+    if (enableFresnelDiffuseLighting)
+    {
+        // ディズニーベースのフレネル反射による拡散反射を真面目に実装する。
+        float3 H = normalize(L + V);
+
+        const float roughness = 0.5f;
+
+        float energyBias = lerp(0.0f, 0.5f, roughness);
+        float energyFactor = lerp(1.0, 1.0 / 1.51, roughness);
+
+        float dotLH = saturate(dot(L, H));
+        float Fd90 = energyBias + 2.0 * dotLH * dotLH * roughness;
+
+        float dotNL = saturate(dot(N, L));
+        float FL = (1 + (Fd90 - 1) * pow(1 - dotNL, 5));
+
+        float dotNV = saturate(dot(N, V));
+        float FV = (1 + (Fd90 - 1) * pow(1 - dotNV, 5));
+
+        return (FL * FV * energyFactor);
+    }
+    else
+    {
+        // フレネル反射を考慮した拡散反射光を求める
+        const float dotNL = saturate(dot(N, L));
+        const float dotNV = saturate(dot(N, V));
+        return dotNL * dotNV;
+    }
 }
 
 /// <summary>
