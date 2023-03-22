@@ -16,6 +16,7 @@
 #include "models/model_06_03.h"
 #include "models/model_07_02.h"
 #include "models/model_07_03.h"
+#include "models/model_10_01.h"
 
 #define LOAD_MODEL_CHAP_04_01 (0)
 #define LOAD_MODEL_CHAP_04_03 (0)
@@ -27,7 +28,8 @@
 #define LOAD_MODEL_CHAP_06_02 (0)
 #define LOAD_MODEL_CHAP_06_03 (0)
 #define LOAD_MODEL_CHAP_07_02 (0)
-#define LOAD_MODEL_CHAP_07_03 (1)
+#define LOAD_MODEL_CHAP_07_03 (0)
+#define LOAD_MODEL_CHAP_10_01 (1)
 
 namespace {
 	std::vector<Model*> s_models;
@@ -69,6 +71,9 @@ void Models::loadModel()
 #if LOAD_MODEL_CHAP_07_03
 		loadModelInternal(Models::Chapter::k07_03);
 #endif // #if LOAD_MODEL_CHAP_07_03
+#if LOAD_MODEL_CHAP_10_01
+		loadModelInternal(Models::Chapter::k10_01);
+#endif // #if LOAD_MODEL_CHAP_10_01
 }
 
 void Models::handleInput()
@@ -106,6 +111,9 @@ void Models::handleInput()
 #if LOAD_MODEL_CHAP_07_03
 		handleInputInternal(Models::Chapter::k07_03);
 #endif // #if LOAD_MODEL_CHAP_07_03
+#if LOAD_MODEL_CHAP_10_01
+		handleInputInternal(Models::Chapter::k10_01);
+#endif // #if LOAD_MODEL_CHAP_10_01
 }
 
 void Models::draw(RenderContext& renderContext)
@@ -136,6 +144,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k06_03: ModelHandler::loadModelForChap06_03(s_models); break;
 	case Chapter::k07_02: s_iModels = ModelHandler::loadModelForChap07_02(); break;
 	case Chapter::k07_03: s_iModels = ModelHandler::loadModelForChap07_03(); break;
+	case Chapter::k10_01: s_iModels = ModelHandler::loadModelForChap10_01(); break;
 	default: break;
 	}
 }
@@ -154,6 +163,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k06_03: ModelHandler::handleInputForChap06_03(); break;
 	case Chapter::k07_02: s_iModels->handleInput(); break;
 	case Chapter::k07_03: s_iModels->handleInput(); break;
+	case Chapter::k10_01: s_iModels->handleInput(); break;
 	default: break;
 	}
 }

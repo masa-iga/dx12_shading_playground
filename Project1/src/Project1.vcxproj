@@ -183,6 +183,7 @@ call :copyFiles
     <ClCompile Include="main.cpp" />
     <ClCompile Include="miniEngine_if.cpp" />
     <ClCompile Include="models\imodel.cpp" />
+    <ClCompile Include="models\model_10_01.cpp" />
     <ClCompile Include="models\model_04_01.cpp" />
     <ClCompile Include="models\model_04_03.cpp" />
     <ClCompile Include="models\model_05_01.cpp" />
@@ -212,6 +213,7 @@ call :copyFiles
     <ClInclude Include="imgui_if.h" />
     <ClInclude Include="miniEngine_if.h" />
     <ClInclude Include="models\imodel.h" />
+    <ClInclude Include="models\model_10_01.h" />
     <ClInclude Include="models\model_04_01.h" />
     <ClInclude Include="models\model_04_03.h" />
     <ClInclude Include="models\model_05_01.h" />
