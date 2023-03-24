@@ -10,7 +10,7 @@ namespace {
 	void createRenderTarget(ID3D12Device* device);
 	void createDepthRenderTarget(ID3D12Device* device);
 	void handleInputInternal();
-	void drawInternal(bool renderToOffscreenBuffer);
+	void drawInternal();
 
 	constexpr DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	constexpr UINT kRenderTargetWidth = 1920;
@@ -99,7 +99,12 @@ namespace MiniEngineIf {
 
 	void draw(bool renderToOffscreenBuffer)
 	{
-		drawInternal(renderToOffscreenBuffer);
+		if (renderToOffscreenBuffer)
+		{
+			setOffscreenRenderTarget();
+		}
+
+		drawInternal();
 	}
 
 	float getStick(StickType type)
@@ -239,13 +244,8 @@ namespace {
 		s_models.handleInput();
 	}
 
-	void drawInternal(bool renderToOffscreenBuffer)
+	void drawInternal()
 	{
-		if (renderToOffscreenBuffer)
-		{
-			MiniEngineIf::setOffscreenRenderTarget();
-		}
-
 		auto& renderContext = g_graphicsEngine->GetRenderContext();
 		s_models.draw(renderContext);
 	}
