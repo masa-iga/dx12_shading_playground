@@ -83,6 +83,15 @@ namespace MiniEngineIf {
             nullptr);
 	}
 
+	void setOffscreenRenderTarget()
+	{
+		auto& renderContext = g_graphicsEngine->GetRenderContext();
+		renderContext.SetRenderTarget(s_descHeapRt->GetCPUDescriptorHandleForHeapStart(), s_descHeapDrt->GetCPUDescriptorHandleForHeapStart());
+
+		CD3DX12_VIEWPORT vp(s_renderTarget.Get());
+		renderContext.SetViewportAndScissor(vp);
+	}
+
 	void handleInput()
 	{
 		handleInputInternal();
@@ -232,16 +241,12 @@ namespace {
 
 	void drawInternal(bool renderToOffscreenBuffer)
 	{
-		auto& renderContext = g_graphicsEngine->GetRenderContext();
-
 		if (renderToOffscreenBuffer)
 		{
-			renderContext.SetRenderTarget(s_descHeapRt->GetCPUDescriptorHandleForHeapStart(), s_descHeapDrt->GetCPUDescriptorHandleForHeapStart());
-
-			CD3DX12_VIEWPORT vp(s_renderTarget.Get());
-			renderContext.SetViewportAndScissor(vp);
+			MiniEngineIf::setOffscreenRenderTarget();
 		}
 
+		auto& renderContext = g_graphicsEngine->GetRenderContext();
 		s_models.draw(renderContext);
 	}
 }
