@@ -17,7 +17,7 @@ static ComPtr<IDXGIFactory4> s_factory = nullptr;
 static ComPtr<ID3D12Device> s_device = nullptr;
 
 namespace DeviceD3D12 {
-	HRESULT setup(HWND hwnd)
+	HRESULT setup()
 	{
 #ifdef _DEBUG
 		enableDebugLayer();

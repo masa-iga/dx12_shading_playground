@@ -11,7 +11,7 @@ static uint64_t s_frame = 0;
 void setup(HINSTANCE hInstance, int nCmdShow);
 void load();
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstance, [[maybe_unused]] PWSTR pCmdLine, int nCmdShow)
 {
 	setup(hInstance, nCmdShow);
 
@@ -38,7 +38,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 void setup(HINSTANCE hInstance, int nCmdShow)
 {
 	WinMgr::setup(hInstance, nCmdShow);
-	DeviceD3D12::setup(WinMgr::getHwndMain());
+	DeviceD3D12::setup();
 	Render::setup(DeviceD3D12::getDevice(), WinMgr::getHwndMain(), WinMgr::getHwndMiniEngine());
 	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), Render::getCommandQueue(), WinMgr::getHwndMain());
 	DdsLoaderIf::setDevice(DeviceD3D12::getDevice());

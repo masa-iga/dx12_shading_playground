@@ -4,7 +4,7 @@
 #include <windows.h>
 
 namespace DeviceD3D12 {
-	HRESULT setup(HWND hwnd);
+	HRESULT setup();
 	IDXGIFactory4* getFactory();
 	ID3D12Device* getDevice();
 	UINT getDescHandleIncSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType);

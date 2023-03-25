@@ -162,7 +162,7 @@ namespace {
 		return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 
-	HRESULT handleKeyDownMain(WPARAM wParam, LPARAM lParam)
+	HRESULT handleKeyDownMain(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 	{
 		switch (wParam) {
 		case VK_ESCAPE:
