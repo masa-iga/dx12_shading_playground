@@ -1,6 +1,7 @@
 #include "device_d3d12.h"
 #include <wrl/client.h>
 #include "debug_win.h"
+#include <dxgidebug.h>
 
 #pragma comment(lib, "D3D12.lib")
 #pragma comment(lib, "DXGI.lib")
@@ -26,6 +27,31 @@ namespace DeviceD3D12 {
 		createDevice();
 
 		return S_OK;
+	}
+
+	void tearDown()
+	{
+		;
+	}
+
+	void reportLiveObjects([[maybe_unused]] ReportFlag flag)
+	{
+#ifdef _DEBUG
+		ComPtr<IDXGIDebug1> debug = nullptr;
+		auto hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(debug.ReleaseAndGetAddressOf()));
+		Dbg::assert_(SUCCEEDED(hr));
+
+		DXGI_DEBUG_RLO_FLAGS flags = static_cast<DXGI_DEBUG_RLO_FLAGS>(0);
+
+		switch (flag) {
+		case ReportFlag::kSummary: flags = DXGI_DEBUG_RLO_SUMMARY; break;
+		case ReportFlag::kDetail: flags = DXGI_DEBUG_RLO_DETAIL; break;
+		case ReportFlag::kIgnoreInternal: flags = DXGI_DEBUG_RLO_IGNORE_INTERNAL; break;
+		case ReportFlag::kAll: flags = DXGI_DEBUG_RLO_ALL; break;
+		}
+
+		debug->ReportLiveObjects(DXGI_DEBUG_ALL, flags);
+#endif // _DEBUG
 	}
 
 	IDXGIFactory4* getFactory()
