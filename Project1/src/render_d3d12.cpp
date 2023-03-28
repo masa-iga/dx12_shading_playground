@@ -116,7 +116,7 @@ namespace Render {
 	void onDestroy()
 	{
 		waitForPreviousFrame();
-		CloseHandle(s_fenceEvent);
+		::CloseHandle(s_fenceEvent);
 		MiniEngineIf::end();
 		ImguiIf::shutdown();
 	}
