@@ -10,6 +10,7 @@ static uint64_t s_frame = 0;
 
 void setup(HINSTANCE hInstance, int nCmdShow);
 void load();
+void teardown();
 
 int WINAPI wWinMain(HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstance, [[maybe_unused]] PWSTR pCmdLine, int nCmdShow)
 {
@@ -29,8 +30,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstanc
 		++s_frame;
 	}
 
-	Render::onDestroy();
-	WinMgr::teardown();
+	teardown();
 
 	return 0;
 }
@@ -49,4 +49,11 @@ void setup(HINSTANCE hInstance, int nCmdShow)
 void load()
 {
 	Render::loadAssets(DeviceD3D12::getDevice());
+}
+
+void teardown()
+{
+	Render::onDestroy();
+	DeviceD3D12::tearDown();
+	WinMgr::teardown();
 }
