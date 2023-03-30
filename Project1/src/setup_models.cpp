@@ -34,7 +34,6 @@
 #define LOAD_MODEL_CHAP_10_02 (1)
 
 namespace {
-	// TODO: possible make it unique_ptr ??
 	std::vector<Model*> s_models;
 	std::unique_ptr<IModels> s_iModels = nullptr;
 } // namespace anonymous
