@@ -40,6 +40,8 @@ namespace MiniEngineIf {
 
 	void end()
 	{
+		s_models.releaseResource();
+
 		if (g_engine == nullptr)
 			return;
 

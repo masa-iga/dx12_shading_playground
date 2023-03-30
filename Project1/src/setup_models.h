@@ -16,8 +16,10 @@ public:
 		k07_02,
 		k07_03,
 		k10_01,
+		k10_02,
 	};
 	void loadModel();
+	void releaseResource();
 	void handleInput();
 	void draw(RenderContext& renderContext);
 
