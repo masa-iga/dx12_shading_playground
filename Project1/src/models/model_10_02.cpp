@@ -4,6 +4,7 @@
 #include "imodel.h"
 #include "MiniEngine.h"
 #include "model_util.h"
+#include "../config.h"
 #include "../debug_win.h"
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
@@ -28,23 +29,23 @@ public:
 
 private:
 	enum class ModelType {
-		kBox,
 		kBg,
 		kPlayer,
 		kSize,
 	};
 
-	const std::string kTkmBoxFile = "Sample_10_01/Sample_10_01/Assets/modelData/box.tkm";
-	const std::string kTkmBgFile = "Sample_10_01/Sample_10_01/Assets/modelData/bg/bg.tkm";
-	const std::string kTkmSampleFile = "Sample_10_01/Sample_10_01/Assets/modelData/sample.tkm";
-	const std::string kFxFile = "Sample_10_01/Sample_10_01/Assets/shader/sample3D.fx";
-	std::string getTkmBoxFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBoxFile); }
+	const std::string kTkmBgFile = "Sample_10_02/Sample_10_02/Assets/modelData/bg/bg.tkm";
+	const std::string kTkmSampleFile = "Sample_10_02/Sample_10_02/Assets/modelData/sample.tkm";
+	const std::string kFx3dFile = "Sample_10_02/Sample_10_02/Assets/shader/sample3D.fx";
+	const std::string kFxPostEffectFile = "Assets/shader/sample_10_02_postEffect.fx";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
-	std::string getFxFilePath() { return ModelUtil::getPathFromAssetDir(kFxFile); }
+	std::string getFx3dFilePath() { return ModelUtil::getPathFromAssetDir(kFx3dFile); }
+	std::string getFxPostEffectFilePath() { return kFxPostEffectFile; }
 
 	RenderTarget m_offscreenRenderTarget;
 	Vector3 m_plPos;
+	std::unique_ptr<Sprite> m_sprite = nullptr;
 };
 
 std::unique_ptr<IModels> ModelFactory_10_02::create()
@@ -64,45 +65,48 @@ void Models_10_02::resetCamera()
 void Models_10_02::createModel()
 {
 	m_offscreenRenderTarget.Create(
-		1280,
-		720,
+		Config::kRenderTargetWidth,
+		Config::kRenderTargetHeight,
 		1,
 		1,
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_FORMAT_D32_FLOAT
 	);
 
-	const std::string tkmBoxFilePath = getTkmBoxFilePath();
 	const std::string tkmBgFilePath = getTkmBgFilePath();
 	const std::string tkmSampleFilePath = getTkmSampleFilePath();
-	const std::string fxFilePath = getFxFilePath();
-	Dbg::assert_(std::filesystem::exists(tkmBoxFilePath));
+	const std::string kFx3dFilePath = getFx3dFilePath();
+	const std::string kFxPostEffectFilePath = getFxPostEffectFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmBgFilePath));
 	Dbg::assert_(std::filesystem::exists(tkmSampleFilePath));
-	Dbg::assert_(std::filesystem::exists(fxFilePath));
+	Dbg::assert_(std::filesystem::exists(kFx3dFilePath));
+	Dbg::assert_(std::filesystem::exists(kFxPostEffectFilePath));
+
+	{
+		SpriteInitData spriteInitData;
+		spriteInitData.m_textures.at(0) = &m_offscreenRenderTarget.GetRenderTargetTexture();
+		spriteInitData.m_width = Config::kRenderTargetWidth;
+		spriteInitData.m_height = Config::kRenderTargetHeight;
+		spriteInitData.m_fxFilePath = kFxPostEffectFilePath.c_str();
+
+		std::unique_ptr<Sprite> monochromeSprite = std::make_unique<Sprite>();
+		monochromeSprite->Init(spriteInitData);
+		m_sprite = std::move(monochromeSprite);
+	}
 
 	ModelInitData initData = { };
 	{
-		initData.m_fxFilePath = fxFilePath.c_str();
-	}
-
-	{
-		initData.m_tkmFilePath = tkmBoxFilePath.c_str();
-		std::unique_ptr<Model> model(new Model);
-		model->Init(initData);
-		model->UpdateWorldMatrix({ 100.0f, 0.0f, 0.0f }, g_quatIdentity, g_vec3One);
-		model->ChangeAlbedoMap("", m_offscreenRenderTarget.GetRenderTargetTexture());
-		m_models.at(static_cast<size_t>(ModelType::kBox)) = std::move(model);
+		initData.m_fxFilePath = kFx3dFilePath.c_str();
 	}
 	{
 		initData.m_tkmFilePath = tkmBgFilePath.c_str();
-		std::unique_ptr<Model> model(new Model);
+		std::unique_ptr<Model> model = std::make_unique<Model>();
 		model->Init(initData);
 		m_models.at(static_cast<size_t>(ModelType::kBg)) = std::move(model);
 	}
 	{
 		initData.m_tkmFilePath = tkmSampleFilePath.c_str();
-		std::unique_ptr<Model> model(new Model);
+		std::unique_ptr<Model> model = std::make_unique<Model>();
 		model->Init(initData);
 		m_models.at(static_cast<size_t>(ModelType::kPlayer)) = std::move(model);
 	}
@@ -133,10 +137,7 @@ void Models_10_02::draw(RenderContext& renderContext)
 	// render to offscreen buffer managed in MiniengineIf
 	MiniEngineIf::setOffscreenRenderTarget();
 
-	for (std::unique_ptr<Model>& model : m_models)
-	{
-		model->Draw(renderContext);
-	}
+	m_sprite->Draw(renderContext);
 }
 
 void Models_10_02::debugRenderParams()
