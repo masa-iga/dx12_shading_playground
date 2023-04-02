@@ -34,10 +34,10 @@ private:
 		kSize,
 	};
 
-	const std::string kTkmBgFile = "Sample_10_02/Sample_10_02/Assets/modelData/bg/bg.tkm";
-	const std::string kTkmSampleFile = "Sample_10_02/Sample_10_02/Assets/modelData/sample.tkm";
-	const std::string kFx3dFile = "Sample_10_02/Sample_10_02/Assets/shader/sample3D.fx";
-	const std::string kFxPostEffectFile = "Assets/shader/sample_10_02_postEffect.fx";
+	const std::string kTkmBgFile = "Sample_10_03/Sample_10_03/Assets/modelData/bg/bg.tkm";
+	const std::string kTkmSampleFile = "Sample_10_03/Sample_10_03/Assets/modelData/sample.tkm";
+	const std::string kFx3dFile = "Sample_10_03/Sample_10_03/Assets/shader/sample3D.fx";
+	const std::string kFxPostEffectFile = "Assets/shader/sample_10_03_postEffect.fx";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
 	std::string getFx3dFilePath() { return ModelUtil::getPathFromAssetDir(kFx3dFile); }

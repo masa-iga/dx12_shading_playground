@@ -255,5 +255,8 @@
     <FxCompile Include="Assets\shader\sample_10_02_postEffect.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_10_03_postEffect.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
