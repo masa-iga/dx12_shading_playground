@@ -34,10 +34,10 @@ private:
 		kSize,
 	};
 
-	const std::string kTkmBgFile = "Sample_10_03/Sample_10_03/Assets/modelData/bg/bg.tkm";
-	const std::string kTkmSampleFile = "Sample_10_03/Sample_10_03/Assets/modelData/sample.tkm";
-	const std::string kFx3dFile = "Sample_10_03/Sample_10_03/Assets/shader/sample3D.fx";
-	const std::string kFxPostEffectFile = "Assets/shader/sample_10_03_postEffect.fx";
+	const std::string kTkmBgFile = "Sample_10_04/Sample_10_04/Assets/modelData/bg/bg.tkm";
+	const std::string kTkmSampleFile = "Sample_10_04/Sample_10_04/Assets/modelData/sample.tkm";
+	const std::string kFx3dFile = "Sample_10_04/Sample_10_04/Assets/shader/sample3D.fx";
+	const std::string kFxPostEffectFile = "Assets/shader/sample_10_04_postEffect.fx";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
 	std::string getFx3dFilePath() { return ModelUtil::getPathFromAssetDir(kFx3dFile); }
@@ -88,6 +88,8 @@ void Models_10_04::createModel()
 		spriteInitData.m_width = Config::kRenderTargetWidth;
 		spriteInitData.m_height = Config::kRenderTargetHeight;
 		spriteInitData.m_fxFilePath = kFxPostEffectFilePath.c_str();
+		spriteInitData.m_vsEntryPointFunc = "VSXBlur";
+		spriteInitData.m_psEntryPoinFunc = "PSBlur";
 
 		std::unique_ptr<Sprite> monochromeSprite = std::make_unique<Sprite>();
 		monochromeSprite->Init(spriteInitData);
