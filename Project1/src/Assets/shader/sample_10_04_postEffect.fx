@@ -58,6 +58,7 @@ Texture2D<float4> sceneTexture : register(t0); // シーンテクスチャ
 cbuffer CBBlur : register(b1)
 {
     float4 weight[2]; // 重み
+    int blur;
 }
 
 /*!
@@ -69,10 +70,32 @@ PS_BlurInput VSXBlur(VSInput In)
 
     PS_BlurInput Out;
     Out.pos = mul(mvp, In.pos);
+    Out.tex0 = 0.0f;
+    Out.tex1 = 0.0f;
+    Out.tex2 = 0.0f;
+    Out.tex3 = 0.0f;
+    Out.tex4 = 0.0f;
+    Out.tex5 = 0.0f;
+    Out.tex6 = 0.0f;
+    Out.tex7 = 0.0f;
 
     float2 texSize;
     float level;
     sceneTexture.GetDimensions(0, texSize.x, texSize.y, level);
+
+    if (blur == 0)
+    {
+        Out.tex0.xy = In.uv;
+        return Out;
+    }
+    else if (blur == 1)
+    {
+        const float offsetX = 1.5f / texSize.x;
+        Out.tex0.xy = float2(    0.0f, 0.0f) + In.uv;
+        Out.tex1.xy = float2( offsetX, 0.0f) + In.uv;
+        Out.tex2.xy = float2(-offsetX, 0.0f) + In.uv;
+        return Out;
+    }
 
     Out.tex0.xy = float2( 1.0f / texSize.x, 0.0f);
     Out.tex1.xy = float2( 3.0f / texSize.x, 0.0f);
@@ -114,10 +137,32 @@ PS_BlurInput VSYBlur(VSInput In)
 
     PS_BlurInput Out;
     Out.pos = mul(mvp, In.pos);
+    Out.tex0 = 0.0f;
+    Out.tex1 = 0.0f;
+    Out.tex2 = 0.0f;
+    Out.tex3 = 0.0f;
+    Out.tex4 = 0.0f;
+    Out.tex5 = 0.0f;
+    Out.tex6 = 0.0f;
+    Out.tex7 = 0.0f;
 
     float2 texSize;
     float level;
     sceneTexture.GetDimensions(0, texSize.x, texSize.y, level);
+
+    if (blur == 0)
+    {
+        Out.tex0.xy = In.uv;
+        return Out;
+    }
+    else if (blur == 1)
+    {
+        const float offsetY = 1.5f / texSize.y;
+        Out.tex0.xy = float2(0.0f,     0.0f) + In.uv;
+        Out.tex1.xy = float2(0.0f,  offsetY) + In.uv;
+        Out.tex2.xy = float2(0.0f, -offsetY) + In.uv;
+        return Out;
+    }
 
     Out.tex0.xy = float2(0.0f,  1.0f / texSize.y);
     Out.tex1.xy = float2(0.0f,  3.0f / texSize.y);
@@ -158,6 +203,20 @@ float4 PSBlur(PS_BlurInput In) : SV_Target0
 {
     // 横、縦ブラー用のピクセルシェーダーを実装
     float4 color = 0.0f;
+
+    if (blur == 0)
+    {
+        color = sceneTexture.Sample(Sampler, In.tex0.xy);
+        return color;
+    }
+    else if (blur == 1)
+    {
+        color += sceneTexture.Sample(Sampler, In.tex0.xy);
+        color += sceneTexture.Sample(Sampler, In.tex1.xy);
+        color += sceneTexture.Sample(Sampler, In.tex2.xy);
+        color /= 3.0f;
+        return color;
+    }
 
     color += weight[0].x * sceneTexture.Sample(Sampler, In.tex0.xy);
     color += weight[0].y * sceneTexture.Sample(Sampler, In.tex1.xy);

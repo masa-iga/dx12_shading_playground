@@ -55,7 +55,20 @@ private:
 	std::unique_ptr<Sprite> m_xBlurSprite = nullptr;
 	std::unique_ptr<Sprite> m_yBlurSprite = nullptr;
 	std::unique_ptr<Sprite> m_copyToFbSprite = nullptr;
-	std::array<float, kNumWeights> m_weights;
+
+	enum class Blur {
+		kNone,
+		kBlur,
+		kGaussian,
+		kSize,
+	};
+
+	struct ConstantBuffer {
+		std::array<float, kNumWeights> m_weights;
+		Blur blur = Blur::kNone;
+	};
+
+	ConstantBuffer m_cb;
 };
 
 std::unique_ptr<IModels> ModelFactory_10_04::create()
@@ -120,7 +133,7 @@ void Models_10_04::createModel()
 	Dbg::assert_(std::filesystem::exists(fxPostEffectFilePath));
 
 	{
-		CalcWeightsTableFromGaussian(m_weights.data(), kNumWeights, kSigma);
+		CalcWeightsTableFromGaussian(m_cb.m_weights.data(), kNumWeights, kSigma);
 	}
 
 	{
@@ -131,8 +144,8 @@ void Models_10_04::createModel()
 		data.m_width = m_xBlurRenderTarget.GetWidth();
 		data.m_height = m_xBlurRenderTarget.GetHeight();
 		data.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
-		data.m_expandConstantBuffer = &m_weights;
-		data.m_expandConstantBufferSize = sizeof(m_weights);
+		data.m_expandConstantBuffer = &m_cb;
+		data.m_expandConstantBufferSize = sizeof(m_cb);
 
 		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
 		sprite->Init(data);
@@ -146,8 +159,8 @@ void Models_10_04::createModel()
 		data.m_width = m_yBlurRenderTarget.GetWidth();
 		data.m_height = m_yBlurRenderTarget.GetHeight();
 		data.m_textures.at(0) = &m_xBlurRenderTarget.GetRenderTargetTexture();
-		data.m_expandConstantBuffer = &m_weights;
-		data.m_expandConstantBufferSize = sizeof(m_weights);
+		data.m_expandConstantBuffer = &m_cb;
+		data.m_expandConstantBufferSize = sizeof(m_cb);
 
 		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
 		sprite->Init(data);
@@ -185,10 +198,19 @@ void Models_10_04::createModel()
 
 void Models_10_04::handleInput()
 {
-	m_plPos.x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
-	m_plPos.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
+	{
+		m_plPos.x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
+		m_plPos.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
 
-	m_models.at(static_cast<size_t>(ModelType::kPlayer))->UpdateWorldMatrix(m_plPos, g_quatIdentity, g_vec3One);
+		m_models.at(static_cast<size_t>(ModelType::kPlayer))->UpdateWorldMatrix(m_plPos, g_quatIdentity, g_vec3One);
+	}
+
+	if (MiniEngineIf::isTrigger(MiniEngineIf::Button::kA))
+	{
+		m_cb.blur = (m_cb.blur == static_cast<Blur>(static_cast<size_t>(Blur::kSize) - 1)) ?
+			static_cast<Blur>(0) :
+			static_cast<Blur>(static_cast<size_t>(m_cb.blur) + 1);
+	}
 }
 
 void Models_10_04::draw(RenderContext& renderContext)
@@ -241,6 +263,7 @@ void Models_10_04::draw(RenderContext& renderContext)
 void Models_10_04::debugRenderParams()
 {
 	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Player", std::vector<const float*>{ &m_plPos.x, & m_plPos.y, & m_plPos.z });
+	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "Blur", std::vector<const int32_t*>{ reinterpret_cast<int32_t*>(&m_cb.blur)});
 }
 
 void Models_10_04::CalcWeightsTableFromGaussian(float* weightsTbl, int sizeOfWeightsTbl, float sigma)
