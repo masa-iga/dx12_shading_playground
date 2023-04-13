@@ -28,44 +28,51 @@ public:
 	void debugRenderParams();
 
 private:
+	static constexpr size_t kNumDirectLight = 4;
+
+	struct DirectionalLight
+	{
+		Vector3 m_direction;
+		float pad0 = 0.0f;
+		Vector4 color;
+	};
+
+	struct Light
+	{
+		std::array<DirectionalLight, kNumDirectLight> m_directLight;
+		Vector3 eyePos;
+		float specRow = 0.0f;
+		Vector3 ambientLight;
+	};
+
 	enum class ModelType {
-		kBg,
 		kPlayer,
 		kSize,
 	};
 
 	static constexpr size_t kNumWeights = 8;
-	static constexpr float kSigma = 8.0f;
-	const std::string kTkmBgFile = "Sample_10_04/Sample_10_04/Assets/modelData/bg/bg.tkm";
-	const std::string kTkmSampleFile = "Sample_10_04/Sample_10_04/Assets/modelData/sample.tkm";
-	const std::string kFx2dFile = "Sample_10_04/Sample_10_04/Assets/shader/sample2D.fx";
-	const std::string kFx3dFile = "Sample_10_04/Sample_10_04/Assets/shader/sample3D.fx";
-	const std::string kFxPostEffectFile = "Assets/shader/sample_10_04_postEffect.fx";
-	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
+	static constexpr float kBlurPower = 20;
+	static constexpr DXGI_FORMAT kBufferFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	const std::string kTkmSampleFile = "Sample_10_05/Sample_10_05/Assets/modelData/sample.tkm";
+	const std::string kFx2dFile = "Sample_10_05/Sample_10_05/Assets/shader/sample2D.fx";
+	const std::string kFx3dFile = "Sample_10_05/Sample_10_05/Assets/shader/sample3D.fx";
+	const std::string kFxPostEffectFile = "Assets/shader/sample_10_05_postEffect.fx";
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
 	std::string getFx2dFilePath() { return ModelUtil::getPathFromAssetDir(kFx2dFile); }
 	std::string getFx3dFilePath() { return ModelUtil::getPathFromAssetDir(kFx3dFile); }
 	std::string getFxPostEffectFilePath() { return kFxPostEffectFile; }
-	void CalcWeightsTableFromGaussian(float* weightsTbl, int sizeOfWeightsTbl, float sigma);
 
 	RenderTarget m_mainRenderTarget;
-	RenderTarget m_xBlurRenderTarget;
-	RenderTarget m_yBlurRenderTarget;
+	RenderTarget m_luminanceRenderTarget;
 	Vector3 m_plPos;
-	std::unique_ptr<Sprite> m_xBlurSprite = nullptr;
-	std::unique_ptr<Sprite> m_yBlurSprite = nullptr;
+	GaussianBlur m_gaussianBlur;
 	std::unique_ptr<Sprite> m_copyToFbSprite = nullptr;
-
-	enum class Blur {
-		kNone,
-		kBlur,
-		kGaussian,
-		kSize,
-	};
+	std::unique_ptr<Sprite> m_luminanceSprite = nullptr;
+	std::unique_ptr<Sprite> m_finalSprite = nullptr;
+	Light m_light;
 
 	struct ConstantBuffer {
 		std::array<float, kNumWeights> m_weights;
-		Blur blur = Blur::kNone;
 	};
 
 	ConstantBuffer m_cb;
@@ -88,19 +95,31 @@ void Models_10_05::resetCamera()
 void Models_10_05::createModel()
 {
 	{
+		m_light.m_directLight.at(0) = {
+			.m_direction = { 0.0f, 0.0f, -1.0f },
+			.pad0 = 0.0f,
+			.color = { 5.8f, 5.8f, 5.8f, 0.0f},
+		};
+		m_light.ambientLight = Vector3(0.5f, 0.5f, 0.5f);
+		m_light.eyePos = MiniEngineIf::getCamera3D()->GetPosition();
+
+		m_light.m_directLight.at(0).m_direction.Normalize();
+	}
+
+	{
 		auto bRet = m_mainRenderTarget.Create(
 			Config::kRenderTargetWidth,
 			Config::kRenderTargetHeight,
 			1,
 			1,
-			DXGI_FORMAT_R8G8B8A8_UNORM,
+			kBufferFormat,
 			DXGI_FORMAT_D32_FLOAT
 		);
 		Dbg::assert_(bRet);
 	}
 	{
-		auto bRet = m_xBlurRenderTarget.Create(
-			m_mainRenderTarget.GetWidth() / 2,
+		auto bRet = m_luminanceRenderTarget.Create(
+			m_mainRenderTarget.GetWidth(),
 			m_mainRenderTarget.GetHeight(),
 			1,
 			1,
@@ -109,67 +128,52 @@ void Models_10_05::createModel()
 		);
 		Dbg::assert_(bRet);
 	}
-	{
-		auto bRet = m_yBlurRenderTarget.Create(
-			m_xBlurRenderTarget.GetWidth(),
-			m_xBlurRenderTarget.GetHeight() / 2,
-			1,
-			1,
-			m_mainRenderTarget.GetColorBufferFormat(),
-			DXGI_FORMAT_D32_FLOAT
-		);
-		Dbg::assert_(bRet);
-	}
 
-	const std::string tkmBgFilePath = getTkmBgFilePath();
 	const std::string tkmSampleFilePath = getTkmSampleFilePath();
 	const std::string fx2dFilePath = getFx2dFilePath();
 	const std::string fx3dFilePath = getFx3dFilePath();
 	const std::string fxPostEffectFilePath = getFxPostEffectFilePath();
-	Dbg::assert_(std::filesystem::exists(tkmBgFilePath));
 	Dbg::assert_(std::filesystem::exists(tkmSampleFilePath));
 	Dbg::assert_(std::filesystem::exists(fx2dFilePath));
 	Dbg::assert_(std::filesystem::exists(fx3dFilePath));
 	Dbg::assert_(std::filesystem::exists(fxPostEffectFilePath));
 
 	{
-		CalcWeightsTableFromGaussian(m_cb.m_weights.data(), kNumWeights, kSigma);
-	}
-
-	{
 		SpriteInitData data;
-		data.m_fxFilePath = fxPostEffectFilePath.c_str();
-		data.m_vsEntryPointFunc = "VSXBlur";
-		data.m_psEntryPoinFunc = "PSBlur";
-		data.m_width = m_xBlurRenderTarget.GetWidth();
-		data.m_height = m_xBlurRenderTarget.GetHeight();
-		data.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
-		data.m_expandConstantBuffer = &m_cb;
-		data.m_expandConstantBufferSize = sizeof(m_cb);
-
+		{
+			data.m_fxFilePath = fxPostEffectFilePath.c_str();
+			data.m_vsEntryPointFunc = "VSMain";
+			data.m_psEntryPoinFunc = "PSSamplingLuminance";
+			data.m_width = m_mainRenderTarget.GetWidth();
+			data.m_height = m_mainRenderTarget.GetHeight();
+			data.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
+			data.m_colorBufferFormat.at(0) = m_mainRenderTarget.GetColorBufferFormat();
+		}
 		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
 		sprite->Init(data);
-		m_xBlurSprite = std::move(sprite);
+		m_luminanceSprite = std::move(sprite);
+	}
+	{
+		m_gaussianBlur.Init(&m_luminanceRenderTarget.GetRenderTargetTexture());
 	}
 	{
 		SpriteInitData data;
-		data.m_fxFilePath = fxPostEffectFilePath.c_str();
-		data.m_vsEntryPointFunc = "VSYBlur";
-		data.m_psEntryPoinFunc = "PSBlur";
-		data.m_width = m_yBlurRenderTarget.GetWidth();
-		data.m_height = m_yBlurRenderTarget.GetHeight();
-		data.m_textures.at(0) = &m_xBlurRenderTarget.GetRenderTargetTexture();
-		data.m_expandConstantBuffer = &m_cb;
-		data.m_expandConstantBufferSize = sizeof(m_cb);
-
+		{
+			data.m_textures.at(0) = &m_gaussianBlur.GetBokeTexture();
+			data.m_width = m_mainRenderTarget.GetWidth();
+			data.m_height = m_mainRenderTarget.GetHeight();
+			data.m_fxFilePath = fx2dFilePath.c_str();
+			data.m_alphaBlendMode = AlphaBlendMode::AlphaBlendMode_Add;
+			data.m_colorBufferFormat.at(0) = m_mainRenderTarget.GetColorBufferFormat();
+		}
 		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
 		sprite->Init(data);
-		m_yBlurSprite = std::move(sprite);
+		m_finalSprite = std::move(sprite);
 	}
 	{
 		SpriteInitData data;
 		data.m_fxFilePath = fx2dFilePath.c_str();
-		data.m_textures.at(0) = &m_yBlurRenderTarget.GetRenderTargetTexture();
+		data.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
 		data.m_width = m_mainRenderTarget.GetWidth();
 		data.m_height = m_mainRenderTarget.GetHeight();
 
@@ -178,18 +182,14 @@ void Models_10_05::createModel()
 		m_copyToFbSprite = std::move(sprite);
 	}
 
-	ModelInitData initData = { };
 	{
+		ModelInitData initData = { };
 		initData.m_fxFilePath = fx3dFilePath.c_str();
-	}
-	{
-		initData.m_tkmFilePath = tkmBgFilePath.c_str();
-		std::unique_ptr<Model> model = std::make_unique<Model>();
-		model->Init(initData);
-		m_models.at(static_cast<size_t>(ModelType::kBg)) = std::move(model);
-	}
-	{
 		initData.m_tkmFilePath = tkmSampleFilePath.c_str();
+		initData.m_expandConstantBuffer = &m_light;
+		initData.m_expandConstantBufferSize = sizeof(m_light);
+		initData.m_colorBufferFormat.at(0) = kBufferFormat;
+
 		std::unique_ptr<Model> model = std::make_unique<Model>();
 		model->Init(initData);
 		m_models.at(static_cast<size_t>(ModelType::kPlayer)) = std::move(model);
@@ -198,19 +198,19 @@ void Models_10_05::createModel()
 
 void Models_10_05::handleInput()
 {
-	{
-		m_plPos.x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
-		m_plPos.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
-
-		m_models.at(static_cast<size_t>(ModelType::kPlayer))->UpdateWorldMatrix(m_plPos, g_quatIdentity, g_vec3One);
-	}
-
-	if (MiniEngineIf::isTrigger(MiniEngineIf::Button::kA))
-	{
-		m_cb.blur = (m_cb.blur == static_cast<Blur>(static_cast<size_t>(Blur::kSize) - 1)) ?
-			static_cast<Blur>(0) :
-			static_cast<Blur>(static_cast<size_t>(m_cb.blur) + 1);
-	}
+//	{
+//		m_plPos.x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
+//		m_plPos.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
+//
+//		m_models.at(static_cast<size_t>(ModelType::kPlayer))->UpdateWorldMatrix(m_plPos, g_quatIdentity, g_vec3One);
+//	}
+//
+//	if (MiniEngineIf::isTrigger(MiniEngineIf::Button::kA))
+//	{
+//		m_cb.blur = (m_cb.blur == static_cast<Blur>(static_cast<size_t>(Blur::kSize) - 1)) ?
+//			static_cast<Blur>(0) :
+//			static_cast<Blur>(static_cast<size_t>(m_cb.blur) + 1);
+//	}
 }
 
 void Models_10_05::draw(RenderContext& renderContext)
@@ -218,38 +218,38 @@ void Models_10_05::draw(RenderContext& renderContext)
 	// render to main render target
 	{
 		renderContext.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
-
 		renderContext.SetRenderTargetAndViewport(m_mainRenderTarget);
 		renderContext.ClearRenderTargetView(m_mainRenderTarget);
 
 		m_models.at(static_cast<size_t>(ModelType::kPlayer))->Draw(renderContext);
-		m_models.at(static_cast<size_t>(ModelType::kBg))->Draw(renderContext);
 
 		renderContext.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 	}
 
-	// apply blur in X axis
+	// render to luminance render target
 	{
-		renderContext.WaitUntilToPossibleSetRenderTarget(m_xBlurRenderTarget);
+		renderContext.WaitUntilToPossibleSetRenderTarget(m_luminanceRenderTarget);
+		renderContext.SetRenderTargetAndViewport(m_luminanceRenderTarget);
+		renderContext.ClearRenderTargetView(m_luminanceRenderTarget);
 
-		renderContext.SetRenderTargetAndViewport(m_xBlurRenderTarget);
-		renderContext.ClearRenderTargetView(m_xBlurRenderTarget);
+		m_luminanceSprite->Draw(renderContext);
 
-		m_xBlurSprite->Draw(renderContext);
-
-		renderContext.WaitUntilFinishDrawingToRenderTarget(m_xBlurRenderTarget);
+		renderContext.WaitUntilFinishDrawingToRenderTarget(m_luminanceRenderTarget);
 	}
 
-	// apply blur in Y axis
+	// apply Gaussian blur (input: luminance render target, output: internal render target)
 	{
-		renderContext.WaitUntilToPossibleSetRenderTarget(m_yBlurRenderTarget);
+		m_gaussianBlur.ExecuteOnGPU(renderContext, kBlurPower);
+	}
 
-		renderContext.SetRenderTargetAndViewport(m_yBlurRenderTarget);
-		renderContext.ClearRenderTargetView(m_yBlurRenderTarget);
+	// render boke image to main render target
+	{
+		renderContext.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+		renderContext.SetRenderTargetAndViewport(m_mainRenderTarget);
 
-		m_yBlurSprite->Draw(renderContext);
+		m_finalSprite->Draw(renderContext);
 
-		renderContext.WaitUntilFinishDrawingToRenderTarget(m_yBlurRenderTarget);
+		renderContext.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 	}
 
 	// render to offscreen buffer managed in MiniengineIf
@@ -262,28 +262,8 @@ void Models_10_05::draw(RenderContext& renderContext)
 
 void Models_10_05::debugRenderParams()
 {
-	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Player", std::vector<const float*>{ &m_plPos.x, & m_plPos.y, & m_plPos.z });
-	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "Blur", std::vector<const int32_t*>{ reinterpret_cast<int32_t*>(&m_cb.blur)});
-}
-
-void Models_10_05::CalcWeightsTableFromGaussian(float* weightsTbl, int sizeOfWeightsTbl, float sigma)
-{
-	// 重みの合計を記録する変数を定義する
-	float total = 0;
-
-	// ここからガウス関数を用いて重みを計算している
-	// ループ変数のxが基準テクセルからの距離
-	for (int x = 0; x < sizeOfWeightsTbl; x++)
-	{
-		weightsTbl[x] = expf(-0.5f * (float)(x * x) / sigma);
-		total += 2.0f * weightsTbl[x];
-	}
-
-	// 重みの合計で除算することで、重みの合計を1にしている
-	for (int i = 0; i < sizeOfWeightsTbl; i++)
-	{
-		weightsTbl[i] /= total;
-	}
+//	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Player", std::vector<const float*>{ &m_plPos.x, & m_plPos.y, & m_plPos.z });
+//	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "Blur", std::vector<const int32_t*>{ reinterpret_cast<int32_t*>(&m_cb.blur)});
 }
 
 namespace ModelHandler {
