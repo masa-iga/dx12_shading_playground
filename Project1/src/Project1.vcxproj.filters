@@ -123,6 +123,9 @@
     <ClCompile Include="models\model_10_05.cpp">
       <Filter>ソース ファイル\models</Filter>
     </ClCompile>
+    <ClCompile Include="models\model_10_06.cpp">
+      <Filter>ソース ファイル\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="winmgr_win.h">
@@ -221,6 +224,9 @@
     <ClInclude Include="models\model_10_05.h">
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
+    <ClInclude Include="models\model_10_06.h">
+      <Filter>ソース ファイル\models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="simple.hlsl">
@@ -274,6 +280,9 @@
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
     <FxCompile Include="Assets\shader\sample_10_05_postEffect.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_10_06_postEffect.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
   </ItemGroup>
