@@ -42,6 +42,11 @@ sampler Sampler : register(s0);
  */
 float4 PSSamplingLuminance(PSInput In) : SV_Target0
 {
-    // step-14 輝度を抽出するピクセルシェーダーを実装
-    return 0.0f;
+    // 輝度を抽出するピクセルシェーダーを実装
+    const float4 color = mainRenderTargetTexture.Sample(Sampler, In.uv);
+    const float t = dot(color.xyz, float3(0.2125f, 0.7154f, 0.0721f));
+
+    clip(t - 1.0f);
+
+    return color;
 }

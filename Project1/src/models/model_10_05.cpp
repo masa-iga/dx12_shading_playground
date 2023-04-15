@@ -96,9 +96,9 @@ void Models_10_05::createModel()
 {
 	{
 		m_light.m_directLight.at(0) = {
-			.m_direction = { 0.0f, 0.0f, -1.0f },
+			.m_direction = { 1.0f, 0.0f, 0.0f },
 			.pad0 = 0.0f,
-			.color = { 5.8f, 5.8f, 5.8f, 0.0f},
+			.color = { 40.8f, 40.8f, 40.8f, 0.0f},
 		};
 		m_light.ambientLight = Vector3(0.5f, 0.5f, 0.5f);
 		m_light.eyePos = MiniEngineIf::getCamera3D()->GetPosition();
@@ -198,19 +198,16 @@ void Models_10_05::createModel()
 
 void Models_10_05::handleInput()
 {
-//	{
-//		m_plPos.x -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLX);
-//		m_plPos.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY);
-//
-//		m_models.at(static_cast<size_t>(ModelType::kPlayer))->UpdateWorldMatrix(m_plPos, g_quatIdentity, g_vec3One);
-//	}
-//
-//	if (MiniEngineIf::isTrigger(MiniEngineIf::Button::kA))
-//	{
-//		m_cb.blur = (m_cb.blur == static_cast<Blur>(static_cast<size_t>(Blur::kSize) - 1)) ?
-//			static_cast<Blur>(0) :
-//			static_cast<Blur>(static_cast<size_t>(m_cb.blur) + 1);
-//	}
+	{
+		DirectionalLight& light = m_light.m_directLight.at(0);
+		light.color.x += MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.5f;
+		light.color.y += MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.5f;
+		light.color.z += MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.5f;
+
+		light.color.x = std::clamp(m_light.m_directLight.at(0).color.x, 0.0f, 100.0f);
+		light.color.y = std::clamp(m_light.m_directLight.at(0).color.y, 0.0f, 100.0f);
+		light.color.z = std::clamp(m_light.m_directLight.at(0).color.z, 0.0f, 100.0f);
+	}
 }
 
 void Models_10_05::draw(RenderContext& renderContext)
@@ -262,8 +259,9 @@ void Models_10_05::draw(RenderContext& renderContext)
 
 void Models_10_05::debugRenderParams()
 {
-//	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Player", std::vector<const float*>{ &m_plPos.x, & m_plPos.y, & m_plPos.z });
-//	ImguiIf::printParams<int32_t>(ImguiIf::VarType::kInt32, "Blur", std::vector<const int32_t*>{ reinterpret_cast<int32_t*>(&m_cb.blur)});
+	const DirectionalLight& l = m_light.m_directLight.at(0);
+	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light dir", std::vector<const float*>{ &l.m_direction.x, & l.m_direction.y, & l.m_direction.z });
+	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light col", std::vector<const float*>{ &l.color.x, & l.color.y, & l.color.z });
 }
 
 namespace ModelHandler {
