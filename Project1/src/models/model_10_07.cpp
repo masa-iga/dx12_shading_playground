@@ -46,36 +46,27 @@ private:
 	};
 
 	enum class ModelType {
-		kPlayer,
+		kObject,
 		kSize,
 	};
 
-	static constexpr size_t kNumWeights = 8;
-	static constexpr float kBlurPower = 10;
+	static constexpr float kBlurPower = 5;
 	static constexpr DXGI_FORMAT kBufferFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	const std::string kTkmSampleFile = "Sample_10_06/Sample_10_06/Assets/modelData/sample.tkm";
-	const std::string kFx2dFile = "Sample_10_06/Sample_10_06/Assets/shader/sample2D.fx";
-	const std::string kFx3dFile = "Sample_10_06/Sample_10_06/Assets/shader/sample3D.fx";
-	const std::string kFxPostEffectFile = "Assets/shader/sample_10_06_postEffect.fx";
+	const std::string kTkmSampleFile = "Sample_10_07/Sample_10_07/Assets/modelData/bg/bg.tkm";
+	const std::string kFx2dFile = "Sample_10_07/Sample_10_07/Assets/shader/preset/sample2D.fx";
+	const std::string kFx3dFile = "Assets/shader/sample_10_07_3D.fx";
+	const std::string kFxPostEffectFile = "Assets/shader/sample_10_07_postEffect.fx";
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
 	std::string getFx2dFilePath() { return ModelUtil::getPathFromAssetDir(kFx2dFile); }
-	std::string getFx3dFilePath() { return ModelUtil::getPathFromAssetDir(kFx3dFile); }
+	std::string getFx3dFilePath() { return kFx3dFile; }
 	std::string getFxPostEffectFilePath() { return kFxPostEffectFile; }
 
 	RenderTarget m_mainRenderTarget;
-	RenderTarget m_luminanceRenderTarget;
-	Vector3 m_plPos;
-	std::array<GaussianBlur, 4> m_gaussianBlurs;
+	RenderTarget m_depthRenderTarget;
+	GaussianBlur m_blur;
+	std::unique_ptr<Sprite> m_combineBokeImageSprite = nullptr;
 	std::unique_ptr<Sprite> m_copyToFbSprite = nullptr;
-	std::unique_ptr<Sprite> m_luminanceSprite = nullptr;
-	std::unique_ptr<Sprite> m_finalSprite = nullptr;
 	Light m_light;
-
-	struct ConstantBuffer {
-		std::array<float, kNumWeights> m_weights;
-	};
-
-	ConstantBuffer m_cb;
 };
 
 std::unique_ptr<IModels> ModelFactory_10_07::create()
@@ -96,9 +87,9 @@ void Models_10_07::createModel()
 {
 	{
 		m_light.m_directLight.at(0) = {
-			.m_direction = { 1.0f, 0.0f, 0.0f },
+			.m_direction = { 0.0f, 0.0f, -1.0f },
 			.pad0 = 0.0f,
-			.color = { 40.8f, 40.8f, 40.8f, 0.0f},
+			.color = { 2.0f, 2.0f, 2.0f, 0.0f},
 		};
 		m_light.ambientLight = Vector3(0.5f, 0.5f, 0.5f);
 		m_light.eyePos = MiniEngineIf::getCamera3D()->GetPosition();
@@ -118,13 +109,13 @@ void Models_10_07::createModel()
 		Dbg::assert_(bRet);
 	}
 	{
-		auto bRet = m_luminanceRenderTarget.Create(
+		auto bRet = m_depthRenderTarget.Create(
 			m_mainRenderTarget.GetWidth(),
 			m_mainRenderTarget.GetHeight(),
 			1,
 			1,
-			m_mainRenderTarget.GetColorBufferFormat(),
-			DXGI_FORMAT_D32_FLOAT
+			DXGI_FORMAT_R32_FLOAT,
+			DXGI_FORMAT_UNKNOWN
 		);
 		Dbg::assert_(bRet);
 	}
@@ -139,69 +130,51 @@ void Models_10_07::createModel()
 	Dbg::assert_(std::filesystem::exists(fxPostEffectFilePath));
 
 	{
-		SpriteInitData data;
-		{
-			data.m_fxFilePath = fxPostEffectFilePath.c_str();
-			data.m_vsEntryPointFunc = "VSMain";
-			data.m_psEntryPoinFunc = "PSSamplingLuminance";
-			data.m_width = m_mainRenderTarget.GetWidth();
-			data.m_height = m_mainRenderTarget.GetHeight();
-			data.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
-			data.m_colorBufferFormat.at(0) = m_mainRenderTarget.GetColorBufferFormat();
-		}
-		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
-		sprite->Init(data);
-		m_luminanceSprite = std::move(sprite);
-	}
-
-	{
-		m_gaussianBlurs.at(0).Init(&m_luminanceRenderTarget.GetRenderTargetTexture());
-		m_gaussianBlurs.at(1).Init(&m_gaussianBlurs.at(0).GetBokeTexture());
-		m_gaussianBlurs.at(2).Init(&m_gaussianBlurs.at(1).GetBokeTexture());
-		m_gaussianBlurs.at(3).Init(&m_gaussianBlurs.at(2).GetBokeTexture());
+		m_blur.Init(&m_mainRenderTarget.GetRenderTargetTexture());
 	}
 
 	{
 		SpriteInitData d;
 		{
-			d.m_textures.at(0) = &m_gaussianBlurs.at(0).GetBokeTexture();
-			d.m_textures.at(1) = &m_gaussianBlurs.at(1).GetBokeTexture();
-			d.m_textures.at(2) = &m_gaussianBlurs.at(2).GetBokeTexture();
-			d.m_textures.at(3) = &m_gaussianBlurs.at(3).GetBokeTexture();
+			d.m_textures.at(0) = &m_blur.GetBokeTexture();
+			d.m_textures.at(1) = &m_depthRenderTarget.GetRenderTargetTexture();
 			d.m_width = m_mainRenderTarget.GetWidth();
 			d.m_height = m_mainRenderTarget.GetHeight();
 			d.m_fxFilePath = fxPostEffectFilePath.c_str();
-			d.m_psEntryPoinFunc = "PSBloomFinal";
 			d.m_colorBufferFormat.at(0) = kBufferFormat;
+			d.m_alphaBlendMode = AlphaBlendMode::AlphaBlendMode_Trans;
+
+			std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
+			sprite->Init(d);
+			m_combineBokeImageSprite = std::move(sprite);
 		}
+	}
+	{
+		SpriteInitData d;
+		d.m_fxFilePath = fx2dFilePath.c_str();
+		d.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
+		d.m_width = m_mainRenderTarget.GetWidth();
+		d.m_height = m_mainRenderTarget.GetHeight();
+
 		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
 		sprite->Init(d);
-		m_finalSprite = std::move(sprite);
-	}
-
-	{
-		SpriteInitData data;
-		data.m_fxFilePath = fx2dFilePath.c_str();
-		data.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
-		data.m_width = m_mainRenderTarget.GetWidth();
-		data.m_height = m_mainRenderTarget.GetHeight();
-
-		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
-		sprite->Init(data);
 		m_copyToFbSprite = std::move(sprite);
 	}
 
 	{
-		ModelInitData initData = { };
-		initData.m_fxFilePath = fx3dFilePath.c_str();
-		initData.m_tkmFilePath = tkmSampleFilePath.c_str();
-		initData.m_expandConstantBuffer = &m_light;
-		initData.m_expandConstantBufferSize = sizeof(m_light);
-		initData.m_colorBufferFormat.at(0) = kBufferFormat;
+		ModelInitData d = { };
+		{
+			d.m_tkmFilePath = tkmSampleFilePath.c_str();
+			d.m_fxFilePath = fx3dFilePath.c_str();
+			d.m_expandConstantBuffer = &m_light;
+			d.m_expandConstantBufferSize = sizeof(m_light);
+			d.m_colorBufferFormat.at(0) = m_mainRenderTarget.GetColorBufferFormat();
+			d.m_colorBufferFormat.at(1) = m_depthRenderTarget.GetColorBufferFormat();
+		}
 
 		std::unique_ptr<Model> model = std::make_unique<Model>();
-		model->Init(initData);
-		m_models.at(static_cast<size_t>(ModelType::kPlayer)) = std::move(model);
+		model->Init(d);
+		m_models.at(static_cast<size_t>(ModelType::kObject)) = std::move(model);
 	}
 }
 
@@ -223,32 +196,23 @@ void Models_10_07::draw(RenderContext& renderContext)
 {
 	// render to main render target
 	{
-		renderContext.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
-		renderContext.SetRenderTargetAndViewport(m_mainRenderTarget);
-		renderContext.ClearRenderTargetView(m_mainRenderTarget);
+		RenderTarget* rts[] = {
+			&m_mainRenderTarget,
+			&m_depthRenderTarget,
+		};
 
-		m_models.at(static_cast<size_t>(ModelType::kPlayer))->Draw(renderContext);
+		renderContext.WaitUntilToPossibleSetRenderTargets(2, rts);
+		renderContext.SetRenderTargetsAndViewport(2, rts);
 
-		renderContext.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
+		renderContext.ClearRenderTargetViews(2, rts);
+
+		m_models.at(static_cast<size_t>(ModelType::kObject))->Draw(renderContext);
+
+		renderContext.WaitUntilFinishDrawingToRenderTargets(2, rts);
 	}
 
-	// render to luminance render target
 	{
-		renderContext.WaitUntilToPossibleSetRenderTarget(m_luminanceRenderTarget);
-		renderContext.SetRenderTargetAndViewport(m_luminanceRenderTarget);
-		renderContext.ClearRenderTargetView(m_luminanceRenderTarget);
-
-		m_luminanceSprite->Draw(renderContext);
-
-		renderContext.WaitUntilFinishDrawingToRenderTarget(m_luminanceRenderTarget);
-	}
-
-	// render boke textures
-	{
-		m_gaussianBlurs.at(0).ExecuteOnGPU(renderContext, kBlurPower);
-		m_gaussianBlurs.at(1).ExecuteOnGPU(renderContext, kBlurPower);
-		m_gaussianBlurs.at(2).ExecuteOnGPU(renderContext, kBlurPower);
-		m_gaussianBlurs.at(3).ExecuteOnGPU(renderContext, kBlurPower);
+		m_blur.ExecuteOnGPU(renderContext, kBlurPower);
 	}
 
 	// render boke image to main render target
@@ -256,7 +220,7 @@ void Models_10_07::draw(RenderContext& renderContext)
 		renderContext.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
 		renderContext.SetRenderTargetAndViewport(m_mainRenderTarget);
 
-		m_finalSprite->Draw(renderContext);
+		m_combineBokeImageSprite->Draw(renderContext);
 
 		renderContext.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 	}
