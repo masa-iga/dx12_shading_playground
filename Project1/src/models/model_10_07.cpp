@@ -194,6 +194,12 @@ void Models_10_07::handleInput()
 
 void Models_10_07::draw(RenderContext& renderContext)
 {
+	// move camera
+	{
+		MiniEngineIf::getCamera3D()->MoveForward(MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 10.0f);
+		MiniEngineIf::getCamera3D()->MoveRight(MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 10.0f);
+	}
+
 	// render to main render target
 	{
 		RenderTarget* rts[] = {
@@ -235,9 +241,16 @@ void Models_10_07::draw(RenderContext& renderContext)
 
 void Models_10_07::debugRenderParams()
 {
-	const DirectionalLight& l = m_light.m_directLight.at(0);
-	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light dir", std::vector<const float*>{ &l.m_direction.x, & l.m_direction.y, & l.m_direction.z });
-	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light col", std::vector<const float*>{ &l.color.x, & l.color.y, & l.color.z });
+	{
+		const Vector3& pos = MiniEngineIf::getCamera3D()->GetPosition();
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Camera", std::vector<const float*>{ &pos.x, & pos.y, & pos.z });
+	}
+
+	{
+		const DirectionalLight& l = m_light.m_directLight.at(0);
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light dir", std::vector<const float*>{ &l.m_direction.x, & l.m_direction.y, & l.m_direction.z });
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light col", std::vector<const float*>{ &l.color.x, & l.color.y, & l.color.z });
+	}
 }
 
 namespace ModelHandler {

@@ -33,13 +33,15 @@ struct SPSIn
     float3 biNormal : BINORMAL;     // 従法線ベクトル
     float2 uv : TEXCOORD0;          // UV座標
     float3 worldPos : TEXCOORD1;    // ワールド空間でのピクセルの座標
-
-    // step-7 カメラ空間でのZ値を記録する変数を追加
-
+    float depthInView : TEXCOORD2; // カメラ空間でのZ値を記録する変数
 };
 
-// step-8 ピクセルシェーダーからの出力構造体を定義する。
-
+// ピクセルシェーダーからの出力構造体を定義する。
+struct SPSOut
+{
+    float4 color : SV_Target0;
+    float depth : SV_Target1;
+};
 
 ///////////////////////////////////////////////////
 // グローバル変数
@@ -57,15 +59,16 @@ SPSIn VSMain(SVSIn vsIn)
 {
     SPSIn psIn;
     psIn.pos = mul(mWorld, vsIn.pos);
-    psIn.worldPos = psIn.pos;
+    psIn.worldPos = psIn.pos.xyz;
     psIn.pos = mul(mView, psIn.pos);
 
-    //step-9 頂点シェーダーでカメラ空間でのZ値を設定する
+    // 頂点シェーダーでカメラ空間でのZ値を設定する
+    psIn.depthInView = psIn.pos.z;
 
     psIn.pos = mul(mProj, psIn.pos);
-    psIn.normal = normalize(mul(mWorld, vsIn.normal));
-    psIn.tangent = normalize(mul(mWorld, vsIn.tangent));
-    psIn.biNormal = normalize(mul(mWorld, vsIn.biNormal));
+    psIn.normal = normalize(mul(mWorld, float4(vsIn.normal, 0.0f))).xyz;
+    psIn.tangent = normalize(mul(mWorld, float4(vsIn.tangent, 0.0f))).xyz;
+    psIn.biNormal = normalize(mul(mWorld, float4(vsIn.biNormal, 0.0f))).xyz;
     psIn.uv = vsIn.uv;
 
     return psIn;
@@ -74,12 +77,11 @@ SPSIn VSMain(SVSIn vsIn)
 /// <summary>
 /// ピクセルシェーダー
 /// </summary>
-#if 0
 SPSOut PSMain(SPSIn psIn)
-#else
-float4 PSMain(SPSIn psIn) : SV_Target0
-#endif
 {
-    //step-10 ピクセルシェーダーからカラーとZ値を出力する。
-    return 0.0f;
+    // ピクセルシェーダーからカラーとZ値を出力する。
+    SPSOut psOut;
+    psOut.color = CalcPBR(psIn);
+    psOut.depth = psIn.depthInView;
+    return psOut;
 }
