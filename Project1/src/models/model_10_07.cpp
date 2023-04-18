@@ -180,27 +180,16 @@ void Models_10_07::createModel()
 
 void Models_10_07::handleInput()
 {
-	{
-		DirectionalLight& light = m_light.m_directLight.at(0);
-		light.color.x += MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.5f;
-		light.color.y += MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.5f;
-		light.color.z += MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 0.5f;
-
-		light.color.x = std::clamp(m_light.m_directLight.at(0).color.x, 0.0f, 100.0f);
-		light.color.y = std::clamp(m_light.m_directLight.at(0).color.y, 0.0f, 100.0f);
-		light.color.z = std::clamp(m_light.m_directLight.at(0).color.z, 0.0f, 100.0f);
-	}
-}
-
-void Models_10_07::draw(RenderContext& renderContext)
-{
 	// move camera
 	{
 		MiniEngineIf::getCamera3D()->MoveForward(MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 10.0f);
 		MiniEngineIf::getCamera3D()->MoveRight(MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 10.0f);
 	}
+}
 
-	// render to main render target
+void Models_10_07::draw(RenderContext& renderContext)
+{
+	// render color & depth to main render target
 	{
 		RenderTarget* rts[] = {
 			&m_mainRenderTarget,
@@ -217,11 +206,12 @@ void Models_10_07::draw(RenderContext& renderContext)
 		renderContext.WaitUntilFinishDrawingToRenderTargets(2, rts);
 	}
 
+	// render boke image to m_blur's render targets
 	{
 		m_blur.ExecuteOnGPU(renderContext, kBlurPower);
 	}
 
-	// render boke image to main render target
+	// render final image w/ DoF to main render target
 	{
 		renderContext.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
 		renderContext.SetRenderTargetAndViewport(m_mainRenderTarget);
@@ -231,7 +221,7 @@ void Models_10_07::draw(RenderContext& renderContext)
 		renderContext.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 	}
 
-	// render to offscreen buffer managed in MiniengineIf
+	// copy to offscreen buffer managed in MiniEngineIf
 	{
 		MiniEngineIf::setOffscreenRenderTarget();
 

@@ -32,6 +32,8 @@ PSInput VSMain(VSInput In)
 }
 
 //step-11 ボケ画像と深度テクスチャにアクセスするための変数を追加
+Texture2D<float4> g_bokeTexture : register(t0);
+Texture2D<float4> g_depthTexture : register(t1);
 
 sampler Sampler : register(s0);
 
@@ -39,8 +41,19 @@ sampler Sampler : register(s0);
 // ボケ画像書き込み用
 /////////////////////////////////////////////////////////
 
+static const float kMinDepth = 800.0f;
+static const float kMaxDepth = 2000.0f;
+
 float4 PSMain(PSInput In) : SV_Target0
 {
-    // step-12 ボケ画像書き込み用のピクセルシェーダーを実装
-    return 0.0f;
+
+    // ボケ画像書き込み用のピクセルシェーダーを実装
+    const float depth = g_depthTexture.Sample(Sampler, In.uv).x;
+
+    clip(depth - kMinDepth);
+
+    float4 boke = g_bokeTexture.Sample(Sampler, In.uv);
+    boke.a = min(1.0f, (depth - kMinDepth) / kMaxDepth);
+
+    return boke;
 }
