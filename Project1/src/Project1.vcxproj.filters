@@ -303,5 +303,8 @@
     <FxCompile Include="Assets\shader\sample_10_07_3D.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_10_08.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
