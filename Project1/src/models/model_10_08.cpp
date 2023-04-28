@@ -58,11 +58,13 @@ private:
 	const std::string kTkmSphereFile = "Sample_10_08/Sample_10_08/Assets/modelData/sphere.tkm";
 	const std::string kFx2dFile = "Sample_10_08/Sample_10_08/Assets/shader/preset/sample2D.fx";
 	const std::string kFx3dFile = "Sample_10_08/Sample_10_08/Assets/shader/preset/sample3D.fx";
+	const std::string kFxPostEffectFile = "Sample_10_08/Sample_10_08/Assets/shader/preset/samplePostEffect.fx";
 	const std::string kFxSampleFile = "Assets/shader/sample_10_08.fx";
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
 	std::string getTkmSphereFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSphereFile); }
 	std::string getFx2dFilePath() { return ModelUtil::getPathFromAssetDir(kFx2dFile); }
 	std::string getFx3dFilePath() { return ModelUtil::getPathFromAssetDir(kFx3dFile); }
+	std::string getFxPostEffectPath() { return ModelUtil::getPathFromAssetDir(kFxPostEffectFile); }
 	std::string getFxSampleFilePath() { return kFxSampleFile; }
 
 	std::array<std::unique_ptr<Model>, kNumOfSphere> m_sphereModels;
@@ -73,6 +75,7 @@ private:
 	RenderTarget m_rtPhomboidBlur;
 	std::unique_ptr<Sprite> m_vertDiagonalBlurSprite = nullptr;
 	std::unique_ptr<Sprite> m_phomboidBlurSprite = nullptr;
+	std::unique_ptr<Sprite> m_combineBokeImageSprite = nullptr;
 	std::unique_ptr<Sprite> m_copyToFbSprite = nullptr;
 	Light m_light;
 	std::array<Light, kNumOfSphere> m_sphereLight;
@@ -106,13 +109,16 @@ void Models_10_08::createModel()
 		Dbg::assert_(bRet);
 	}
 	{
+		float clearColor[] = { 10000.0f, 10000.0f, 10000.0f, 1.0f };
+
 		auto bRet = m_depthRenderTarget.Create(
 			m_mainRenderTarget.GetWidth(),
 			m_mainRenderTarget.GetHeight(),
 			1,
 			1,
 			DXGI_FORMAT_R32_FLOAT,
-			DXGI_FORMAT_UNKNOWN
+			DXGI_FORMAT_UNKNOWN,
+			clearColor
 		);
 		Dbg::assert_(bRet);
 	}
@@ -154,11 +160,13 @@ void Models_10_08::createModel()
 	const std::string tkmSphereFilePath = getTkmSphereFilePath();
 	const std::string fx2dFilePath = getFx2dFilePath();
 	const std::string fx3dFilePath = getFx3dFilePath();
+	const std::string fxPostEffectFilePath = getFxPostEffectPath();
 	const std::string fxSampleFilePath = getFxSampleFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmSampleFilePath));
 	Dbg::assert_(std::filesystem::exists(tkmSphereFilePath));
 	Dbg::assert_(std::filesystem::exists(fx2dFilePath));
 	Dbg::assert_(std::filesystem::exists(fx3dFilePath));
+	Dbg::assert_(std::filesystem::exists(fxPostEffectFilePath));
 	Dbg::assert_(std::filesystem::exists(fxSampleFilePath));
 
 	{
@@ -193,10 +201,28 @@ void Models_10_08::createModel()
 	}
 	{
 		SpriteInitData d;
-		d.m_fxFilePath = fx2dFilePath.c_str();
-		d.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
-		d.m_width = m_mainRenderTarget.GetWidth();
-		d.m_height = m_mainRenderTarget.GetHeight();
+		{
+			d.m_textures.at(0) = &m_rtPhomboidBlur.GetRenderTargetTexture();
+			d.m_textures.at(1) = &m_depthRenderTarget.GetRenderTargetTexture();
+			d.m_width = m_mainRenderTarget.GetWidth();
+			d.m_height = m_mainRenderTarget.GetHeight();
+			d.m_fxFilePath = fxPostEffectFilePath.c_str();
+			d.m_colorBufferFormat.at(0) = kColorBufferFormat;
+			d.m_alphaBlendMode = AlphaBlendMode::AlphaBlendMode_Trans;
+		}
+
+		std::unique_ptr<Sprite> s = std::make_unique<Sprite>();
+		s->Init(d);
+		m_combineBokeImageSprite = std::move(s);
+	}
+	{
+		SpriteInitData d;
+		{
+			d.m_fxFilePath = fx2dFilePath.c_str();
+			d.m_textures.at(0) = &m_mainRenderTarget.GetRenderTargetTexture();
+			d.m_width = m_mainRenderTarget.GetWidth();
+			d.m_height = m_mainRenderTarget.GetHeight();
+		}
 
 		std::unique_ptr<Sprite> sprite = std::make_unique<Sprite>();
 		sprite->Init(d);
@@ -350,6 +376,16 @@ void Models_10_08::draw(RenderContext& renderContext)
 		m_phomboidBlurSprite->Draw(renderContext);
 
 		renderContext.WaitUntilFinishDrawingToRenderTarget(m_rtPhomboidBlur);
+	}
+
+	// render boke image with m_phomboidBlurSprite + depth render target
+	{
+		renderContext.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+
+		renderContext.SetRenderTargetAndViewport(m_mainRenderTarget);
+		m_combineBokeImageSprite->Draw(renderContext);
+
+		renderContext.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 	}
 
 	// copy to offscreen buffer managed in MiniEngineIf

@@ -29,10 +29,11 @@ cbuffer cb : register(b0)
     float4 mulColor;    // 乗算カラー
 };
 
-// step-6  垂直、対角線ブラーの出力構造体を定義
+// 垂直、対角線ブラーの出力構造体を定義
 struct PSOutput
 {
-    float4 col : SV_Target0;
+    float4 color0 : SV_Target0; // render vertical blur
+    float4 color1 : SV_Target1; // render diagonal blur
 };
 
 /*!
@@ -56,21 +57,46 @@ sampler g_sampler : register(s0);
  */
 PSOutput PSVerticalDiagonalBlur(PSInput pIn)
 {
-    PSOutput psOut = (PSOutput)0;
+    PSOutput psOut;
+    psOut.color0 = 0;
+    psOut.color1 = 0;
 
     // ブラーをかけるテクスチャのカラーを取得
     float4 srcColor = srcTexture.Sample(
         g_sampler, pIn.uv );
 
-    // step-7 ブラー半径（BLUR_RADIUS）からブラーステップの長さを求める
+    // ブラー半径（BLUR_RADIUS）からブラーステップの長さを求める
+    const float blurStepLen = BLUR_RADIUS / 4.0f;
 
-    // step-8 垂直方向のUVオフセットを計算
+    {
+        // 垂直方向のUVオフセットを計算
+        float2 uvOffset = float2(0.0f, 1.0f / BLUR_TEX_H);
+        uvOffset *= blurStepLen;
 
-    // step-9 垂直方向にカラーをサンプリングして平均する
+        // 垂直方向にカラーをサンプリングして平均する
+        psOut.color0 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 1);
+        psOut.color0 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 2);
+        psOut.color0 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 3);
+        psOut.color0 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 4);
+        psOut.color0 /= 4.0f;
+    }
 
-    // step-10 対角線方向のUVオフセットを計算
+    {
+        // 対角線方向のUVオフセットを計算
+        float2 uvOffset = float2(0.86602f / BLUR_TEX_W, -0.5f / BLUR_TEX_H);
+        uvOffset *= blurStepLen;
 
-    // step-11 対角線方向にカラーをサンプリングして平均化する
+        // step-11 対角線方向にカラーをサンプリングして平均化する
+        psOut.color1 += srcColor;
+        psOut.color1 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 1);
+        psOut.color1 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 2);
+        psOut.color1 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 3);
+        psOut.color1 += srcTexture.Sample(g_sampler, pIn.uv + uvOffset * 4);
+        psOut.color1 /= 5.0f;
+
+        psOut.color1 += psOut.color0;
+        psOut.color1 /= 2.0f;
+    }
 
     return psOut;
 }
@@ -86,19 +112,35 @@ float4 PSRhomboidBlur(PSInput pIn) : SV_Target0
     // ブラーステップの長さを求める
     float blurStepLen = BLUR_RADIUS / 4.0f;
 
-    // step-12 左斜め下方向へのUVオフセットを計算する
+    float4 color = 0.0f;
 
-    // step-13 左斜め下方向にカラーをサンプリングする
+    // 左斜め下方向へのUVオフセットを計算する
+    {
+        float2 uvOffset = float2(0.86602f / BLUR_TEX_W, -0.5f / BLUR_TEX_H);
+        uvOffset *= blurStepLen;
 
-    // step-14 右斜め下方向へのUVオフセットを計算する
+        // 左斜め下方向にカラーをサンプリングする
+        color += blurTexture_0.Sample(g_sampler, pIn.uv + uvOffset * 1);
+        color += blurTexture_0.Sample(g_sampler, pIn.uv + uvOffset * 2);
+        color += blurTexture_0.Sample(g_sampler, pIn.uv + uvOffset * 3);
+        color += blurTexture_0.Sample(g_sampler, pIn.uv + uvOffset * 4);
+    }
 
-    // step-15 右斜め下方向にカラーをサンプリングする
+    {
+        // 右斜め下方向へのUVオフセットを計算する
+        float2 uvOffset = float2(-0.86602f / BLUR_TEX_W, -0.5f / BLUR_TEX_H);
+        uvOffset *= blurStepLen;
+
+        // 右斜め下方向にカラーをサンプリングする
+        color += blurTexture_1.Sample(g_sampler, pIn.uv);
+        color += blurTexture_1.Sample(g_sampler, pIn.uv + uvOffset * 1);
+        color += blurTexture_1.Sample(g_sampler, pIn.uv + uvOffset * 2);
+        color += blurTexture_1.Sample(g_sampler, pIn.uv + uvOffset * 3);
+        color += blurTexture_1.Sample(g_sampler, pIn.uv + uvOffset * 4);
+    }
 
     // step-16 平均化
+    color /= 9.0f;
 
-#if 0
     return color;
-#else
-    return 0.0f;
-#endif
 }
