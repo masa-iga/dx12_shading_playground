@@ -37,14 +37,14 @@ private:
 	static constexpr size_t kShadowMapHeight = 1024;
 	static constexpr DXGI_FORMAT kColorBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
-	const std::string kTkmTeapotFile = "Sample_11_01/Sample_11_01/Assets/modelData/teapot.tkm";
-	const std::string kTkmBgFile = "Sample_11_01/Sample_11_01/Assets/modelData/bg/bg.tkm";
-	const std::string kFxSpriteFile = "Sample_11_01/Sample_11_01/Assets/shader/preset/sprite.fx";
-	const std::string kFxDrawShadowMapFile = "Assets/shader/sample_11_01_drawShadowMap.fx";
+	const std::string kTkmTeapotFile = "Sample_11_02/Sample_11_02/Assets/modelData/teapot.tkm";
+	const std::string kTkmBgFile = "Sample_11_02/Sample_11_02/Assets/modelData/bg/bg.tkm";
+	const std::string kFxSpriteFile = "Sample_11_02/Sample_11_02/Assets/shader/preset/sprite.fx";
+	const std::string kFxDrawShadowMapFile = "Sample_11_02/Sample_11_02/Assets/shader/sampleDrawShadowMap.fx";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
 	std::string getFxSpritePath() { return ModelUtil::getPathFromAssetDir(kFxSpriteFile); }
-	std::string getFxDrawShadowMapPath() { return kFxDrawShadowMapFile; };
+	std::string getFxDrawShadowMapPath() { return ModelUtil::getPathFromAssetDir(kFxDrawShadowMapFile); };
 
 	RenderTarget m_shadowMap;
 	std::unique_ptr<Sprite> m_sprite = nullptr;
