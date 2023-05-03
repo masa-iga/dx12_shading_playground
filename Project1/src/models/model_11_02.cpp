@@ -39,16 +39,15 @@ private:
 	static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
 	const std::string kTkmTeapotFile = "Sample_11_02/Sample_11_02/Assets/modelData/teapot.tkm";
 	const std::string kTkmBgFile = "Sample_11_02/Sample_11_02/Assets/modelData/bg/bg.tkm";
-	const std::string kFxSpriteFile = "Sample_11_02/Sample_11_02/Assets/shader/preset/sprite.fx";
 	const std::string kFxDrawShadowMapFile = "Sample_11_02/Sample_11_02/Assets/shader/sampleDrawShadowMap.fx";
+	const std::string kFxShadowReceiverFile = "./Assets/shader/sample_11_02_shadowReceiver.fx";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
-	std::string getFxSpritePath() { return ModelUtil::getPathFromAssetDir(kFxSpriteFile); }
 	std::string getFxDrawShadowMapPath() { return ModelUtil::getPathFromAssetDir(kFxDrawShadowMapFile); };
+	std::string getFxShadowReceiverPath() { return kFxShadowReceiverFile; }
 
 	RenderTarget m_shadowMap;
-	std::unique_ptr<Sprite> m_sprite = nullptr;
-	std::unique_ptr<ModelStandard> m_bg = nullptr;
+	std::unique_ptr<Model> m_bg = nullptr;
 	std::unique_ptr<ModelStandard> m_teapotModel = nullptr;
 	std::unique_ptr<Model> m_teapotShadowModel = nullptr;
 	Camera m_lightCamera;
@@ -86,27 +85,25 @@ void Models_11_02::createModel()
 
 	const std::string tkmTeapotFilePath = getTkmTeapotFilePath();
 	const std::string tkmBgFilePath = getTkmBgFilePath();
-	const std::string fxSpriteFilePath = getFxSpritePath();
 	const std::string fxDrawShadowMapPath = getFxDrawShadowMapPath();
+	const std::string fxShadowReceiverPath = getFxShadowReceiverPath();
 	Dbg::assert_(std::filesystem::exists(tkmTeapotFilePath));
 	Dbg::assert_(std::filesystem::exists(tkmBgFilePath));
-	Dbg::assert_(std::filesystem::exists(fxSpriteFilePath));
 	Dbg::assert_(std::filesystem::exists(fxDrawShadowMapPath));
+	Dbg::assert_(std::filesystem::exists(fxShadowReceiverPath));
 
 	{
-		m_bg = std::make_unique<ModelStandard>();
-		m_bg->Init(tkmBgFilePath.c_str());
-	}
-	{
-		SpriteInitData d;
+		ModelInitData d = { };
 		{
-			d.m_textures.at(0) = &m_shadowMap.GetRenderTargetTexture();
-			d.m_fxFilePath = fxSpriteFilePath.c_str();
-			d.m_width = 256;
-			d.m_height = 256;
+			d.m_fxFilePath = fxShadowReceiverPath.c_str();
+			d.m_tkmFilePath = tkmBgFilePath.c_str();
+			d.m_expandShaderResoruceView.at(0) = &m_shadowMap.GetRenderTargetTexture();
+			d.m_expandConstantBuffer = (void*)&m_lightCamera.GetViewProjectionMatrix();
+			d.m_expandConstantBufferSize = sizeof(m_lightCamera.GetViewProjectionMatrix());
 		}
-		m_sprite = std::make_unique<Sprite>();
-		m_sprite->Init(d);
+
+		m_bg = std::make_unique<Model>();
+		m_bg->Init(d);
 	}
 	{
 		m_teapotModel = std::make_unique<ModelStandard>();
@@ -146,7 +143,6 @@ void Models_11_02::draw(RenderContext& renderContext)
 {
 	// render to shadow map
 	{
-		RenderTarget& r = m_shadowMap;
 		renderContext.WaitUntilToPossibleSetRenderTarget(m_shadowMap);
 		renderContext.SetRenderTargetAndViewport(m_shadowMap);
 		renderContext.ClearRenderTargetView(m_shadowMap);
@@ -159,20 +155,10 @@ void Models_11_02::draw(RenderContext& renderContext)
 	// draw models
 	{
 		MiniEngineIf::setOffscreenRenderTarget();
-
-		m_bg->Draw(renderContext);
 		m_teapotModel->Draw(renderContext);
-	}
 
-	// draw shadow map to the current binding render target
-	{
-		m_sprite->Update(
-			{ Config::kRenderTargetWidth / -2.0f, Config::kRenderTargetHeight / 2.0f, 0.0f },
-			g_quatIdentity,
-			g_vec3One,
-			{ 0.0f, 1.0f }
-		);
-		m_sprite->Draw(renderContext);
+		// draw models which receive a shadow
+		m_bg->Draw(renderContext);
 	}
 }
 
