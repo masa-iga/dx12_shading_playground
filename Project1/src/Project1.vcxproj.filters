@@ -312,5 +312,8 @@
     <FxCompile Include="Assets\shader\sample_10_08.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_11_01_drawShadowMap.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
