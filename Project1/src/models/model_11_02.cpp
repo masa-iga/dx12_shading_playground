@@ -70,6 +70,13 @@ void Models_11_02::resetCamera()
 void Models_11_02::createModel()
 {
 	{
+		m_lightCamera.SetPosition(0, 500, 0);
+		m_lightCamera.SetTarget(0, 0, 0);
+		m_lightCamera.SetUp(1, 0, 0);
+		m_lightCamera.Update();
+	}
+
+	{
 		float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		auto bRet = m_shadowMap.Create(
@@ -120,14 +127,6 @@ void Models_11_02::createModel()
 		m_teapotShadowModel->Init(d);
 		m_teapotShadowModel->UpdateWorldMatrix({ 0, 50, 0 }, g_quatIdentity, g_vec3One);
 	}
-
-	{
-		m_lightCamera.SetPosition(0, 600, 0);
-		m_lightCamera.SetTarget(0, 0, 0);
-		m_lightCamera.SetUp(1, 0, 0);
-		m_lightCamera.SetViewAngle(Math::DegToRad(20.0f));
-		m_lightCamera.Update();
-	}
 }
 
 void Models_11_02::handleInput()
@@ -136,6 +135,18 @@ void Models_11_02::handleInput()
 	{
 		MiniEngineIf::getCamera3D()->MoveForward(MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 3.0f);
 		MiniEngineIf::getCamera3D()->MoveRight(MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 3.0f);
+		MiniEngineIf::getCamera3D()->MoveUp(MiniEngineIf::getStick(MiniEngineIf::StickType::kRY) * 3.0f);
+
+		Quaternion quaternion = Quaternion::Identity;
+		if (MiniEngineIf::getStick(MiniEngineIf::StickType::kRX) > 0.0f)
+		{
+			quaternion.SetRotationX(0.01f);
+		}
+		else if (MiniEngineIf::getStick(MiniEngineIf::StickType::kRX) < 0.0f)
+		{
+			quaternion.SetRotationX(-0.01f);
+		}
+		MiniEngineIf::getCamera3D()->RotateOriginTarget(quaternion);
 	}
 }
 
