@@ -1,12 +1,12 @@
 [submodule "Project1/import/DirectX-Headers"]
 	path = Project1/import/DirectX-Headers
 	url = git@github.com:microsoft/DirectX-Headers.git
-[submodule "Project1/import/hlsl-grimoire-sample"]
-	path = Project1/import/hlsl-grimoire-sample
-	url = git@github.com:shoeisha-books/hlsl-grimoire-sample.git
 [submodule "Project1/import/DirectXTex"]
 	path = Project1/import/DirectXTex
 	url = git@github.com:microsoft/DirectXTex.git
 [submodule "Project1/import/imgui"]
 	path = Project1/import/imgui
 	url = git@github.com:ocornut/imgui.git
+[submodule "Project1/import/hlsl-grimoire-sample"]
+	path = Project1/import/hlsl-grimoire-sample
+	url = git@github.com:masa-iga/hlsl-grimoire-sample.git
