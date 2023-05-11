@@ -8,7 +8,7 @@
 #include "../debug_win.h"
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
-#include <../Sample_11_01/Sample_11_01/ModelStandard.h>
+#include <../Sample_11_03/Sample_11_03/ModelStandard.h>
 
 class ModelFactory_11_03 : public IModelFactory
 {
@@ -35,15 +35,15 @@ private:
 
 	static constexpr size_t kShadowMapWidth = 1024;
 	static constexpr size_t kShadowMapHeight = 1024;
-	static constexpr DXGI_FORMAT kColorBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
-	const std::string kTkmTeapotFile = "Sample_11_02/Sample_11_02/Assets/modelData/teapot.tkm";
-	const std::string kTkmBgFile = "Sample_11_02/Sample_11_02/Assets/modelData/bg/bg.tkm";
-	const std::string kFxDrawShadowMapFile = "Sample_11_02/Sample_11_02/Assets/shader/sampleDrawShadowMap.fx";
-	const std::string kFxShadowReceiverFile = "./Assets/shader/sample_11_02_shadowReceiver.fx";
+	static constexpr DXGI_FORMAT kShadowMapColorFormat = DXGI_FORMAT_R32_FLOAT;
+	static constexpr DXGI_FORMAT kShadowMapDepthFormat = DXGI_FORMAT_D32_FLOAT;
+	const std::string kTkmTeapotFile = "Sample_11_03/Sample_11_03/Assets/modelData/teapot.tkm";
+	const std::string kTkmBgFile = "Sample_11_03/Sample_11_03/Assets/modelData/bg/bg.tkm";
+	const std::string kFxDrawShadowMapFile = "./Assets/shader/sample_11_03_drawShadowMap.fx";
+	const std::string kFxShadowReceiverFile = "./Assets/shader/sample_11_03_shadowReceiver.fx";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
-	std::string getFxDrawShadowMapPath() { return ModelUtil::getPathFromAssetDir(kFxDrawShadowMapFile); };
+	std::string getFxDrawShadowMapPath() { return kFxDrawShadowMapFile; };
 	std::string getFxShadowReceiverPath() { return kFxShadowReceiverFile; }
 
 	RenderTarget m_shadowMap;
@@ -55,7 +55,7 @@ private:
 
 std::unique_ptr<IModels> ModelFactory_11_03::create()
 {
-	std::unique_ptr<Models_11_03> m(new Models_11_03);
+	std::unique_ptr<Models_11_03> m = std::make_unique<Models_11_03>();
 	{
 		m->createModel();
 	}
@@ -64,7 +64,7 @@ std::unique_ptr<IModels> ModelFactory_11_03::create()
 
 void Models_11_03::resetCamera()
 {
-	;
+	MiniEngineIf::getCamera3D()->SetPosition(0, 100.0f, 350.0f);
 }
 
 void Models_11_03::createModel()
@@ -84,8 +84,8 @@ void Models_11_03::createModel()
 			kShadowMapHeight,
 			1,
 			1,
-			kColorBufferFormat,
-			kDepthBufferFormat,
+			kShadowMapColorFormat,
+			kShadowMapDepthFormat,
 			clearColor
 		);
 	}
@@ -122,6 +122,7 @@ void Models_11_03::createModel()
 		{
 			d.m_fxFilePath = fxDrawShadowMapPath.c_str();
 			d.m_tkmFilePath = tkmTeapotFilePath.c_str();
+			d.m_colorBufferFormat.at(0) = m_shadowMap.GetColorBufferFormat();
 		}
 		m_teapotShadowModel = std::make_unique<Model>();
 		m_teapotShadowModel->Init(d);
@@ -163,9 +164,10 @@ void Models_11_03::draw(RenderContext& renderContext)
 		renderContext.WaitUntilFinishDrawingToRenderTarget(m_shadowMap);
 	}
 
+	MiniEngineIf::setOffscreenRenderTarget();
+
 	// draw models
 	{
-		MiniEngineIf::setOffscreenRenderTarget();
 		m_teapotModel->Draw(renderContext);
 
 		// draw models which receive a shadow
@@ -186,6 +188,7 @@ namespace ModelHandler {
 	{
 		ModelFactory_11_03 factory;
 		std::unique_ptr<IModels> iModels = factory.create();
+		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);
 	}
