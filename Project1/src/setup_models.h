@@ -26,6 +26,7 @@ public:
 		k11_01,
 		k11_02,
 		k11_03,
+		k11_04,
 	};
 	void loadModel();
 	void releaseResource();
