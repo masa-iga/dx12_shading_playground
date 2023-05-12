@@ -74,13 +74,19 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     shadowMapUV *= float2(0.5f, -0.5f);
     shadowMapUV += 0.5f;
 
-    // step-4 ライトビュースクリーン空間でのZ値を計算する
+    // ライトビュースクリーン空間でのZ値を計算する
+    const float zInLVP = psIn.posInLVP.z / psIn.posInLVP.w;
 
     if(shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f
         && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
     {
-        // step-5 シャドウマップに描き込まれているZ値と比較する
+        // シャドウマップに描き込まれているZ値と比較する
+        const float zInShadowMap = g_shadowMap.Sample(g_sampler, shadowMapUV).r;
 
+        if (zInLVP > zInShadowMap)
+        {
+            color *= 0.5f;
+        }
     }
 
     return color;
