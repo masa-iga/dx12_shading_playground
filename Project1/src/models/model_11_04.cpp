@@ -64,7 +64,8 @@ std::unique_ptr<IModels> ModelFactory_11_04::create()
 
 void Models_11_04::resetCamera()
 {
-	MiniEngineIf::getCamera3D()->SetPosition(0, 100.0f, 350.0f);
+	MiniEngineIf::getCamera3D()->SetPosition(0, 50.0f, 350.0f);
+	MiniEngineIf::getCamera3D()->SetTarget(0.0f, 0.0f, 250.0f);
 }
 
 void Models_11_04::createModel()
