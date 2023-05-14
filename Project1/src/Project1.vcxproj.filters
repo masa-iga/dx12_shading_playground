@@ -351,5 +351,11 @@
     <FxCompile Include="Assets\shader\sample_11_04_shadowReceiver.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_11_05_drawShadowMap.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_11_05_shadowReceiver.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
