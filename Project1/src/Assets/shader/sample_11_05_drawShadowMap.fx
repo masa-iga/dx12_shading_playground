@@ -10,7 +10,12 @@ cbuffer ModelCb : register(b0)
     float4x4 mProj;
 };
 
-// step-8 影用のパラメータにアクセスする定数バッファーを定義
+// 影用のパラメータにアクセスする定数バッファーを定義
+cbuffer ShadowParamCb : register(b1)
+{
+    float4x4 mLVP;
+    float3 lightPos;
+};
 
 // 頂点シェーダーへの入力
 struct SVSIn
@@ -45,7 +50,9 @@ SPSIn VSMain(SVSIn vsIn)
     psIn.pos = mul(mView, psIn.pos);
     psIn.pos = mul(mProj, psIn.pos);
 
-    // step-9 頂点のライトから見た深度値と、ライトから見た深度値の2乗を計算する
+    // 頂点のライトから見た深度値と、ライトから見た深度値の2乗を計算する
+    psIn.depth.x = length(worldPos - lightPos) / 1000.0f;
+    psIn.depth.y = psIn.depth.x * psIn.depth.x;
 
     psIn.uv = vsIn.uv;
 
@@ -57,6 +64,6 @@ SPSIn VSMain(SVSIn vsIn)
 /// </summary>
 float4 PSMain(SPSIn psIn) : SV_Target0
 {
-    // step-10 ライトから見た深度値と、ライトから見た深度値の2乗を出力する
-    return 0.0f;
+    // ライトから見た深度値と、ライトから見た深度値の2乗を出力する
+    return float4(psIn.depth, 0.0f, 1.0f);
 }
