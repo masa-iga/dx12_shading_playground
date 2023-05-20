@@ -10,7 +10,12 @@ cbuffer ModelCb : register(b0)
     float4x4 mProj;
 };
 
-// step-11 影用のパラメータにアクセスする定数バッファーを定義
+// 影用のパラメータにアクセスする定数バッファーを定義
+cbuffer ShadowParam : register(b1)
+{
+    Matrix mLVP;
+    float3 lightPos;
+};
 
 // 頂点シェーダーへの入力
 struct SVSIn
@@ -52,12 +57,11 @@ SPSIn VSMain(SVSIn vsIn)
     psIn.uv = vsIn.uv;
     psIn.normal = mul(mWorld, vsIn.normal);
 
-#if 0
     // ライトビュースクリーン空間の座標を計算する
     psIn.posInLVP = mul(mLVP, worldPos);
-#endif
 
     // step-12 頂点のライトから見た深度値を計算する
+    psIn.posInLVP.z = length(worldPos.xyz - lightPos) / 1000.0f;
 
     return psIn;
 }
@@ -75,13 +79,24 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     shadowMapUV += 0.5f;
 
     // ライトビュースクリーン空間でのZ値を計算する
-    float zInLVP = psIn.posInLVP.z;
+    const float zInLVP = psIn.posInLVP.z;
 
     if(shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f
         && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
     {
-        // step-13 シャドウレシーバーに影を落とす
+        // シャドウレシーバーに影を落とす
+        const float2 zInShadowMap = g_shadowMap.Sample(g_sampler, shadowMapUV).xy;
 
+        if (zInShadowMap.x < zInLVP)
+        {
+            const float depth_sq = zInShadowMap.x * zInShadowMap.x;
+            const float variance = min(max(zInShadowMap.y - depth_sq, 0.0001f), 1.0f);
+            const float md = zInLVP - zInShadowMap.x;
+            const float lit_factor = variance / (variance + md * md);
+
+            const float3 shadowColor = color.xyz * 0.5f;
+            color.xyz = lerp(shadowColor, color.xyz, lit_factor);
+        }
     }
 
     return color;
