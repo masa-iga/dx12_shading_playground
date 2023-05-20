@@ -8,6 +8,7 @@
 #include "../debug_win.h"
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
+#include "../winmgr_win.h"
 #include <../Sample_11_05/Sample_11_05/ModelStandard.h>
 
 class ModelFactory_11_05 : public IModelFactory
@@ -171,6 +172,9 @@ void Models_11_05::createModel()
 
 void Models_11_05::handleInput()
 {
+	if (!WinMgr::isWindowActive(WinMgr::Handle::kMain))
+		return;
+
 	// move camera
 	{
 		MiniEngineIf::getCamera3D()->MoveForward(MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 3.0f);

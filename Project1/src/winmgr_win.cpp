@@ -80,6 +80,21 @@ namespace WinMgr {
 	{
 		return s_hwndMiniEngine;
 	}
+
+	bool isWindowActive(Handle handle)
+	{
+		HWND ref = 0;
+
+		switch (handle) {
+		case Handle::kMain: ref = getHwndMain(); break;
+		case Handle::kMiniEngine: ref = getHwndMiniEngine(); break;
+		default: return false;
+		}
+
+		const HWND h = ::GetActiveWindow();
+
+		return (h == ref);
+	}
 }
 
 namespace {
