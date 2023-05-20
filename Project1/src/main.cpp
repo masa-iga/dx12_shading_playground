@@ -39,8 +39,8 @@ void setup(HINSTANCE hInstance, int nCmdShow)
 {
 	WinMgr::setup(hInstance, nCmdShow);
 	DeviceD3D12::setup();
-	Render::setup(DeviceD3D12::getDevice(), WinMgr::getHwndMain(), WinMgr::getHwndMiniEngine());
-	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), Render::getCommandQueue(), WinMgr::getHwndMain());
+	Render::setup(DeviceD3D12::getDevice(), WinMgr::getHwnd(WinMgr::Handle::kMain), WinMgr::getHwnd(WinMgr::Handle::kMiniEngine));
+	SwapChain::setup(DeviceD3D12::getDevice(), DeviceD3D12::getFactory(), Render::getCommandQueue(), WinMgr::getHwnd(WinMgr::Handle::kMain));
 	DdsLoaderIf::setDevice(DeviceD3D12::getDevice());
 
 	ImguiIf::printParams<uint64_t>(ImguiIf::VarType::kUint64, "Frame", std::vector<const uint64_t*>{ &s_frame }, ImguiIf::ParamType::kFrame);

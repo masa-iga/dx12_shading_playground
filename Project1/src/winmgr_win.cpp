@@ -71,14 +71,15 @@ namespace WinMgr {
 		return S_OK;
 	}
 
-	HWND getHwndMain()
+	HWND getHwnd(Handle handle)
 	{
-		return s_hwndMain;
-	}
+		switch (handle) {
+		case Handle::kMain: return s_hwndMain;
+		case Handle::kMiniEngine: return s_hwndMiniEngine;
+		default: break;
+		}
 
-	HWND getHwndMiniEngine()
-	{
-		return s_hwndMiniEngine;
+		return 0;
 	}
 
 	bool isWindowActive(Handle handle)
@@ -86,8 +87,8 @@ namespace WinMgr {
 		HWND ref = 0;
 
 		switch (handle) {
-		case Handle::kMain: ref = getHwndMain(); break;
-		case Handle::kMiniEngine: ref = getHwndMiniEngine(); break;
+		case Handle::kMain: ref = getHwnd(Handle::kMain); break;
+		case Handle::kMiniEngine: ref = getHwnd(Handle::kMiniEngine); break;
 		default: return false;
 		}
 
