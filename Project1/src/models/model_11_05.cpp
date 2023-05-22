@@ -76,7 +76,7 @@ std::unique_ptr<IModels> ModelFactory_11_05::create()
 
 void Models_11_05::resetCamera()
 {
-	MiniEngineIf::getCamera3D()->SetPosition(0.0f, 50.0f, 550.0f);
+	MiniEngineIf::getCamera3D()->SetPosition(0.0f, 50.0f, 250.0f);
 	MiniEngineIf::getCamera3D()->SetTarget(0.0f, 0.0f, 0.0f);
 }
 
@@ -177,20 +177,22 @@ void Models_11_05::handleInput()
 
 	// move camera
 	{
-		MiniEngineIf::getCamera3D()->MoveForward(MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 3.0f);
-		MiniEngineIf::getCamera3D()->MoveRight(MiniEngineIf::getStick(MiniEngineIf::StickType::kLX) * 3.0f);
-		MiniEngineIf::getCamera3D()->MoveUp(MiniEngineIf::getStick(MiniEngineIf::StickType::kRY) * 3.0f);
+		{
+			Quaternion q = Quaternion::Identity;
+			{
+				q.SetRotationDegX(MiniEngineIf::getStick(MiniEngineIf::StickType::kRY) * 0.5f);
+				MiniEngineIf::getCamera3D()->RotateOriginTarget(q);
+			}
 
-		Quaternion quaternion = Quaternion::Identity;
-		if (MiniEngineIf::getStick(MiniEngineIf::StickType::kRX) > 0.0f)
-		{
-			quaternion.SetRotationX(0.01f);
+			{
+				Vector3 pos = MiniEngineIf::getCamera3D()->GetPosition();
+				Vector3 target = MiniEngineIf::getCamera3D()->GetTarget();
+				pos.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 0.5f;
+				target.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 0.5f;
+				MiniEngineIf::getCamera3D()->SetPosition(pos);
+				MiniEngineIf::getCamera3D()->SetTarget(target);
+			}
 		}
-		else if (MiniEngineIf::getStick(MiniEngineIf::StickType::kRX) < 0.0f)
-		{
-			quaternion.SetRotationX(-0.01f);
-		}
-		MiniEngineIf::getCamera3D()->RotateOriginTarget(quaternion);
 	}
 }
 
@@ -237,8 +239,18 @@ void Models_11_05::draw(RenderContext& renderContext)
 void Models_11_05::debugRenderParams()
 {
 	{
-		const Vector3& pos = MiniEngineIf::getCamera3D()->GetPosition();
-		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Camera", std::vector<const float*>{ &pos.x, & pos.y, & pos.z });
+		{
+			const Vector3& v = MiniEngineIf::getCamera3D()->GetPosition();
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraPos", std::vector<const float*>{ &v.x, &v.y, &v.z });
+		}
+		{
+			const Vector3& v = MiniEngineIf::getCamera3D()->GetTarget();
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraTgt", std::vector<const float*>{ &v.x, &v.y, &v.z });
+		}
+		{
+			const Vector3& v = MiniEngineIf::getCamera3D()->GetUp();
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraUp", std::vector<const float*>{ &v.x, &v.y, &v.z });
+		}
 	}
 }
 
