@@ -10,6 +10,7 @@
 #include "../miniEngine_if.h"
 #include "../winmgr_win.h"
 #include <../Sample_11_06/Sample_11_06/ModelStandard.h>
+#pragma warning(3 : 4189)
 
 class ModelFactory_11_06 : public IModelFactory
 {
@@ -21,7 +22,10 @@ public:
 class Models_11_06 : public IModels
 {
 public:
-	Models_11_06() { m_models.resize(static_cast<size_t>(ModelType::kSize)); }
+	Models_11_06() {
+		m_models.resize(static_cast<size_t>(ModelType::kSize));
+		m_cascadeAreaTbl.at(2) = MiniEngineIf::getCamera3D()->GetFar();
+	}
 	~Models_11_06() { }
 	void createModel();
 	void resetCamera();
@@ -34,35 +38,44 @@ private:
 		kSize,
 	};
 
-	struct ShadowParam
-	{
-		Matrix mLVP;
-		Vector3 lightPos;
-	};
-
-	static constexpr size_t kShadowMapWidth = 2048;
-	static constexpr size_t kShadowMapHeight = 2048;
-	static constexpr DXGI_FORMAT kShadowMapColorFormat = DXGI_FORMAT_R32G32_FLOAT;
+	static constexpr size_t kCascadeShadowMapNearestWidth = 2048;
+	static constexpr size_t kCascadeShadowMapNearestHeight = 2048;
+	static constexpr DXGI_FORMAT kShadowMapColorFormat = DXGI_FORMAT_R32_FLOAT;
 	static constexpr DXGI_FORMAT kShadowMapDepthFormat = DXGI_FORMAT_D32_FLOAT;
-	const std::string kTkmTeapotFile = "Sample_11_05/Sample_11_05/Assets/modelData/teapot.tkm";
+#if 1
+	static constexpr size_t kNumShadowMap = 3;
+#endif
+	const std::string kTkmTeapotFile = "Sample_11_06/Sample_11_06/Assets/modelData/testModel.tkm";
 	const std::string kTkmBgFile = "Sample_11_06/Sample_11_06/Assets/modelData/bg/bg.tkm";
-	const std::string kFxDrawShadowMapFile = "./Assets/shader/sample_11_05_drawShadowMap.fx";
-	const std::string kFxShadowReceiverFile = "./Assets/shader/sample_11_05_shadowReceiver.fx";
+#if 1
+	const std::string kTkmTestModelFile = "Sample_11_06/Sample_11_06/Assets/modelData/testModel.tkm";
+#endif
+	const std::string kFxDrawShadowMapFile = "Sample_11_06/Sample_11_06/Assets/shader/sampleDrawShadowMap.fx";
+	const std::string kFxShadowReceiverFile = "./Assets/shader/sample_11_06_shadowReceiver.fx";
 	const std::string kFxSpriteFile = "Sample_11_06/Sample_11_06/Assets/shader/preset/sprite.fx";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
-	std::string getFxDrawShadowMapPath() { return kFxDrawShadowMapFile; };
+#if 1
+	std::string getTkmTestModelFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTestModelFile); }
+#endif
+	std::string getFxDrawShadowMapPath() { return ModelUtil::getPathFromAssetDir(kFxDrawShadowMapFile); };
 	std::string getFxShadowReceiverPath() { return kFxShadowReceiverFile; }
 	std::string getFxSpritePath() { return ModelUtil::getPathFromAssetDir(kFxSpriteFile); }
 
-	RenderTarget m_shadowMap;
+#if 1
+	std::array<float, kNumShadowMap> m_cascadeAreaTbl = { 500, 2000, 0 };
+#endif
+	std::array<RenderTarget, 3> m_shadowMaps;
 	Camera m_lightCamera;
-	ShadowParam m_sp;
-	std::unique_ptr<GaussianBlur> m_shadowBlur = nullptr;
 	std::unique_ptr<Model> m_bg = nullptr;
 	std::unique_ptr<ModelStandard> m_teapotModel = nullptr;
-	std::unique_ptr<Model> m_teapotShadowModel = nullptr;
+#if 1
+	std::array<std::unique_ptr<Model>, kNumShadowMap> m_testShadowModels;
+#endif
 	std::unique_ptr<Sprite> m_spriteShadowMap = nullptr;
+#if 1
+	std::array<Matrix, kNumShadowMap> m_lvpcMatrices;
+#endif
 };
 
 std::unique_ptr<IModels> ModelFactory_11_06::create()
@@ -76,8 +89,8 @@ std::unique_ptr<IModels> ModelFactory_11_06::create()
 
 void Models_11_06::resetCamera()
 {
-	MiniEngineIf::getCamera3D()->SetPosition(0.0f, 50.0f, 250.0f);
-	MiniEngineIf::getCamera3D()->SetTarget(0.0f, 0.0f, 0.0f);
+	MiniEngineIf::getCamera3D()->SetPosition(0.0f, 100.0f, 350.0f);
+	MiniEngineIf::getCamera3D()->SetTarget(0.0f, 100.0f, 0.0f);
 }
 
 void Models_11_06::createModel()
@@ -85,37 +98,45 @@ void Models_11_06::createModel()
 	{
 		float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-		auto bRet = m_shadowMap.Create(
-			kShadowMapWidth,
-			kShadowMapHeight,
-			1,
-			1,
-			kShadowMapColorFormat,
-			kShadowMapDepthFormat,
-			clearColor
-		);
+#if 1
+		for (uint32_t i = 0; i < m_shadowMaps.size(); ++i)
+		{
+			const uint32_t div = (1 << i);
+
+			m_shadowMaps.at(i).Create(
+				kCascadeShadowMapNearestWidth / div,
+				kCascadeShadowMapNearestHeight / div,
+				1,
+				1,
+				kShadowMapColorFormat,
+				kShadowMapDepthFormat,
+				clearColor
+			);
+		}
+#endif
 	}
 
 	{
-		m_lightCamera.SetPosition(0, 300, 0);
+		Vector3 toLigDir = { 1, 2, 1 };
+		toLigDir.Normalize();
+		toLigDir *= 5000.0f;
+		m_lightCamera.SetPosition(toLigDir);
 		m_lightCamera.SetTarget(0, 0, 0);
 		m_lightCamera.SetUp(1, 0, 0);
+		m_lightCamera.SetUpdateProjMatrixFunc(Camera::enUpdateProjMatrixFunc_Ortho);
+		m_lightCamera.SetWidth(5000.0f);
+		m_lightCamera.SetHeight(5000.0f);
+		m_lightCamera.SetNear(1.0f);
+		m_lightCamera.SetFar(10000.0f);
+
 		m_lightCamera.Update();
-	}
-
-	{
-		memset(&m_sp, 0x0, sizeof(m_sp));
-		m_sp.mLVP = m_lightCamera.GetViewProjectionMatrix();
-		m_sp.lightPos.Set(m_lightCamera.GetPosition());
-	}
-
-	{
-		m_shadowBlur = std::make_unique<GaussianBlur>();
-		m_shadowBlur->Init(&m_shadowMap.GetRenderTargetTexture());
 	}
 
 	const std::string tkmTeapotFilePath = getTkmTeapotFilePath();
 	const std::string tkmBgFilePath = getTkmBgFilePath();
+#if 1
+	const std::string tkmTestModelFilePath = getTkmTestModelFilePath();
+#endif
 	const std::string fxDrawShadowMapPath = getFxDrawShadowMapPath();
 	const std::string fxShadowReceiverPath = getFxShadowReceiverPath();
 	const std::string fxSpritePath = getFxSpritePath();
@@ -125,14 +146,37 @@ void Models_11_06::createModel()
 	Dbg::assert_(std::filesystem::exists(fxShadowReceiverPath));
 	Dbg::assert_(std::filesystem::exists(fxSpritePath));
 
+#if 1
+	{
+		auto createShadowCaster = [&]()
+		{
+			ModelInitData d;
+			{
+				d.m_fxFilePath = fxDrawShadowMapPath.c_str();
+				d.m_tkmFilePath = tkmTestModelFilePath.c_str();
+				d.m_colorBufferFormat.at(0) = DXGI_FORMAT_R32_FLOAT;
+			}
+			std::unique_ptr<Model> m = std::make_unique<Model>();
+			m->Init(d);
+			return std::move(m);
+		};
+
+		for (auto& m : m_testShadowModels)
+		{
+			m = createShadowCaster();
+		}
+	}
+#endif
 	{
 		ModelInitData d = { };
 		{
 			d.m_fxFilePath = fxShadowReceiverPath.c_str();
 			d.m_tkmFilePath = tkmBgFilePath.c_str();
-			d.m_expandShaderResoruceView.at(0) = &m_shadowBlur->GetBokeTexture();
-			d.m_expandConstantBuffer = reinterpret_cast<void*>(&m_sp);
-			d.m_expandConstantBufferSize = sizeof(m_sp);
+			d.m_expandShaderResoruceView.at(0) = &m_shadowMaps.at(0).GetRenderTargetTexture();
+			d.m_expandShaderResoruceView.at(1) = &m_shadowMaps.at(1).GetRenderTargetTexture();
+			d.m_expandShaderResoruceView.at(2) = &m_shadowMaps.at(2).GetRenderTargetTexture();
+			d.m_expandConstantBuffer = m_lvpcMatrices.data();
+			d.m_expandConstantBufferSize = sizeof(m_lvpcMatrices);
 		}
 
 		m_bg = std::make_unique<Model>();
@@ -141,25 +185,11 @@ void Models_11_06::createModel()
 	{
 		m_teapotModel = std::make_unique<ModelStandard>();
 		m_teapotModel->Init(tkmTeapotFilePath.c_str());
-		m_teapotModel->Update({ 0, 50, 0 }, g_quatIdentity, g_vec3One);
-	}
-	{
-		ModelInitData d = { };
-		{
-			d.m_fxFilePath = fxDrawShadowMapPath.c_str();
-			d.m_tkmFilePath = tkmTeapotFilePath.c_str();
-			d.m_colorBufferFormat.at(0) = m_shadowMap.GetColorBufferFormat();
-			d.m_expandConstantBuffer = reinterpret_cast<void*>(&m_sp);
-			d.m_expandConstantBufferSize = sizeof(m_sp);
-		}
-		m_teapotShadowModel = std::make_unique<Model>();
-		m_teapotShadowModel->Init(d);
-		m_teapotShadowModel->UpdateWorldMatrix({ 0, 50, 0 }, g_quatIdentity, g_vec3One);
 	}
 	{
 		SpriteInitData d;
 		{
-			d.m_textures.at(0) = &m_shadowMap.GetRenderTargetTexture();
+			d.m_textures.at(0) = &m_shadowMaps.at(0).GetRenderTargetTexture();
 			d.m_fxFilePath = fxSpritePath.c_str();
 			d.m_width = 256;
 			d.m_height = 256;
@@ -177,42 +207,54 @@ void Models_11_06::handleInput()
 
 	// move camera
 	{
+		using namespace MiniEngineIf;
+		Vector3 pos = getCamera3D()->GetPosition();
+		Vector3 target = getCamera3D()->GetTarget();
 		{
-			Quaternion q = Quaternion::Identity;
-			{
-				q.SetRotationDegX(MiniEngineIf::getStick(MiniEngineIf::StickType::kRY) * 0.5f);
-				MiniEngineIf::getCamera3D()->RotateOriginTarget(q);
-			}
-
-			{
-				Vector3 pos = MiniEngineIf::getCamera3D()->GetPosition();
-				Vector3 target = MiniEngineIf::getCamera3D()->GetTarget();
-				pos.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 0.5f;
-				target.z -= MiniEngineIf::getStick(MiniEngineIf::StickType::kLY) * 0.5f;
-				MiniEngineIf::getCamera3D()->SetPosition(pos);
-				MiniEngineIf::getCamera3D()->SetTarget(target);
-			}
+			pos.z -= getStick(StickType::kLY) * 2.0f;
+			target.z -= getStick(StickType::kLY) * 2.0f;
+			pos.y += getStick(StickType::kRY) * 2.0f;
+			target.y += getStick(StickType::kRY) * 2.0f;
 		}
+		getCamera3D()->SetPosition(pos);
+		getCamera3D()->SetTarget(target);
 	}
 }
 
 void Models_11_06::draw(RenderContext& renderContext)
 {
-	// render to shadow map
+	// rander cascade shadow maps
 	{
-		renderContext.WaitUntilToPossibleSetRenderTarget(m_shadowMap);
-		renderContext.SetRenderTargetAndViewport(m_shadowMap);
-		renderContext.ClearRenderTargetView(m_shadowMap);
+		using namespace MiniEngineIf;
 
-		m_teapotShadowModel->Draw(renderContext, m_lightCamera);
+		const Vector3& cameraForward = getCamera3D()->GetForward();
+		const Vector3& cameraRight = getCamera3D()->GetRight();
+		Vector3 cameraUp;
+		cameraUp.Cross(cameraForward, cameraRight);
 
-		renderContext.WaitUntilFinishDrawingToRenderTarget(m_shadowMap);
-	}
+		float nearDepth = getCamera3D()->GetNear();
 
-	// apply Gaussian blur to shadow map
-	{
-		const float blurPower = 5.0f;
-		m_shadowBlur->ExecuteOnGPU(renderContext, blurPower);
+		for (uint32_t i = 0; i < kNumShadowMap; ++i)
+		{
+			const float nearY = std::tanf(getCamera3D()->GetViewAngle() * 0.5f) * nearDepth;
+			const float nearX = nearY * getCamera3D()->GetAspect();
+			const float farY = std::tanf(getCamera3D()->GetViewAngle() * 0.5f) * m_cascadeAreaTbl.at(i);
+			const float farX = farY * getCamera3D()->GetAspect();
+			const Vector3 nearPos = getCamera3D()->GetPosition() + cameraForward * nearDepth;
+			const Vector3 farPos = getCamera3D()->GetPosition() + cameraForward * m_cascadeAreaTbl.at(i);
+
+			Vector3 vertcies[8];
+			vertcies[0] = nearPos + (cameraUp * nearY) + (cameraRight * nearX);
+			vertcies[1] = nearPos + (cameraUp * nearY) - (cameraRight * nearX);
+			vertcies[2] = nearPos - (cameraUp * nearY) + (cameraRight * nearX);
+			vertcies[3] = nearPos - (cameraUp * nearY) - (cameraRight * nearX);
+			vertcies[4] = farPos + (cameraUp * nearY) + (cameraRight * nearX);
+			vertcies[5] = farPos + (cameraUp * nearY) - (cameraRight * nearX);
+			vertcies[6] = farPos - (cameraUp * nearY) + (cameraRight * nearX);
+			vertcies[7] = farPos - (cameraUp * nearY) - (cameraRight * nearX);
+
+			// TODO:
+		}
 	}
 
 	MiniEngineIf::setOffscreenRenderTarget();
@@ -220,11 +262,14 @@ void Models_11_06::draw(RenderContext& renderContext)
 	// draw models
 	{
 		m_teapotModel->Draw(renderContext);
+	}
 
-		// draw models which receive a shadow
+	// draw models which receive a shadow
+	{
 		m_bg->Draw(renderContext);
 	}
 
+#if 0
 	{
 		m_spriteShadowMap->Update(
 			{ Config::kRenderTargetWidth / -2.0f, Config::kRenderTargetHeight / 2.0f, 0.0f },
@@ -234,6 +279,7 @@ void Models_11_06::draw(RenderContext& renderContext)
 		);
 		m_spriteShadowMap->Draw(renderContext);
 	}
+#endif
 }
 
 void Models_11_06::debugRenderParams()
