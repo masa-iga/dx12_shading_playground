@@ -280,6 +280,7 @@
     <None Include="simple.hlsl">
       <Filter>Shader files</Filter>
     </None>
+    <None Include="..\..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="texCopy.hlsl">
