@@ -2,6 +2,8 @@
  * @brief 影が落とされるモデル用のシェーダー
  */
 
+#define DEBUG_CASCADE (0)
+
 // モデル用の定数バッファー
 cbuffer ModelCb : register(b0)
 {
@@ -108,11 +110,32 @@ float4 PSMain(SPSIn psIn) : SV_Target0
                 break;
         }
 
+#if !DEBUG_CASCADE
         if (shadowValue.x < zInLVP)
         {
             color.xyz *= 0.5f;
             break;
         }
+#else
+        if (shadowValue.x < zInLVP)
+        {
+            switch (cascadeIndex)
+            {
+                case 0:
+                    color.xyz = float3(1, 1, 0);
+                    break;
+                case 1:
+                    color.xyz = float3(0, 1, 0);
+                    break;
+                case 2:
+                    color.xyz = float3(0, 0, 1);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+#endif // #if !DEBUG_CASCADE
     }
 
     return color;

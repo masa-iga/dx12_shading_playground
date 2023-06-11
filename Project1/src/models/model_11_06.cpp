@@ -252,10 +252,10 @@ void Models_11_06::draw(RenderContext& renderContext)
 					vMin.Min(v);
 				}
 
-				float xScale = 2.0f / (vMax.x - vMin.x);
-				float yScale = 2.0f / (vMax.y - vMin.y);
-				float xOffset = (vMax.x + vMin.x) * -0.5f * xScale;
-				float yOffset = (vMax.y + vMin.y) * -0.5f * yScale;
+				const float xScale = 2.0f / (vMax.x - vMin.x);
+				const float yScale = 2.0f / (vMax.y - vMin.y);
+				const float xOffset = (vMax.x + vMin.x) * -0.5f * xScale;
+				const float yOffset = (vMax.y + vMin.y) * -0.5f * yScale;
 
 				clopMatrix.m[0][0] = xScale;
 				clopMatrix.m[1][1] = yScale;
@@ -264,6 +264,8 @@ void Models_11_06::draw(RenderContext& renderContext)
 			}
 
 			m_lvpcMatrices.at(i) = lvpMatrix * clopMatrix;
+
+			nearDepth = m_cascadeAreaTbl.at(i);
 		}
 	}
 
