@@ -373,5 +373,11 @@
     <FxCompile Include="Assets\shader\sample_11_06_shadowReceiver.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_12_01_model.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_12_01_sprite.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
