@@ -30,7 +30,7 @@ struct SPSIn
 struct SPSOut
 {
     float4 albedo : SV_Target0; // アルベド
-    float3 normal : SV_Target1; // 法線
+    float4 normal : SV_Target1; // 法線
 };
 
 // モデルテクスチャ
@@ -63,11 +63,6 @@ SPSOut PSMain(SPSIn psIn)
     // G-Bufferに出力
     SPSOut psout;
     psout.albedo = g_texture.Sample(g_sampler, psIn.uv);
-    // TODO: debug
-#if 0
-    psout.normal = psIn.normal;
-#else
-    psout.normal = float4(psIn.normal, 1.0f);
-#endif
+    psout.normal = float4((psIn.normal / 2.0f + 0.5f), 1.0f);
     return psout;
 }

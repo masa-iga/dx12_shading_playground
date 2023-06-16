@@ -49,12 +49,15 @@ private:
 	std::string getFxModelFilePath() { return kFxModelFile; }
 	const std::string kFxSpriteFile = "./Assets/shader/sample_12_01_sprite.fx";
 	std::string getFxSpriteFilePath() { return kFxSpriteFile; }
+	const std::string kFxPresetSpriteFile = "Sample_11_06/Sample_11_06/Assets/shader/preset/sprite.fx";
+	std::string getFxPresetSpriteFilePath() { return ModelUtil::getPathFromAssetDir(kFxPresetSpriteFile); }
 
 	DirectionalLight m_light;
 	std::unique_ptr<Model> m_model = nullptr;
 	RenderTarget m_albedRt;
 	RenderTarget m_normalRt;
 	std::unique_ptr<Sprite> m_defferedLightingSprite = nullptr;
+	std::array<std::unique_ptr<Sprite>, 2> m_debugSprites = { nullptr, nullptr };
 };
 
 std::unique_ptr<IModels> ModelFactory_12_01::create()
@@ -106,11 +109,15 @@ void Models_12_01::createModel()
 	Dbg::assert_(std::filesystem::exists(fxModelFilePath));
 	const std::string fxSpriteFilePath = getFxSpriteFilePath();
 	Dbg::assert_(std::filesystem::exists(fxSpriteFilePath));
+	const std::string fxPresetSpriteFilePath = getFxPresetSpriteFilePath();
+	Dbg::assert_(std::filesystem::exists(fxPresetSpriteFilePath));
 
 	{
 		ModelInitData d;
 		d.m_tkmFilePath = tkmSampleFilePath.c_str();
 		d.m_fxFilePath = fxModelFilePath.c_str();
+		d.m_colorBufferFormat.at(0) = m_albedRt.GetColorBufferFormat();
+		d.m_colorBufferFormat.at(1) = m_normalRt.GetColorBufferFormat();
 
 		m_model = std::make_unique<Model>();
 		m_model->Init(d);
@@ -127,6 +134,21 @@ void Models_12_01::createModel()
 
 		m_defferedLightingSprite = std::make_unique<Sprite>();
 		m_defferedLightingSprite->Init(d);
+	}
+
+	{
+		SpriteInitData d;
+		d.m_width = 256;
+		d.m_height = 256;
+		d.m_fxFilePath = fxPresetSpriteFilePath.c_str();
+
+		d.m_textures.at(0) = &m_albedRt.GetRenderTargetTexture();
+		m_debugSprites.at(0) = std::make_unique<Sprite>();
+		m_debugSprites.at(0)->Init(d);
+
+		d.m_textures.at(0) = &m_normalRt.GetRenderTargetTexture();
+		m_debugSprites.at(1) = std::make_unique<Sprite>();
+		m_debugSprites.at(1)->Init(d);
 	}
 }
 
@@ -184,6 +206,20 @@ void Models_12_01::draw(RenderContext& renderContext)
 		MiniEngineIf::setOffscreenRenderTarget();
 
 		m_defferedLightingSprite->Draw(renderContext);
+	}
+
+	// render each Gbuffer for debugging
+	for (uint32_t i = 0; i < m_debugSprites.size(); ++i)
+	{
+		const float posy = (i * (m_albedRt.GetHeight() / 4.0f)) + 1.0f * i;
+
+		m_debugSprites.at(i)->Update(
+			{ Config::kRenderTargetWidth / -2.0f, posy, 0.0f},
+			g_quatIdentity,
+			g_vec3One,
+			{ 0.0f, 1.0f }
+		);
+		m_debugSprites.at(i)->Draw(renderContext);
 	}
 }
 
