@@ -37,11 +37,12 @@ private:
 		float m_pad0 = 0.0f;
 		Vector3 m_direction;
 		float m_pad1 = 0.0f;
+		Vector3 m_eyePos;
+		float m_pad2 = 0.0f;
 	};
 
 	static constexpr size_t kGbufferWidth = 1920;
 	static constexpr size_t kGbufferHeight = 1080;
-	static constexpr DXGI_FORMAT kGbufferColorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	const std::string kTkmSampleFile = "Sample_12_02/Sample_12_02/Assets/modelData/sample.tkm";
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
@@ -56,8 +57,9 @@ private:
 	std::unique_ptr<Model> m_model = nullptr;
 	RenderTarget m_albedRt;
 	RenderTarget m_normalRt;
+	RenderTarget m_worldPosRt;
 	std::unique_ptr<Sprite> m_defferedLightingSprite = nullptr;
-	std::array<std::unique_ptr<Sprite>, 2> m_debugSprites = { nullptr, nullptr };
+	std::array<std::unique_ptr<Sprite>, 3> m_debugSprites = { nullptr, nullptr, nullptr };
 };
 
 std::unique_ptr<IModels> ModelFactory_12_02::create()
@@ -83,7 +85,7 @@ void Models_12_02::createModel()
 			kGbufferHeight,
 			1 /* mipLevel */,
 			1 /* arraySize */,
-			kGbufferColorFormat,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
 			DXGI_FORMAT_D32_FLOAT);
 		Dbg::assert_(bRet);
 	}
@@ -93,7 +95,17 @@ void Models_12_02::createModel()
 			kGbufferHeight,
 			1 /* mipLevel */,
 			1 /* arraySize */,
-			kGbufferColorFormat,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			DXGI_FORMAT_UNKNOWN);
+		Dbg::assert_(bRet);
+	}
+	{
+		bool bRet = m_worldPosRt.Create(
+			kGbufferWidth,
+			kGbufferHeight,
+			1 /* mipLevel */,
+			1 /* arraySize */,
+			DXGI_FORMAT_R32G32B32A32_FLOAT,
 			DXGI_FORMAT_UNKNOWN);
 		Dbg::assert_(bRet);
 	}
@@ -101,6 +113,7 @@ void Models_12_02::createModel()
 	{
 		m_light.m_direction = { 1.0f, 0.0f, 0.0f };
 		m_light.m_color = { 1.0f, 1.0f, 1.0f };
+		m_light.m_eyePos = MiniEngineIf::getCamera3D()->GetPosition();
 	}
 
 	const std::string tkmSampleFilePath = getTkmSampleFilePath();
@@ -118,6 +131,7 @@ void Models_12_02::createModel()
 		d.m_fxFilePath = fxModelFilePath.c_str();
 		d.m_colorBufferFormat.at(0) = m_albedRt.GetColorBufferFormat();
 		d.m_colorBufferFormat.at(1) = m_normalRt.GetColorBufferFormat();
+		d.m_colorBufferFormat.at(2) = m_worldPosRt.GetColorBufferFormat();
 
 		m_model = std::make_unique<Model>();
 		m_model->Init(d);
@@ -128,6 +142,7 @@ void Models_12_02::createModel()
 		d.m_height = kGbufferHeight;
 		d.m_textures.at(0) = &m_albedRt.GetRenderTargetTexture();
 		d.m_textures.at(1) = &m_normalRt.GetRenderTargetTexture();
+		d.m_textures.at(2) = &m_worldPosRt.GetRenderTargetTexture();
 		d.m_fxFilePath = fxSpriteFilePath.c_str();
 		d.m_expandConstantBuffer = &m_light;
 		d.m_expandConstantBufferSize = sizeof(m_light);
@@ -149,6 +164,10 @@ void Models_12_02::createModel()
 		d.m_textures.at(0) = &m_normalRt.GetRenderTargetTexture();
 		m_debugSprites.at(1) = std::make_unique<Sprite>();
 		m_debugSprites.at(1)->Init(d);
+
+		d.m_textures.at(0) = &m_worldPosRt.GetRenderTargetTexture();
+		m_debugSprites.at(2) = std::make_unique<Sprite>();
+		m_debugSprites.at(2)->Init(d);
 	}
 }
 
@@ -189,16 +208,17 @@ void Models_12_02::draw(RenderContext& renderContext)
 		RenderTarget* rts[] = {
 			&m_albedRt,
 			&m_normalRt,
+			&m_worldPosRt,
 		};
 
-		renderContext.WaitUntilToPossibleSetRenderTargets(2, rts);
+		renderContext.WaitUntilToPossibleSetRenderTargets(3, rts);
 
-		renderContext.SetRenderTargets(2, rts);
-		renderContext.ClearRenderTargetViews(2, rts);
+		renderContext.SetRenderTargets(3, rts);
+		renderContext.ClearRenderTargetViews(3, rts);
 
 		m_model->Draw(renderContext);
 
-		renderContext.WaitUntilFinishDrawingToRenderTargets(2, rts);
+		renderContext.WaitUntilFinishDrawingToRenderTargets(3, rts);
 	}
 
 	// render to sprite
@@ -225,7 +245,6 @@ void Models_12_02::draw(RenderContext& renderContext)
 
 void Models_12_02::debugRenderParams()
 {
-#if 0
 	{
 		{
 			const Vector3& v = MiniEngineIf::getCamera3D()->GetPosition();
@@ -240,19 +259,14 @@ void Models_12_02::debugRenderParams()
 			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraUp", std::vector<const float*>{ &v.x, &v.y, &v.z });
 		}
 		{
-			const Vector3& v = m_lightCamera.GetPosition();
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "LightCameraPos", std::vector<const float*>{ &v.x, &v.y, &v.z });
+			const Vector3& v = m_light.m_color;
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "LightColor", std::vector<const float*>{ &v.x, &v.y, &v.z });
 		}
 		{
-			const Vector3& v = m_lightCamera.GetTarget();
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "LightCameraTgt", std::vector<const float*>{ &v.x, &v.y, &v.z });
-		}
-		{
-			const Vector3& v = m_lightCamera.GetUp();
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "LightCameraUp", std::vector<const float*>{ &v.x, &v.y, &v.z });
+			const Vector3& v = m_light.m_direction;
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "LightDirection", std::vector<const float*>{ &v.x, &v.y, &v.z });
 		}
 	}
-#endif
 }
 
 namespace ModelHandler {
