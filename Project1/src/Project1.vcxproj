@@ -217,6 +217,7 @@ call :copyFiles
     <ClCompile Include="models\model_11_06.cpp" />
     <ClCompile Include="models\model_12_01.cpp" />
     <ClCompile Include="models\model_12_02.cpp" />
+    <ClCompile Include="models\model_12_03.cpp" />
     <ClCompile Include="models\model_util.cpp" />
     <ClCompile Include="render_d3d12.cpp" />
     <ClCompile Include="model_simple_triangle.cpp" />
@@ -262,6 +263,7 @@ call :copyFiles
     <ClInclude Include="models\model_11_06.h" />
     <ClInclude Include="models\model_12_01.h" />
     <ClInclude Include="models\model_12_02.h" />
+    <ClInclude Include="models\model_12_03.h" />
     <ClInclude Include="models\model_util.h" />
     <ClInclude Include="render_d3d12.h" />
     <ClInclude Include="model_simple_triangle.h" />
