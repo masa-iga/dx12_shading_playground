@@ -19,12 +19,27 @@ public:
 	std::unique_ptr<IModels> create();
 };
 
+class Obserber_12_03 : public WinMgr::Iobserber
+{
+public: 
+	void update(WPARAM wParam, LPARAM lParam) override;
+	bool isPaused() const { return m_paused; }
+
+private:
+	bool m_paused = false;
+};
+
 class Models_12_03 : public IModels
 {
 public:
 	Models_12_03() { }
-	~Models_12_03() { }
+	~Models_12_03()
+	{
+		WinMgr::removeObserver(&m_obserber);
+	}
 	void createModel();
+	void addObserver();
+	void removeObserver();
 	void resetCamera();
 	void handleInput();
 	void draw(RenderContext& renderContext);
@@ -53,6 +68,7 @@ private:
 	const std::string kFxPresetSpriteFile = "Sample_11_06/Sample_11_06/Assets/shader/preset/sprite.fx";
 	std::string getFxPresetSpriteFilePath() { return ModelUtil::getPathFromAssetDir(kFxPresetSpriteFile); }
 
+	Obserber_12_03 m_obserber;
 	DirectionalLight m_light;
 	std::unique_ptr<Model> m_model = nullptr;
 	RenderTarget m_albedRt;
@@ -67,8 +83,20 @@ std::unique_ptr<IModels> ModelFactory_12_03::create()
 	std::unique_ptr<Models_12_03> m = std::make_unique<Models_12_03>();
 	{
 		m->createModel();
+		m->addObserver();
 	}
 	return std::move(m);
+}
+
+void Obserber_12_03::update(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
+{
+	switch (wParam) {
+	case VK_SPACE:
+		m_paused = !m_paused;
+		break;
+	default:
+		break;
+	}
 }
 
 void Models_12_03::resetCamera()
@@ -171,6 +199,16 @@ void Models_12_03::createModel()
 	}
 }
 
+void Models_12_03::addObserver()
+{
+	WinMgr::addObserver(&m_obserber);
+}
+
+void Models_12_03::removeObserver()
+{
+	WinMgr::removeObserver(&m_obserber);
+}
+
 void Models_12_03::handleInput()
 {
 	if (!WinMgr::isWindowActive(WinMgr::Handle::kMain))
@@ -192,17 +230,18 @@ void Models_12_03::handleInput()
 		getCamera3D()->SetPosition(pos);
 		getCamera3D()->SetTarget(target);
 	}
-}
 
-void Models_12_03::draw(RenderContext& renderContext)
-{
 	// rotate directional light
+	if (!m_obserber.isPaused())
 	{
 		Quaternion rotLig;
 		rotLig.SetRotationDegY(2.0f);
 		rotLig.Apply(m_light.m_direction);
 	}
+}
 
+void Models_12_03::draw(RenderContext& renderContext)
+{
 	// render to Gbuffer
 	{
 		RenderTarget* rts[] = {

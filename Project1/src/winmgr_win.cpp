@@ -1,4 +1,5 @@
 #include "winmgr_win.h"
+#include <vector>
 #include <windows.h>
 #include "config.h"
 #include "debug_win.h"
@@ -11,10 +12,12 @@ namespace {
 	LRESULT CALLBACK WindowProcMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT CALLBACK WindowProcMiniEngine(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	HRESULT handleKeyDownMain(WPARAM wParam, LPARAM lParam);
+	void notify(WPARAM wParam, LPARAM lParam);
 
 	bool s_breakLoop = false;
 	HWND s_hwndMain = NULL;
 	HWND s_hwndMiniEngine = NULL;
+	std::vector<WinMgr::Iobserber*> m_obserbers;
 }
 
 namespace WinMgr {
@@ -95,6 +98,26 @@ namespace WinMgr {
 		const HWND h = ::GetActiveWindow();
 
 		return (h == ref);
+	}
+
+	bool addObserver(Iobserber* obserber)
+	{
+		m_obserbers.emplace_back(obserber);
+		return true;
+	}
+
+	bool removeObserver(Iobserber* obserber)
+	{
+		for (size_t i = 0; i < m_obserbers.size(); ++i)
+		{
+			if (m_obserbers[i] == obserber)
+			{
+				//Dbg::print("L%d %s(): removed (%d 0x%p)\n", __LINE__, __func__, i, m_obserbers[i]);
+				m_obserbers.erase(m_obserbers.begin() + i);
+			}
+		}
+
+		return true;
 	}
 }
 
@@ -186,9 +209,18 @@ namespace {
 			return S_OK;
 
 		default:
+			notify(wParam, lParam);
 			break;
 		}
 
 		return S_OK;
+	}
+
+	void notify(WPARAM wParam, LPARAM lParam)
+	{
+		for (auto& o : m_obserbers)
+		{
+			o->update(wParam, lParam);
+		}
 	}
 }
