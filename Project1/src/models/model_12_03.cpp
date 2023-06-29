@@ -53,7 +53,7 @@ private:
 		Vector3 m_direction;
 		float m_pad1 = 0.0f;
 		Vector3 m_eyePos;
-		float m_pad2 = 0.0f;
+		float specPow= 0.0f;
 	};
 
 	static constexpr size_t kGbufferWidth = 1920;
@@ -101,7 +101,9 @@ void Obserber_12_03::update(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 
 void Models_12_03::resetCamera()
 {
-	;
+	MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 80.0f, 200.0f });
+	MiniEngineIf::getCamera3D()->SetTarget({ 0.0f, 80.0f, 0.0f });
+	MiniEngineIf::getCamera3D()->Update();
 }
 
 void Models_12_03::createModel()
@@ -214,6 +216,9 @@ void Models_12_03::handleInput()
 	if (!WinMgr::isWindowActive(WinMgr::Handle::kMain))
 		return;
 
+	if (m_obserber.isPaused())
+		return;
+
 	// move camera
 	{
 		using namespace MiniEngineIf;
@@ -229,10 +234,11 @@ void Models_12_03::handleInput()
 		}
 		getCamera3D()->SetPosition(pos);
 		getCamera3D()->SetTarget(target);
+
+		m_light.m_eyePos = MiniEngineIf::getCamera3D()->GetPosition();
 	}
 
 	// rotate directional light
-	if (!m_obserber.isPaused())
 	{
 		Quaternion rotLig;
 		rotLig.SetRotationDegY(2.0f);

@@ -8,7 +8,7 @@ cbuffer DirectionLight : register(b1)
 {
     float3 ligColor;        // ライトのカラー
     float3 ligDirection;    // ライトの方向
-    float3 eyePos; // 視点の位置
+    float3 eyePos;          // 視点の位置
 };
 
 struct VSInput
@@ -43,19 +43,22 @@ float4 PSMain(PSInput In) : SV_Target0
     float4 albedo = albedoTexture.Sample(Sampler, In.uv);
     float3 normal = normalTexture.Sample(Sampler, In.uv).xyz;
 
-    normal = (normal * 2.0f)-1.0f;
+    normal = (normal * 2.0f) - 1.0f;
 
-    // 拡散反射光を計算
     float3 lig = 0.0f;
-    float t = max(0.0f, dot(normal, ligDirection) * -1.0f);
-    lig = ligColor * t;
+    
+    // 拡散反射光を計算
+    {
+        float t = max(0.0f, dot(normal, ligDirection) * -1.0f);
+        lig = ligColor * t;
+    }
 
     // スペキュラ反射を計算
     {
         float3 refLight = reflect(ligDirection, normal);
         float3 worldPos = worldPosTexture.Sample(Sampler, In.uv).xyz;
         float3 toEye = normalize(eyePos - worldPos);
-        t = max(dot(refLight, toEye), 0.0f);
+        float t = max(0.0f, dot(toEye, refLight));
         t = pow(t, 5.0f);
         lig += ligColor * t;
     }
