@@ -241,7 +241,7 @@ void Models_12_03::handleInput()
 	// rotate directional light
 	{
 		Quaternion rotLig;
-		rotLig.SetRotationDegY(2.0f);
+		rotLig.SetRotationDegY(1.0f);
 		rotLig.Apply(m_light.m_direction);
 	}
 }
