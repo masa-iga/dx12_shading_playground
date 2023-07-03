@@ -87,11 +87,11 @@ SPSOut PSMain(SPSIn psIn)
     // アルベドカラーを出力
     psOut.albedo = g_texture.Sample(g_sampler, psIn.uv);
 
-    // step-5 法線マップからタンジェントスペースの法線をサンプリングする
+    // 法線マップからタンジェントスペースの法線をサンプリングする
     float3 localNormal = g_normalMap.Sample(g_sampler, psIn.uv).xyz;
     localNormal = (localNormal - 0.5f) * 2.0f;
 
-    // step-6 タンジェントスペースの法線をワールドスペースに変換する
+    // タンジェントスペースの法線をワールドスペースに変換する
     float3 normal = localNormal.x * psIn.tangent +
     localNormal.y * psIn.biNormal +
     localNormal.z * psIn.normal;
@@ -101,11 +101,7 @@ SPSOut PSMain(SPSIn psIn)
     // なので-1～1を0～1に変換する
     // (-1 ～ 1) ÷ 2.0       = (-0.5 ～ 0.5)
     // (-0.5 ～ 0.5) + 0.5  = ( 0.0 ～ 1.0)
-#if 1
     psOut.normal.xyz = (normal / 2.0f) + 0.5f;
-#else
-    psOut.normal.xyz = 0.0f;
-#endif
     psOut.normal.w = 1.0f;
 
     // ピクセルシェーダーからワールド座標を出力
