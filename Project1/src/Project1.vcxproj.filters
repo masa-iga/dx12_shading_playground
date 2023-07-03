@@ -406,5 +406,11 @@
     <FxCompile Include="Assets\shader\sample_12_03_model.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_12_04_model.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_12_04_sprite.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
