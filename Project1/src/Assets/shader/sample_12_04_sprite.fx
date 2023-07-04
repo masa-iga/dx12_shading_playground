@@ -9,8 +9,6 @@ cbuffer DirectionLight : register(b1)
 {
     float3 ligColor;        // ライトのカラー
     float3 ligDirection;    // ライトの方向
-
-    // step-9 定数バッファーに視点の位置を追加
     float3 eyePos;          // 視点
 };
 
@@ -66,9 +64,11 @@ float4 PSMain(PSInput In) : SV_Target0
     // このサンプルでは、スペキュラの効果を分かりやすくするために、50倍している
     float3 specColor = ligColor * t * 50.0f;
 
-    // step-3 スペキュラ強度を法線テクスチャのw要素からサンプリングする
+    // スペキュラ強度を法線テクスチャのw要素からサンプリングする
+    float specularPower = normalTexture.Sample(Sampler, In.uv).w;
 
-    // step-4 スペキュラ強度をスペキュラライトに乗算する
+    // スペキュラ強度をスペキュラライトに乗算する
+    specColor *= specularPower;
 
     //反射光にスペキュラカラーを足し算する
     lig += specColor;

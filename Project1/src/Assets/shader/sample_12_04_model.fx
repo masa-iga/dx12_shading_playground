@@ -46,8 +46,8 @@ Texture2D<float4> g_texture : register(t0);
 // 法線マップにアクセスするための変数を追加
 Texture2D<float4> g_normalMap : register(t1);
 
-// step-1 スペキュラマップにアクセスするための変数を追加
-
+// スペキュラマップにアクセスするための変数を追加
+Texture2D<float4> g_specularMap : register(t2);
 
 // サンプラーステート
 sampler g_sampler : register(s0);
@@ -103,7 +103,8 @@ SPSOut PSMain(SPSIn psIn)
     // (-0.5 ～ 0.5) + 0.5  = ( 0.0 ～ 1.0)
     psOut.normal.xyz = (normal / 2.0f) + 0.5f;
 
-    // step-2 スペキュラ強度をpsOut.normal.wに代入
+    // スペキュラ強度をpsOut.normal.wに代入
+    psOut.normal.z = g_specularMap.Sample(g_sampler, psIn.uv);
 
     // ピクセルシェーダーからワールド座標を出力
     psOut.worldPos.xyz = psIn.worldPos;
