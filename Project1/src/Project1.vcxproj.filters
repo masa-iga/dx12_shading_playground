@@ -418,5 +418,8 @@
     <FxCompile Include="Assets\shader\sample_12_04_sprite.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_13_02_model.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

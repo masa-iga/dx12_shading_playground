@@ -59,12 +59,12 @@ private:
 	static constexpr size_t kGbufferWidth = 1920;
 	static constexpr size_t kGbufferHeight = 1080;
 
-	const std::string kTkmSampleFile = "Sample_12_04/Sample_12_04/Assets/modelData/sample.tkm";
+	const std::string kTkmSampleFile = "Sample_13_02/Sample_13_02/Assets/modelData/sample.tkm";
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
-	const std::string kFxModelFile = "./Assets/shader/sample_12_04_model.fx";
+	const std::string kFxModelFile = "./Assets/shader/sample_13_02_model.fx";
 	std::string getFxModelFilePath() { return kFxModelFile; }
-	const std::string kFxSpriteFile = "./Assets/shader/sample_12_04_sprite.fx";
-	std::string getFxSpriteFilePath() { return kFxSpriteFile; }
+	const std::string kFxSpriteFile = "Sample_13_02/Sample_13_02/Assets/shader/sprite.fx";
+	std::string getFxSpriteFilePath() { return ModelUtil::getPathFromAssetDir(kFxSpriteFile); }
 	const std::string kFxPresetSpriteFile = "Sample_11_06/Sample_11_06/Assets/shader/preset/sprite.fx";
 	std::string getFxPresetSpriteFilePath() { return ModelUtil::getPathFromAssetDir(kFxPresetSpriteFile); }
 
