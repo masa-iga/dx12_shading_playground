@@ -78,5 +78,22 @@ SPSOut PSMain(SPSIn psIn)
     return psOut;
 }
 
-// step-3 ライトの情報を受け取るための定数バッファーを追加
+// ライトの情報を受け取るための定数バッファーを追加
+cbuffer DirectionLight : register(b1)
+{
+    float3 ligColor;
+    float3 ligDirection;
+    float3 eyePos;
+}
+
 // step-4 半透明オブジェクト用のピクセルシェーダーを実装
+float4 PSMainTrans(SPSIn psIn) : SV_TARGET0
+{
+    float t = max(0.0f, dot(psIn.normal, -ligDirection));
+    float lig = t * ligColor;;
+
+    float4 col = g_texture.Sample(g_sampler, psIn.uv);
+    col *= lig;
+
+    return col;
+}

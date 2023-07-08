@@ -34,6 +34,8 @@ namespace MiniEngineIf {
 	void end();
 	void loadModel();
 	ID3D12Resource* getRenderTargetResource();
+	D3D12_CPU_DESCRIPTOR_HANDLE getOffscreenRtvCpuDescHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE getOffscreenDsvCpuDescHandle();
 	void beginFrame();
 	void endFrame();
 	void clearRenderTarget(ID3D12GraphicsCommandList* commandList);

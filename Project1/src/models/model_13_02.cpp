@@ -53,7 +53,7 @@ private:
 		Vector3 m_direction;
 		float m_pad1 = 0.0f;
 		Vector3 m_eyePos;
-		float specPow= 0.0f;
+		float m_pad2 = 0.0f;
 	};
 
 	static constexpr size_t kGbufferWidth = 1920;
@@ -61,6 +61,10 @@ private:
 
 	const std::string kTkmSampleFile = "Sample_13_02/Sample_13_02/Assets/modelData/sample.tkm";
 	std::string getTkmSampleFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSampleFile); }
+	const std::string kTkmBgFile = "Sample_13_02/Sample_13_02/Assets/modelData/bg/bg.tkm";
+	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
+	const std::string kTkmSphereFile = "Sample_13_02/Sample_13_02/Assets/modelData/sphere.tkm";
+	std::string getTkmSphereFilePath() { return ModelUtil::getPathFromAssetDir(kTkmSphereFile); }
 	const std::string kFxModelFile = "./Assets/shader/sample_13_02_model.fx";
 	std::string getFxModelFilePath() { return kFxModelFile; }
 	const std::string kFxSpriteFile = "Sample_13_02/Sample_13_02/Assets/shader/sprite.fx";
@@ -70,7 +74,10 @@ private:
 
 	Obserber_13_02 m_obserber;
 	DirectionalLight m_light;
-	std::unique_ptr<Model> m_model = nullptr;
+	Vector3 m_planePos = { 0.0f, 160.0f, 20.0f };
+	std::unique_ptr<Model> m_modelHuman = nullptr;
+	std::unique_ptr<Model> m_modelBg = nullptr;
+	std::unique_ptr<Model> m_modelSphere = nullptr;
 	RenderTarget m_albedRt;
 	RenderTarget m_normalRt;
 	RenderTarget m_worldPosRt;
@@ -141,13 +148,17 @@ void Models_13_02::createModel()
 	}
 
 	{
-		m_light.m_direction = { 1.0f, 0.0f, 0.0f };
+		m_light.m_direction = { 1.0f, -1.0f, -1.0f };
 		m_light.m_color = { 1.0f, 1.0f, 1.0f };
 		m_light.m_eyePos = MiniEngineIf::getCamera3D()->GetPosition();
 	}
 
 	const std::string tkmSampleFilePath = getTkmSampleFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmSampleFilePath));
+	const std::string tkmBgFilePath = getTkmBgFilePath();
+	Dbg::assert_(std::filesystem::exists(tkmBgFilePath));
+	const std::string tkmSphereFilePath = getTkmSphereFilePath();
+	Dbg::assert_(std::filesystem::exists(tkmSphereFilePath));
 	const std::string fxModelFilePath = getFxModelFilePath();
 	Dbg::assert_(std::filesystem::exists(fxModelFilePath));
 	const std::string fxSpriteFilePath = getFxSpriteFilePath();
@@ -163,8 +174,31 @@ void Models_13_02::createModel()
 		d.m_colorBufferFormat.at(1) = m_normalRt.GetColorBufferFormat();
 		d.m_colorBufferFormat.at(2) = m_worldPosRt.GetColorBufferFormat();
 
-		m_model = std::make_unique<Model>();
-		m_model->Init(d);
+		m_modelHuman = std::make_unique<Model>();
+		m_modelHuman->Init(d);
+		m_modelHuman->UpdateWorldMatrix({ 0.0f, 0.0f, 0.0f }, g_quatIdentity, g_vec3One);
+	}
+	{
+		ModelInitData d;
+		d.m_tkmFilePath = tkmBgFilePath.c_str();
+		d.m_fxFilePath = fxModelFilePath.c_str();
+		d.m_colorBufferFormat.at(0) = m_albedRt.GetColorBufferFormat();
+		d.m_colorBufferFormat.at(1) = m_normalRt.GetColorBufferFormat();
+		d.m_colorBufferFormat.at(2) = m_worldPosRt.GetColorBufferFormat();
+
+		m_modelBg = std::make_unique<Model>();
+		m_modelBg->Init(d);
+	}
+	{
+		ModelInitData d;
+		d.m_tkmFilePath = tkmSphereFilePath.c_str();
+		d.m_fxFilePath = fxModelFilePath.c_str();
+		d.m_expandConstantBuffer = &m_light;
+		d.m_expandConstantBufferSize = sizeof(m_light);
+		d.m_psEntryPointFunc = "PSMainTrans";
+
+		m_modelSphere = std::make_unique<Model>();
+		m_modelSphere->Init(d);
 	}
 	{
 		SpriteInitData d;
@@ -219,51 +253,47 @@ void Models_13_02::handleInput()
 	if (m_obserber.isPaused())
 		return;
 
-	// move camera
-	{
-		using namespace MiniEngineIf;
-		Vector3 pos = getCamera3D()->GetPosition();
-		Vector3 target = getCamera3D()->GetTarget();
-		{
-			pos.z -= getStick(StickType::kLY) * 2.0f;
-			target.z -= getStick(StickType::kLY) * 2.0f;
-			pos.y += getStick(StickType::kRY) * 2.0f;
-			target.y += getStick(StickType::kRY) * 2.0f;
-			pos.x -= getStick(StickType::kLX) * 2.0f;
-			target.x -= getStick(StickType::kLX) * 2.0f;
-		}
-		getCamera3D()->SetPosition(pos);
-		getCamera3D()->SetTarget(target);
+	using namespace MiniEngineIf;
 
-		m_light.m_eyePos = MiniEngineIf::getCamera3D()->GetPosition();
+	if (isPress(Button::kRight))
+	{
+		m_planePos.x -= 1.0f;
+	}
+	if (isPress(Button::kLeft))
+	{
+		m_planePos.x += 1.0f;
+	}
+	if (isPress(Button::kUp))
+	{
+		m_planePos.z -= 1.0f;
+	}
+	if (isPress(Button::kDown))
+	{
+		m_planePos.z += 1.0f;
 	}
 
-	// rotate directional light
-	{
-		Quaternion rotLig;
-		rotLig.SetRotationDegY(1.0f);
-		rotLig.Apply(m_light.m_direction);
-	}
+	m_modelSphere->UpdateWorldMatrix(m_planePos, g_quatIdentity, g_vec3One);
 }
 
 void Models_13_02::draw(RenderContext& renderContext)
 {
-	// render to Gbuffer
+	RenderTarget* rts[] = {
+		&m_albedRt,
+		&m_normalRt,
+		&m_worldPosRt,
+	};
+
+	// deferred rendering: render to Gbuffer
 	{
-		RenderTarget* rts[] = {
-			&m_albedRt,
-			&m_normalRt,
-			&m_worldPosRt,
-		};
+		renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(rts), rts);
 
-		renderContext.WaitUntilToPossibleSetRenderTargets(3, rts);
+		renderContext.SetRenderTargets(ARRAYSIZE(rts), rts);
+		renderContext.ClearRenderTargetViews(ARRAYSIZE(rts), rts);
 
-		renderContext.SetRenderTargets(3, rts);
-		renderContext.ClearRenderTargetViews(3, rts);
+		m_modelHuman->Draw(renderContext);
+		m_modelBg->Draw(renderContext);
 
-		m_model->Draw(renderContext);
-
-		renderContext.WaitUntilFinishDrawingToRenderTargets(3, rts);
+		renderContext.WaitUntilFinishDrawingToRenderTargets(ARRAYSIZE(rts), rts);
 	}
 
 	// render to sprite
@@ -271,6 +301,15 @@ void Models_13_02::draw(RenderContext& renderContext)
 		MiniEngineIf::setOffscreenRenderTarget();
 
 		m_defferedLightingSprite->Draw(renderContext);
+	}
+
+	// forwared rendering: render translucent object
+	{
+		renderContext.SetRenderTarget(
+			MiniEngineIf::getOffscreenRtvCpuDescHandle(),
+			rts[0]->GetDSVCpuDescriptorHandle()
+		);
+		m_modelSphere->Draw(renderContext);
 	}
 
 	// render each Gbuffer for debugging
@@ -302,6 +341,10 @@ void Models_13_02::debugRenderParams()
 		{
 			const Vector3& v = MiniEngineIf::getCamera3D()->GetUp();
 			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraUp", std::vector<const float*>{ &v.x, &v.y, &v.z });
+		}
+		{
+			const Vector3& v = m_planePos;
+			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "PlanePos", std::vector<const float*>{ &v.x, &v.y, &v.z });
 		}
 		{
 			const Vector3& v = m_light.m_color;

@@ -59,6 +59,16 @@ namespace MiniEngineIf {
 		return s_renderTarget.Get();
 	}
 
+	D3D12_CPU_DESCRIPTOR_HANDLE getOffscreenRtvCpuDescHandle()
+	{
+		return s_descHeapRt->GetCPUDescriptorHandleForHeapStart();
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE getOffscreenDsvCpuDescHandle()
+	{
+		return s_descHeapDrt->GetCPUDescriptorHandleForHeapStart();
+	}
+
 	void beginFrame()
 	{
 		g_engine->BeginFrame();
