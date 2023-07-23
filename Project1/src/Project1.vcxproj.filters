@@ -25,6 +25,9 @@
     <Filter Include="ソース ファイル\models">
       <UniqueIdentifier>{9e086149-afc6-4e52-8ba1-e8af826bce53}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\hlsl-grimoire-sample">
+      <UniqueIdentifier>{adcb96e3-5aa1-4e47-b38a-4035be7093ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -168,6 +171,9 @@
     <ClCompile Include="models\model_14_01.cpp">
       <Filter>ソース ファイル\models</Filter>
     </ClCompile>
+    <ClCompile Include="models\model_14_02.cpp">
+      <Filter>ソース ファイル\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="winmgr_win.h">
@@ -309,6 +315,9 @@
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
     <ClInclude Include="models\model_14_01.h">
+      <Filter>ソース ファイル\models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\model_14_02.h">
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,4 @@
-#include "model_14_01.h"
+#include "model_14_02.h"
 #include <filesystem>
 #include <memory>
 #include "imodel.h"
@@ -15,14 +15,14 @@
 #include <../Sample_14_01/Sample_14_01/ModelRender.h>
 #pragma warning(3 : 4189)
 
-class ModelFactory_14_01 : public IModelFactory
+class ModelFactory_14_02 : public IModelFactory
 {
 public:
-	~ModelFactory_14_01() { }
+	~ModelFactory_14_02() { }
 	std::unique_ptr<IModels> create();
 };
 
-class Obserber_14_01 : public WinMgr::Iobserber
+class Obserber_14_02 : public WinMgr::Iobserber
 {
 public: 
 	void update(WPARAM wParam, LPARAM lParam) override;
@@ -32,11 +32,11 @@ private:
 	bool m_paused = false;
 };
 
-class Models_14_01 : public IModels
+class Models_14_02 : public IModels
 {
 public:
-	Models_14_01() { }
-	~Models_14_01()
+	Models_14_02() { }
+	~Models_14_02()
 	{
 		WinMgr::removeObserver(&m_obserber);
 	}
@@ -56,15 +56,15 @@ private:
 	const std::string kFxSampleFile = "./Assets/shader/sample_14_01.fx";
 	std::string getFxSampleFilePath() { return kFxSampleFile; }
 
-	Obserber_14_01 m_obserber;
+	Obserber_14_02 m_obserber;
 	myRenderer::RenderingEngine m_renderingEngine;
 	myRenderer::ModelRender m_modelRenderBg;
 	myRenderer::ModelRender m_modelRenderTeapot;
 };
 
-std::unique_ptr<IModels> ModelFactory_14_01::create()
+std::unique_ptr<IModels> ModelFactory_14_02::create()
 {
-	std::unique_ptr<Models_14_01> m = std::make_unique<Models_14_01>();
+	std::unique_ptr<Models_14_02> m = std::make_unique<Models_14_02>();
 	{
 		m->createModel();
 		m->addObserver();
@@ -72,7 +72,7 @@ std::unique_ptr<IModels> ModelFactory_14_01::create()
 	return std::move(m);
 }
 
-void Obserber_14_01::update(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
+void Obserber_14_02::update(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 {
 	switch (wParam) {
 	case VK_SPACE:
@@ -83,14 +83,14 @@ void Obserber_14_01::update(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 	}
 }
 
-void Models_14_01::resetCamera()
+void Models_14_02::resetCamera()
 {
 	MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 80.0f, 200.0f });
 	MiniEngineIf::getCamera3D()->SetTarget({ 0.0f, 80.0f, 0.0f });
 	MiniEngineIf::getCamera3D()->Update();
 }
 
-void Models_14_01::createModel()
+void Models_14_02::createModel()
 {
 	m_renderingEngine.Init();
 
@@ -115,17 +115,17 @@ void Models_14_01::createModel()
 	}
 }
 
-void Models_14_01::addObserver()
+void Models_14_02::addObserver()
 {
 	WinMgr::addObserver(&m_obserber);
 }
 
-void Models_14_01::removeObserver()
+void Models_14_02::removeObserver()
 {
 	WinMgr::removeObserver(&m_obserber);
 }
 
-void Models_14_01::handleInput()
+void Models_14_02::handleInput()
 {
 	if (!WinMgr::isWindowActive(WinMgr::Handle::kMain))
 		return;
@@ -139,7 +139,7 @@ void Models_14_01::handleInput()
 	getCamera3D()->MoveUp(getStick(StickType::kRY));
 }
 
-void Models_14_01::draw(RenderContext& renderContext)
+void Models_14_02::draw(RenderContext& renderContext)
 {
 	{
 		m_modelRenderBg.Draw();
@@ -162,7 +162,7 @@ void Models_14_01::draw(RenderContext& renderContext)
 	}
 }
 
-void Models_14_01::debugRenderParams()
+void Models_14_02::debugRenderParams()
 {
 	{
 		{
@@ -181,9 +181,9 @@ void Models_14_01::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap14_01()
+	std::unique_ptr<IModels> loadModelForChap14_02()
 	{
-		ModelFactory_14_01 factory;
+		ModelFactory_14_02 factory;
 		std::unique_ptr<IModels> iModels = factory.create();
 		iModels->resetCamera();
 		iModels->debugRenderParams();
