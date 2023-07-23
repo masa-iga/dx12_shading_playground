@@ -49,11 +49,11 @@ public:
 	void debugRenderParams();
 
 private:
-	const std::string kTkmBgFile = "Sample_14_01/Sample_14_01/Assets/modelData/bg/bg.tkm";
+	const std::string kTkmBgFile = "Sample_14_02/Sample_14_02/Assets/modelData/bg/bg.tkm";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
-	const std::string kTkmTeapotFile = "Sample_14_01/Sample_14_01/Assets/modelData/teapot.tkm";
+	const std::string kTkmTeapotFile = "Sample_14_02/Sample_14_02/Assets/modelData/teapot.tkm";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
-	const std::string kFxSampleFile = "./Assets/shader/sample_14_01.fx";
+	const std::string kFxSampleFile = "./Assets/shader/sample_14_02.fx";
 	std::string getFxSampleFilePath() { return kFxSampleFile; }
 
 	Obserber_14_02 m_obserber;
@@ -108,10 +108,10 @@ void Models_14_02::createModel()
 		myRenderer::ModelInitDataFR d;
 		d.m_tkmFilePath = tkmTeapotFilePath.c_str();
 		d.m_fxFilePath = fxSampleFilePath.c_str();
-		d.m_expandShaderResoruceView.at(0) = &m_renderingEngine.GetZPrepassDepthTexture();
+		d.m_expandShaderResoruceView.at(0) = &m_renderingEngine.GetMainRenderTargetSnapshotDrawnOpacity();
 		m_modelRenderTeapot.InitForwardRendering(m_renderingEngine, d);
 		m_modelRenderTeapot.SetShadowCasterFlag(true);
-		m_modelRenderTeapot.UpdateWorldMatrix({ 0.0f, 50.0f, 0.0f }, g_quatIdentity, g_vec3One);
+		m_modelRenderTeapot.UpdateWorldMatrix({ 0.0f, 20.0f, 0.0f }, g_quatIdentity, g_vec3One);
 	}
 }
 
