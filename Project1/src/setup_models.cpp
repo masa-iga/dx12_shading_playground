@@ -38,6 +38,7 @@
 #include "models/model_13_02.h"
 #include "models/model_14_01.h"
 #include "models/model_14_02.h"
+#include "models/model_14_04.h"
 
 #define LOAD_MODEL_CHAP_04_01 (0)
 #define LOAD_MODEL_CHAP_04_03 (0)
@@ -70,7 +71,8 @@
 #define LOAD_MODEL_CHAP_12_04 (0)
 #define LOAD_MODEL_CHAP_13_02 (0)
 #define LOAD_MODEL_CHAP_14_01 (0)
-#define LOAD_MODEL_CHAP_14_02 (1)
+#define LOAD_MODEL_CHAP_14_02 (0)
+#define LOAD_MODEL_CHAP_14_04 (1)
 
 #if LOAD_MODEL_CHAP_14_01
 #include <../Sample_14_01/Sample_14_01/Bloom.cpp>
@@ -81,6 +83,14 @@
 #include <../Sample_14_01/Sample_14_01/ShadowMapRender.cpp>
 #include <../Sample_14_01/Sample_14_01/PostEffect.cpp>
 #elif LOAD_MODEL_CHAP_14_02
+#include <../Sample_14_01/Sample_14_01/Bloom.cpp>
+#include <../Sample_14_01/Sample_14_01/CascadeShadowMapMatrix.cpp>
+#include <../Sample_14_01/Sample_14_01/Dof.cpp>
+#include <../Sample_14_01/Sample_14_01/ModelRender.cpp>
+#include <../Sample_14_01/Sample_14_01/RenderingEngine.cpp>
+#include <../Sample_14_01/Sample_14_01/ShadowMapRender.cpp>
+#include <../Sample_14_01/Sample_14_01/PostEffect.cpp>
+#elif LOAD_MODEL_CHAP_14_04
 #include <../Sample_14_01/Sample_14_01/Bloom.cpp>
 #include <../Sample_14_01/Sample_14_01/CascadeShadowMapMatrix.cpp>
 #include <../Sample_14_01/Sample_14_01/Dof.cpp>
@@ -192,7 +202,10 @@ void Models::loadModel()
 #endif // #if LOAD_MODEL_CHAP_14_01
 #if LOAD_MODEL_CHAP_14_02
 		loadModelInternal(Models::Chapter::k14_02);
-#endif // #if LOAD_MODEL_CHAP_14_01
+#endif // #if LOAD_MODEL_CHAP_14_02
+#if LOAD_MODEL_CHAP_14_04
+		loadModelInternal(Models::Chapter::k14_04);
+#endif // #if LOAD_MODEL_CHAP_14_04
 }
 
 void Models::releaseResource()
@@ -304,7 +317,10 @@ void Models::handleInput()
 #endif // #if LOAD_MODEL_CHAP_14_01
 #if LOAD_MODEL_CHAP_14_02
 		handleInputInternal(Models::Chapter::k14_02);
-#endif // #if LOAD_MODEL_CHAP_14_01
+#endif // #if LOAD_MODEL_CHAP_14_02
+#if LOAD_MODEL_CHAP_14_04
+		handleInputInternal(Models::Chapter::k14_04);
+#endif // #if LOAD_MODEL_CHAP_14_04
 }
 
 void Models::draw(RenderContext& renderContext)
@@ -356,6 +372,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k13_02: s_iModels = ModelHandler::loadModelForChap13_02(); break;
 	case Chapter::k14_01: s_iModels = ModelHandler::loadModelForChap14_01(); break;
 	case Chapter::k14_02: s_iModels = ModelHandler::loadModelForChap14_02(); break;
+	case Chapter::k14_04: s_iModels = ModelHandler::loadModelForChap14_04(); break;
 	default: break;
 	}
 }
@@ -395,6 +412,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k13_02: s_iModels->handleInput(); break;
 	case Chapter::k14_01: s_iModels->handleInput(); break;
 	case Chapter::k14_02: s_iModels->handleInput(); break;
+	case Chapter::k14_04: s_iModels->handleInput(); break;
 	default: break;
 	}
 }
