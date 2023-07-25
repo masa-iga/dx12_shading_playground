@@ -49,11 +49,11 @@ public:
 	void debugRenderParams();
 
 private:
-	const std::string kTkmBgFile = "Sample_14_02/Sample_14_02/Assets/modelData/bg/bg.tkm";
+	const std::string kTkmBgFile = "Sample_14_04/Sample_14_04/Assets/modelData/bg/bg.tkm";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
-	const std::string kTkmTeapotFile = "Sample_14_02/Sample_14_02/Assets/modelData/teapot.tkm";
+	const std::string kTkmTeapotFile = "Sample_14_04/Sample_14_04/Assets/modelData/teapot.tkm";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
-	const std::string kFxSampleFile = "./Assets/shader/sample_14_02.fx";
+	const std::string kFxSampleFile = "./Assets/shader/sample_14_04.fx";
 	std::string getFxSampleFilePath() { return kFxSampleFile; }
 
 	Obserber_14_04 m_obserber;
