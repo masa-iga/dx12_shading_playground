@@ -104,7 +104,7 @@ SPSOut PSMain(SPSIn psIn)
     psOut.normal.xyz = (normal / 2.0f) + 0.5f;
 
     // スペキュラ強度をpsOut.normal.wに代入
-    psOut.normal.z = g_specularMap.Sample(g_sampler, psIn.uv);
+    psOut.normal.w = g_specularMap.Sample(g_sampler, psIn.uv);
 
     // ピクセルシェーダーからワールド座標を出力
     psOut.worldPos.xyz = psIn.worldPos;
