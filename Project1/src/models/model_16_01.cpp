@@ -1,6 +1,7 @@
 #include "model_16_01.h"
 #include <filesystem>
 #include <memory>
+#include <random>
 #include "imodel.h"
 #include "MiniEngine.h"
 #include "model_util.h"
@@ -9,10 +10,6 @@
 #include "../imgui_if.h"
 #include "../miniEngine_if.h"
 #include "../winmgr_win.h"
-#include <../Sample_11_06/Sample_11_06/ModelStandard.h>
-#include <../Sample_14_01/Sample_14_01/MyRenderer.h>
-#include <../Sample_14_01/Sample_14_01/RenderingEngine.h>
-#include <../Sample_14_01/Sample_14_01/ModelRender.h>
 #pragma warning(3 : 4189)
 
 class ModelFactory_16_01 : public IModelFactory
@@ -49,17 +46,27 @@ public:
 	void debugRenderParams();
 
 private:
-	const std::string kTkmBgFile = "Sample_14_04/Sample_14_04/Assets/modelData/bg/bg.tkm";
+	struct SPointLight
+	{
+		Vector3 m_position;
+		float m_pad0 = 0.0f;
+		Vector3 m_color;
+		float m_pad1 = 0.0f;
+		float m_range = 0.0f;
+	};
+	static constexpr size_t kNumPointLight = 1000;
+
+	const std::string kTkmBgFile = "Sample_16_01/Sample_16_01/Assets/modelData/bg.tkm";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
 	const std::string kTkmTeapotFile = "Sample_14_04/Sample_14_04/Assets/modelData/teapot.tkm";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
-	const std::string kFxSampleFile = "./Assets/shader/sample_14_04.fx";
-	std::string getFxSampleFilePath() { return kFxSampleFile; }
+	const std::string kFxModelFile = "./Assets/shader/sample_16_01_model.fx";
+	std::string getFxModelFilePath() { return kFxModelFile; }
 
 	Obserber_16_01 m_obserber;
-	myRenderer::RenderingEngine m_renderingEngine;
-	myRenderer::ModelRender m_modelRenderBg;
-	myRenderer::ModelRender m_modelRenderTeapot;
+	std::unique_ptr<Model> m_modelTeapot = nullptr;
+	std::unique_ptr<Model> m_modelBg = nullptr;
+	std::array<SPointLight, kNumPointLight> m_pointLights;
 };
 
 std::unique_ptr<IModels> ModelFactory_16_01::create()
@@ -85,33 +92,56 @@ void Obserber_16_01::update(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 
 void Models_16_01::resetCamera()
 {
-	MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 80.0f, 200.0f });
-	MiniEngineIf::getCamera3D()->SetTarget({ 0.0f, 80.0f, 0.0f });
-	MiniEngineIf::getCamera3D()->Update();
+	MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 200.0f, 400.0f });
 }
 
 void Models_16_01::createModel()
 {
-	m_renderingEngine.Init();
+	{
+		std::random_device seed_gen;
+		std::mt19937 random(seed_gen());
+
+		for (auto& pt : m_pointLights)
+		{
+			pt.m_position.x = static_cast<float>(random() % 1000) - 500.0f;
+			pt.m_position.y = 20.0f;
+			pt.m_position.z = static_cast<float>(random() % 1000) - 500.0f;
+			pt.m_range = 50.0f;
+			pt.m_color.x = static_cast<float>(random() % 255) / 255.0f;
+			pt.m_color.y = static_cast<float>(random() % 255) / 255.0f;
+			pt.m_color.z = static_cast<float>(random() % 255) / 255.0f;
+		}
+	}
 
 	const std::string tkmBgFilePath = getTkmBgFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmBgFilePath));
 	const std::string tkmTeapotFilePath = getTkmTeapotFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmTeapotFilePath));
-	const std::string fxSampleFilePath = getFxSampleFilePath();
-	Dbg::assert_(std::filesystem::exists(fxSampleFilePath));
+	const std::string fxModelFilePath = getFxModelFilePath();
+	Dbg::assert_(std::filesystem::exists(fxModelFilePath));
 
 	{
-		m_modelRenderBg.InitDeferredRendering(m_renderingEngine, tkmBgFilePath.c_str(), true);
+		ModelInitData d = { };
+		{
+			d.m_expandConstantBuffer = m_pointLights.data();
+			d.m_expandConstantBufferSize = sizeof(m_pointLights);
+			d.m_tkmFilePath = tkmTeapotFilePath.c_str();
+			d.m_fxFilePath = fxModelFilePath.c_str();
+		}
+		m_modelTeapot = std::make_unique<Model>();
+		m_modelTeapot->Init(d);
 	}
+
 	{
-		myRenderer::ModelInitDataFR d;
-		d.m_tkmFilePath = tkmTeapotFilePath.c_str();
-		d.m_fxFilePath = fxSampleFilePath.c_str();
-		d.m_expandShaderResoruceView.at(0) = &m_renderingEngine.GetMainRenderTargetSnapshotDrawnOpacity();
-		m_modelRenderTeapot.InitForwardRendering(m_renderingEngine, d);
-		m_modelRenderTeapot.SetShadowCasterFlag(true);
-		m_modelRenderTeapot.UpdateWorldMatrix({ 0.0f, 20.0f, 0.0f }, g_quatIdentity, g_vec3One);
+		ModelInitData d = { };
+		{
+			d.m_expandConstantBuffer = m_pointLights.data();
+			d.m_expandConstantBufferSize = sizeof(m_pointLights);
+			d.m_tkmFilePath = tkmBgFilePath.c_str();
+			d.m_fxFilePath = fxModelFilePath.c_str();
+		}
+		m_modelBg = std::make_unique<Model>();
+		m_modelBg->Init(d);
 	}
 }
 
@@ -133,6 +163,16 @@ void Models_16_01::handleInput()
 	if (m_obserber.isPaused())
 		return;
 
+	{
+		Quaternion qRot;
+		qRot.SetRotationDegY(1.0f);
+
+		for (auto& pt : m_pointLights)
+		{
+			qRot.Apply(pt.m_position);
+		}
+	}
+
 	using namespace MiniEngineIf;
 	getCamera3D()->MoveForward(getStick(StickType::kLY));
 	getCamera3D()->MoveRight(getStick(StickType::kLX));
@@ -141,25 +181,8 @@ void Models_16_01::handleInput()
 
 void Models_16_01::draw(RenderContext& renderContext)
 {
-	{
-		m_modelRenderBg.Draw();
-		m_modelRenderTeapot.Draw();
-
-		m_renderingEngine.Execute(renderContext);
-	}
-
-	// copy main frame buffer of in GraphicsEngine to buffer in my engine
-	{
-		{
-			CD3DX12_VIEWPORT vp(MiniEngineIf::getRenderTargetResource());
-			renderContext.SetViewportAndScissor(vp);
-		}
-		{
-			D3D12_CPU_DESCRIPTOR_HANDLE rtv = MiniEngineIf::getOffscreenRtvCpuDescHandle();
-			D3D12_CPU_DESCRIPTOR_HANDLE dsv = MiniEngineIf::getOffscreenDsvCpuDescHandle();
-			m_renderingEngine.CopyMainRenderTarget(renderContext, rtv, dsv);
-		}
-	}
+	m_modelTeapot->Draw(renderContext);
+	m_modelBg->Draw(renderContext);
 }
 
 void Models_16_01::debugRenderParams()
