@@ -88,7 +88,7 @@ HRESULT enableDebugLayer()
 
 void createDevice()
 {
-	Dbg::ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&s_factory)));
+	Dbg::ThrowIfFailed(CreateDXGIFactory(IID_PPV_ARGS(&s_factory)));
 
 	ComPtr<IDXGIAdapter> hardwareAdapter = { };
 	GetHardwareAdapter(s_factory.Get(), hardwareAdapter.ReleaseAndGetAddressOf());
