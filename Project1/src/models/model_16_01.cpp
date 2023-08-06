@@ -53,12 +53,14 @@ private:
 		Vector3 m_color;
 		float m_pad1 = 0.0f;
 		float m_range = 0.0f;
+		float m_pad2[3] = { 0.0f, 0.0f, 0.0f };
 	};
+	static_assert(sizeof(SPointLight) % 16 == 0);
 	static constexpr size_t kNumPointLight = 1000;
 
 	const std::string kTkmBgFile = "Sample_16_01/Sample_16_01/Assets/modelData/bg.tkm";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
-	const std::string kTkmTeapotFile = "Sample_14_04/Sample_14_04/Assets/modelData/teapot.tkm";
+	const std::string kTkmTeapotFile = "Sample_16_01/Sample_16_01/Assets/modelData/teapot.tkm";
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
 	const std::string kFxModelFile = "./Assets/shader/sample_16_01_model.fx";
 	std::string getFxModelFilePath() { return kFxModelFile; }
@@ -157,6 +159,13 @@ void Models_16_01::removeObserver()
 
 void Models_16_01::handleInput()
 {
+	{
+		using namespace MiniEngineIf;
+		getCamera3D()->MoveForward(getStick(StickType::kLY));
+		getCamera3D()->MoveRight(getStick(StickType::kLX));
+		getCamera3D()->MoveUp(getStick(StickType::kRY));
+	}
+
 	if (!WinMgr::isWindowActive(WinMgr::Handle::kMain))
 		return;
 
@@ -165,18 +174,13 @@ void Models_16_01::handleInput()
 
 	{
 		Quaternion qRot;
-		qRot.SetRotationDegY(1.0f);
+		qRot.SetRotationDegY(0.2f);
 
 		for (auto& pt : m_pointLights)
 		{
 			qRot.Apply(pt.m_position);
 		}
 	}
-
-	using namespace MiniEngineIf;
-	getCamera3D()->MoveForward(getStick(StickType::kLY));
-	getCamera3D()->MoveRight(getStick(StickType::kLX));
-	getCamera3D()->MoveUp(getStick(StickType::kRY));
 }
 
 void Models_16_01::draw(RenderContext& renderContext)
@@ -199,6 +203,22 @@ void Models_16_01::debugRenderParams()
 		{
 			const Vector3& v = MiniEngineIf::getCamera3D()->GetUp();
 			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraUp", std::vector<const float*>{ &v.x, &v.y, &v.z });
+		}
+		{
+			constexpr size_t n = 5;
+			const auto& light = m_pointLights[n];
+			{
+				const Vector3& v = light.m_position;
+				ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light pos  ", std::vector<const float*>{ &v.x, &v.y, &v.z });
+			}
+			{
+				const Vector3& v = light.m_color;
+				ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light col  ", std::vector<const float*>{ &v.x, &v.y, &v.z });
+			}
+			{
+				const float r = light.m_range;
+				ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light range", std::vector<const float*>{ &r });
+			}
 		}
 	}
 }
