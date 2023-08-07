@@ -2,6 +2,7 @@
 #include "dds_loader_if.h"
 #include "device_d3d12.h"
 #include "imgui_if.h"
+#include "fps.h"
 #include "render_d3d12.h"
 #include "swapchain_d3d12.h"
 #include "winmgr_win.h"
@@ -11,6 +12,7 @@ static uint64_t s_frame = 0;
 void setup(HINSTANCE hInstance, int nCmdShow);
 void load();
 void teardown();
+void computeFps();
 
 int WINAPI wWinMain(HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstance, [[maybe_unused]] PWSTR pCmdLine, int nCmdShow)
 {
@@ -27,6 +29,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, [[maybe_unused]] HINSTANCE hPrevInstanc
 		
 		Render::onUpdate();
 		Render::onRender();
+		computeFps();
 		++s_frame;
 	}
 
@@ -44,6 +47,7 @@ void setup(HINSTANCE hInstance, int nCmdShow)
 	DdsLoaderIf::setDevice(DeviceD3D12::getDevice());
 
 	ImguiIf::printParams<uint64_t>(ImguiIf::VarType::kUint64, "Frame", std::vector<const uint64_t*>{ &s_frame }, ImguiIf::ParamType::kFrame);
+	ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Fps", std::vector<const float*>{ Fps::getFpsRef() }, ImguiIf::ParamType::kGeneral);
 }
 
 void load()
@@ -56,4 +60,9 @@ void teardown()
 	Render::onDestroy();
 	DeviceD3D12::tearDown();
 	WinMgr::teardown();
+}
+
+void computeFps()
+{
+	Fps::compute();
 }
