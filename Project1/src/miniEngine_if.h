@@ -2,6 +2,7 @@
 #include <d3d12.h>
 #include <windows.h>
 class Camera;
+class Timestamp;
 
 namespace MiniEngineIf {
 	enum class StickType {
@@ -36,8 +37,8 @@ namespace MiniEngineIf {
 	ID3D12Resource* getRenderTargetResource();
 	D3D12_CPU_DESCRIPTOR_HANDLE getOffscreenRtvCpuDescHandle();
 	D3D12_CPU_DESCRIPTOR_HANDLE getOffscreenDsvCpuDescHandle();
-	void beginFrame();
-	void endFrame();
+	void beginFrame(Timestamp* timestamp = nullptr);
+	void endFrame(Timestamp* timestamp = nullptr);
 	void clearRenderTarget(ID3D12GraphicsCommandList* commandList);
 	void clearDepthRenderTarget(ID3D12GraphicsCommandList* commandList);
 	void setOffscreenRenderTarget();

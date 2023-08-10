@@ -181,6 +181,7 @@ void Models_16_01::handleInput()
 			qRot.Apply(pt.m_position);
 		}
 	}
+	// TODO: bottne neck‚ğ’T‚·Brendering time‚ª³‚µ‚­‚È‚¢‚©‚à
 }
 
 void Models_16_01::draw(RenderContext& renderContext)

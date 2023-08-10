@@ -3,6 +3,7 @@
 #include "../../import/hlsl-grimoire-sample/MiniEngine/MiniEngine.h"
 #include "debug_win.h"
 #include "setup_models.h"
+#include "timestamp.h"
 
 #pragma comment(lib, "hlsl-grimoire-sample_miniEngine.lib")
 
@@ -11,6 +12,7 @@ namespace {
 	void createDepthRenderTarget(ID3D12Device* device);
 	void handleInputInternal();
 	void drawInternal();
+	ID3D12GraphicsCommandList* getCommandList();
 
 	constexpr DXGI_FORMAT kRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	constexpr UINT kRenderTargetWidth = 1920;
@@ -69,13 +71,24 @@ namespace MiniEngineIf {
 		return s_descHeapDrt->GetCPUDescriptorHandleForHeapStart();
 	}
 
-	void beginFrame()
+	void beginFrame(Timestamp* timestamp)
 	{
 		g_engine->BeginFrame();
+
+		if (timestamp)
+		{
+			timestamp->query(getCommandList(), Timestamp::Point::kFrameBegin);
+		}
 	}
 
-	void endFrame()
+	void endFrame(Timestamp* timestamp)
 	{
+		if (timestamp)
+		{
+			timestamp->query(getCommandList(), Timestamp::Point::kFrameEnd);
+			timestamp->resolve(getCommandList());
+		}
+
 		g_engine->EndFrame();
 	}
 
@@ -260,6 +273,11 @@ namespace {
 	{
 		auto& renderContext = g_graphicsEngine->GetRenderContext();
 		s_models.draw(renderContext);
+	}
+
+	ID3D12GraphicsCommandList* getCommandList()
+	{
+		return g_graphicsEngine->GetCommandList();
 	}
 }
 

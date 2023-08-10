@@ -93,9 +93,9 @@ namespace Render {
 	{
 		startFrame();
 
-		MiniEngineIf::beginFrame();
+		MiniEngineIf::beginFrame(&s_timestamp);
 		MiniEngineIf::draw(true);
-		MiniEngineIf::endFrame();
+		MiniEngineIf::endFrame(&s_timestamp);
 
 		populateCommandList();
 
@@ -191,14 +191,10 @@ namespace {
 		ImguiIf::startFrame();
 		s_gpuTimeInUsec = static_cast<float>(s_timestamp.computeDiffInUsec(Timestamp::Point::kFrameBegin, Timestamp::Point::kFrameEnd));
 		s_timestamp.flip();
-		s_timestamp.query(s_commandList.Get(), Timestamp::Point::kFrameBegin);
 	}
 
 	void endFrame()
 	{
-		s_timestamp.query(s_commandList.Get(), Timestamp::Point::kFrameEnd);
-		s_timestamp.resolve(s_commandList.Get());
-
 		Dbg::ThrowIfFailed(s_commandList->Close());
 	}
 
