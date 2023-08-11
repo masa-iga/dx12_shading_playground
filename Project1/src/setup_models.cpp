@@ -40,6 +40,7 @@
 #include "models/model_14_02.h"
 #include "models/model_14_04.h"
 #include "models/model_16_01.h"
+#include "models/model_16_02.h"
 
 #define LOAD_MODEL_CHAP_04_01 (0)
 #define LOAD_MODEL_CHAP_04_03 (0)
@@ -74,7 +75,8 @@
 #define LOAD_MODEL_CHAP_14_01 (0)
 #define LOAD_MODEL_CHAP_14_02 (0)
 #define LOAD_MODEL_CHAP_14_04 (0)
-#define LOAD_MODEL_CHAP_16_01 (1)
+#define LOAD_MODEL_CHAP_16_01 (0)
+#define LOAD_MODEL_CHAP_16_02 (1)
 
 #if LOAD_MODEL_CHAP_14_01
 #include <../Sample_14_01/Sample_14_01/Bloom.cpp>
@@ -219,6 +221,9 @@ void Models::loadModel()
 #if LOAD_MODEL_CHAP_16_01
 		loadModelInternal(Models::Chapter::k16_01);
 #endif // #if LOAD_MODEL_CHAP_16_01
+#if LOAD_MODEL_CHAP_16_02
+		loadModelInternal(Models::Chapter::k16_02);
+#endif // #if LOAD_MODEL_CHAP_16_02
 }
 
 void Models::releaseResource()
@@ -337,6 +342,9 @@ void Models::handleInput()
 #if LOAD_MODEL_CHAP_16_01
 		handleInputInternal(Models::Chapter::k16_01);
 #endif // #if LOAD_MODEL_CHAP_16_01
+#if LOAD_MODEL_CHAP_16_02
+		handleInputInternal(Models::Chapter::k16_02);
+#endif // #if LOAD_MODEL_CHAP_16_02
 }
 
 void Models::draw(RenderContext& renderContext)
@@ -390,6 +398,7 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k14_02: s_iModels = ModelHandler::loadModelForChap14_02(); break;
 	case Chapter::k14_04: s_iModels = ModelHandler::loadModelForChap14_04(); break;
 	case Chapter::k16_01: s_iModels = ModelHandler::loadModelForChap16_01(); break;
+	case Chapter::k16_02: s_iModels = ModelHandler::loadModelForChap16_02(); break;
 	default: break;
 	}
 }
@@ -431,6 +440,7 @@ void Models::handleInputInternal(Chapter chapter)
 	case Chapter::k14_02: s_iModels->handleInput(); break;
 	case Chapter::k14_04: s_iModels->handleInput(); break;
 	case Chapter::k16_01: s_iModels->handleInput(); break;
+	case Chapter::k16_02: s_iModels->handleInput(); break;
 	default: break;
 	}
 }

@@ -183,6 +183,9 @@
     <ClCompile Include="fps.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="models\model_16_02.cpp">
+      <Filter>ソース ファイル\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="winmgr_win.h">
@@ -337,6 +340,9 @@
     </ClInclude>
     <ClInclude Include="fps.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="models\model_16_02.h">
+      <Filter>ソース ファイル\models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
