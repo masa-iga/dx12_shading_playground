@@ -46,6 +46,37 @@ public:
 	void debugRenderParams();
 
 private:
+#if 1
+	static constexpr size_t kNumDirectionLight = 4;
+	static constexpr size_t kNumPointLight = 1000;
+	static constexpr int32_t kRtWidth = 1280;
+	static constexpr int32_t kRtHeight = 720;
+
+	struct alignas(16) DirectionalLight
+	{
+		Vector3 m_color;
+		float m_pad0 = 0.0f;
+		Vector3 m_direction;
+	};
+
+	struct alignas(16) PointLight
+	{
+		Vector3 m_position;
+		float m_pad0 = 0.0f;
+		Vector3 m_color;
+		float m_range = 0.0f;
+	};
+
+	struct Light
+	{
+		std::array<DirectionalLight, kNumDirectionLight> m_directionLights;
+		std::array<PointLight, kNumPointLight> m_pointLights;
+		Matrix m_mViewProjInv;
+		Vector3 m_eyePos;
+		float m_specRow = 0.0f;
+	};
+#endif
+
 	struct SPointLight
 	{
 		Vector3 m_position;
@@ -56,7 +87,6 @@ private:
 		float m_pad2[3] = { 0.0f, 0.0f, 0.0f };
 	};
 	static_assert(sizeof(SPointLight) % 16 == 0);
-	static constexpr size_t kNumPointLight = 1000;
 
 	const std::string kTkmBgFile = "Sample_16_01/Sample_16_01/Assets/modelData/bg.tkm";
 	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
@@ -64,11 +94,21 @@ private:
 	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
 	const std::string kFxModelFile = "./Assets/shader/sample_16_01_model.fx";
 	std::string getFxModelFilePath() { return kFxModelFile; }
-
+#if 1
+	const std::string kFxDefferedLightingFile = "./Assets/shader/sample_16_02_defferedLighting.fx";
+	std::string getFxDefferedLightingFilePath() { return kFxDefferedLightingFile; }
+#endif
 	Obserber_16_02 m_obserber;
 	std::unique_ptr<Model> m_modelTeapot = nullptr;
 	std::unique_ptr<Model> m_modelBg = nullptr;
 	std::array<SPointLight, kNumPointLight> m_pointLights;
+
+#if 1
+	std::unique_ptr<Light> m_light = nullptr;
+	RenderTarget m_albedoRenderTarget;
+	RenderTarget m_normalRenderTarget;
+	std::unique_ptr<Sprite> m_defferedLightingSprite = nullptr;
+#endif
 };
 
 std::unique_ptr<IModels> ModelFactory_16_02::create()
@@ -99,6 +139,34 @@ void Models_16_02::resetCamera()
 
 void Models_16_02::createModel()
 {
+#if 1
+	{
+		constexpr int32_t mipLevel = 1;
+		constexpr int32_t arraySize = 1;
+
+		bool bRet = false;
+
+		bRet = m_albedoRenderTarget.Create(
+			kRtWidth,
+			kRtHeight,
+			mipLevel,
+			arraySize,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			DXGI_FORMAT_D32_FLOAT
+		);
+		Dbg::assert_(bRet);
+
+		bRet = m_normalRenderTarget.Create(
+			kRtWidth,
+			kRtHeight,
+			mipLevel,
+			arraySize,
+			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			DXGI_FORMAT_UNKNOWN
+		);
+		Dbg::assert_(bRet);
+	}
+#endif
 	{
 		std::random_device seed_gen;
 		std::mt19937 random(seed_gen());
@@ -114,6 +182,43 @@ void Models_16_02::createModel()
 			pt.m_color.z = static_cast<float>(random() % 255) / 255.0f;
 		}
 	}
+#if 1
+	m_light = std::make_unique<Light>();
+	{
+		m_light->m_eyePos = MiniEngineIf::getCamera3D()->GetPosition();
+		m_light->m_specRow = 5.0f;
+		m_light->m_mViewProjInv.Inverse(MiniEngineIf::getCamera3D()->GetViewProjectionMatrix());
+	}
+	{
+		m_light->m_directionLights.at(0).m_direction.Set(1.0f, 0.0f, 0.0f);
+		m_light->m_directionLights.at(0).m_color.Set(0.5f, 0.5f, 0.5f);
+		m_light->m_directionLights.at(1).m_direction.Set(-1.0f, 0.0f, 0.0f);
+		m_light->m_directionLights.at(1).m_color.Set(0.5f, 0.0f, 0.0f);
+		m_light->m_directionLights.at(2).m_direction.Set(0.0f, 0.0f, 1.0f);
+		m_light->m_directionLights.at(2).m_color.Set(0.0f, 0.5f, 0.0f);
+		m_light->m_directionLights.at(3).m_direction.Set(0.0f, -1.0f, 0.0f);
+		m_light->m_directionLights.at(3).m_color.Set(0.0f, 0.0f, 0.5f);
+	}
+	{
+		std::random_device seed_gen;
+		std::mt19937 random(seed_gen());
+
+		for (auto& pt : m_light->m_pointLights)
+		{
+			pt.m_position = {
+				static_cast<float>(random() % 1000) - 500.0f,
+				20.0f,
+				static_cast<float>(random() % 1000) - 500.0f
+			};
+			pt.m_range = 50.0f;
+			pt.m_color = {
+				static_cast<float>(random() % 255) / 255.0f,
+				static_cast<float>(random() % 255) / 255.0f,
+				static_cast<float>(random() % 255) / 255.0f
+			};
+		}
+	}
+#endif
 
 	const std::string tkmBgFilePath = getTkmBgFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmBgFilePath));
@@ -121,6 +226,10 @@ void Models_16_02::createModel()
 	Dbg::assert_(std::filesystem::exists(tkmTeapotFilePath));
 	const std::string fxModelFilePath = getFxModelFilePath();
 	Dbg::assert_(std::filesystem::exists(fxModelFilePath));
+#if 1
+	const std::string fxDefferedLightingFilePath = getFxDefferedLightingFilePath();
+	Dbg::assert_(std::filesystem::exists(fxDefferedLightingFilePath));
+#endif
 
 	{
 		ModelInitData d = { };
@@ -145,6 +254,23 @@ void Models_16_02::createModel()
 		m_modelBg = std::make_unique<Model>();
 		m_modelBg->Init(d);
 	}
+
+#if 1
+	{
+		SpriteInitData d;
+		{
+			d.m_width = Config::kRenderTargetWidth;
+			d.m_height = Config::kRenderTargetHeight;
+			d.m_textures.at(0) = &m_albedoRenderTarget.GetRenderTargetTexture();
+			d.m_textures.at(1) = &m_normalRenderTarget.GetRenderTargetTexture();
+			d.m_fxFilePath = fxDefferedLightingFilePath.c_str();
+			d.m_expandConstantBuffer = nullptr; // TODO
+			d.m_expandConstantBufferSize = 0; // TODO
+		}
+		m_defferedLightingSprite = std::make_unique<Sprite>();
+		m_defferedLightingSprite->Init(d);
+	}
+#endif
 }
 
 void Models_16_02::addObserver()
@@ -186,8 +312,29 @@ void Models_16_02::handleInput()
 
 void Models_16_02::draw(RenderContext& renderContext)
 {
+#if 0
 	m_modelTeapot->Draw(renderContext);
 	m_modelBg->Draw(renderContext);
+#else
+	RenderTarget* gbuffers[] = {
+		&m_albedoRenderTarget,
+		&m_normalRenderTarget
+	};
+
+	renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
+
+	renderContext.SetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
+	renderContext.ClearRenderTargetViews(ARRAYSIZE(gbuffers), gbuffers);
+
+	m_modelTeapot->Draw(renderContext);
+	m_modelBg->Draw(renderContext);
+
+	renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
+
+	MiniEngineIf::setOffscreenRenderTarget();
+
+	m_defferedLightingSprite->Draw(renderContext);
+#endif
 }
 
 void Models_16_02::debugRenderParams()
