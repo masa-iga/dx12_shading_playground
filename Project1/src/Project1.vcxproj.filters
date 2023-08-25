@@ -475,5 +475,8 @@
     <FxCompile Include="Assets\shader\sample_16_02_defferedLighting.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_16_02_renderGBuffer.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

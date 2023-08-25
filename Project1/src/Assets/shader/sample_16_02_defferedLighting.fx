@@ -44,8 +44,7 @@ struct PSInput
 
 Texture2D<float4> albedoTexture : register(t0); // アルベド
 Texture2D<float4> normalTexture : register(t1); // 法線
-
-// step-6 深度テクスチャの追加
+Texture2D<float> depthTexture : register(t2); // 深度テクスチ
 
 sampler Sampler : register(s0);
 
@@ -117,11 +116,12 @@ float4 PSMain(PSInput In) : SV_Target0
     float4 albedo = albedoTexture.Sample(Sampler, In.uv);
     float3 normal = normalTexture.Sample(Sampler, In.uv).xyz;
 
-    // step-7 射影空間の深度値からワールド座標を復元する
+    // 射影空間の深度値からワールド座標を復元する
+    float depth = depthTexture.Sample(Sampler, In.uv);
+    float3 worldPos = CalcWorldPosFromUVZ(In.uv, depth, mViewProjInv);
 
     float3 lig = 0.0f;
 
-#if 0
     // 視点に向かって伸びるベクトルを計算
     float3 toEye = normalize(eyePos - worldPos);
 
@@ -142,10 +142,24 @@ float4 PSMain(PSInput In) : SV_Target0
             toEye);
     }
 
-    // step-8 ポイントライトを計算
-#else
-    lig = 1.0f;
-#endif
+    // ポイントライトを計算
+    for (int lig2No = 0; lig2No < NUM_POINT_LIGHT; lig2No++)
+    {
+        float3 ligDir = normalize(worldPos - pointLight[lig2No].position);
+        float distance = length(pointLight[lig2No].position - worldPos);
+        float affect = max(0.0f, 1 - distance / pointLight[lig2No].range);
+
+        lig += CalcLambertReflection(
+            ligDir,
+            pointLight[lig2No].color,
+            normal) * affect;
+
+        lig += CalcSpecularReflection(
+            ligDir,
+            pointLight[lig2No].color,
+            normal,
+            toEye) * affect;
+    }
 
     float4 finalColor = albedo;
     finalColor.xyz *= lig;

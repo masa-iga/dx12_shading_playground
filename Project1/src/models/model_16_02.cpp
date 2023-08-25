@@ -89,14 +89,16 @@ private:
 	static_assert(sizeof(SPointLight) % 16 == 0);
 
 	const std::string kTkmBgFile = "Sample_16_01/Sample_16_01/Assets/modelData/bg.tkm";
-	std::string getTkmBgFilePath() { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
+	std::string getTkmBgFilePath() const { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
 	const std::string kTkmTeapotFile = "Sample_16_01/Sample_16_01/Assets/modelData/teapot.tkm";
-	std::string getTkmTeapotFilePath() { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
+	std::string getTkmTeapotFilePath() const { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
 	const std::string kFxModelFile = "./Assets/shader/sample_16_01_model.fx";
-	std::string getFxModelFilePath() { return kFxModelFile; }
+	std::string getFxModelFilePath() const { return kFxModelFile; }
 #if 1
+	const std::string kFxRenderGBuffer = "./Assets/shader/sample_16_02_renderGBuffer.fx";
+	std::string getFxRenderGBufferPath() const { return kFxRenderGBuffer; };
 	const std::string kFxDefferedLightingFile = "./Assets/shader/sample_16_02_defferedLighting.fx";
-	std::string getFxDefferedLightingFilePath() { return kFxDefferedLightingFile; }
+	std::string getFxDefferedLightingFilePath() const { return kFxDefferedLightingFile; }
 #endif
 	Obserber_16_02 m_obserber;
 	std::unique_ptr<Model> m_modelTeapot = nullptr;
@@ -107,6 +109,7 @@ private:
 	std::unique_ptr<Light> m_light = nullptr;
 	RenderTarget m_albedoRenderTarget;
 	RenderTarget m_normalRenderTarget;
+	RenderTarget m_depthRenderTarget;
 	std::unique_ptr<Sprite> m_defferedLightingSprite = nullptr;
 #endif
 };
@@ -135,6 +138,7 @@ void Obserber_16_02::update(WPARAM wParam, [[maybe_unused]] LPARAM lParam)
 void Models_16_02::resetCamera()
 {
 	MiniEngineIf::getCamera3D()->SetPosition({ 0.0f, 200.0f, 400.0f });
+	MiniEngineIf::getCamera3D()->Update();
 }
 
 void Models_16_02::createModel()
@@ -162,6 +166,16 @@ void Models_16_02::createModel()
 			mipLevel,
 			arraySize,
 			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			DXGI_FORMAT_UNKNOWN
+		);
+		Dbg::assert_(bRet);
+
+		bRet = m_depthRenderTarget.Create(
+			kRtWidth,
+			kRtHeight,
+			mipLevel,
+			arraySize,
+			DXGI_FORMAT_R32_FLOAT,
 			DXGI_FORMAT_UNKNOWN
 		);
 		Dbg::assert_(bRet);
@@ -227,6 +241,8 @@ void Models_16_02::createModel()
 	const std::string fxModelFilePath = getFxModelFilePath();
 	Dbg::assert_(std::filesystem::exists(fxModelFilePath));
 #if 1
+	const std::string fxRenderGBufferPath = getFxRenderGBufferPath();
+	Dbg::assert_(std::filesystem::exists(fxRenderGBufferPath));
 	const std::string fxDefferedLightingFilePath = getFxDefferedLightingFilePath();
 	Dbg::assert_(std::filesystem::exists(fxDefferedLightingFilePath));
 #endif
@@ -237,7 +253,10 @@ void Models_16_02::createModel()
 			d.m_expandConstantBuffer = m_pointLights.data();
 			d.m_expandConstantBufferSize = sizeof(m_pointLights);
 			d.m_tkmFilePath = tkmTeapotFilePath.c_str();
-			d.m_fxFilePath = fxModelFilePath.c_str();
+			d.m_fxFilePath = fxRenderGBufferPath.c_str();
+			d.m_colorBufferFormat.at(0) = m_albedoRenderTarget.GetColorBufferFormat();
+			d.m_colorBufferFormat.at(1) = m_normalRenderTarget.GetColorBufferFormat();
+			d.m_colorBufferFormat.at(2) = m_depthRenderTarget.GetColorBufferFormat();
 		}
 		m_modelTeapot = std::make_unique<Model>();
 		m_modelTeapot->Init(d);
@@ -249,7 +268,10 @@ void Models_16_02::createModel()
 			d.m_expandConstantBuffer = m_pointLights.data();
 			d.m_expandConstantBufferSize = sizeof(m_pointLights);
 			d.m_tkmFilePath = tkmBgFilePath.c_str();
-			d.m_fxFilePath = fxModelFilePath.c_str();
+			d.m_fxFilePath = fxRenderGBufferPath.c_str();
+			d.m_colorBufferFormat.at(0) = m_albedoRenderTarget.GetColorBufferFormat();
+			d.m_colorBufferFormat.at(1) = m_normalRenderTarget.GetColorBufferFormat();
+			d.m_colorBufferFormat.at(2) = m_depthRenderTarget.GetColorBufferFormat();
 		}
 		m_modelBg = std::make_unique<Model>();
 		m_modelBg->Init(d);
@@ -263,9 +285,10 @@ void Models_16_02::createModel()
 			d.m_height = Config::kRenderTargetHeight;
 			d.m_textures.at(0) = &m_albedoRenderTarget.GetRenderTargetTexture();
 			d.m_textures.at(1) = &m_normalRenderTarget.GetRenderTargetTexture();
+			d.m_textures.at(2) = &m_depthRenderTarget.GetRenderTargetTexture();
 			d.m_fxFilePath = fxDefferedLightingFilePath.c_str();
-			d.m_expandConstantBuffer = nullptr; // TODO
-			d.m_expandConstantBufferSize = 0; // TODO
+			d.m_expandConstantBuffer = m_light.get();
+			d.m_expandConstantBufferSize = sizeof(*m_light);
 		}
 		m_defferedLightingSprite = std::make_unique<Sprite>();
 		m_defferedLightingSprite->Init(d);
@@ -302,12 +325,19 @@ void Models_16_02::handleInput()
 		Quaternion qRot;
 		qRot.SetRotationDegY(0.2f);
 
+#if 0
 		for (auto& pt : m_pointLights)
 		{
 			qRot.Apply(pt.m_position);
 		}
+#endif
+#if 1
+		for (auto& pt : m_light->m_pointLights)
+		{
+			qRot.Apply(pt.m_position);
+		}
+#endif
 	}
-	// TODO: bottne neck‚ð’T‚·Brendering time‚ª³‚µ‚­‚È‚¢‚©‚à
 }
 
 void Models_16_02::draw(RenderContext& renderContext)
@@ -318,7 +348,8 @@ void Models_16_02::draw(RenderContext& renderContext)
 #else
 	RenderTarget* gbuffers[] = {
 		&m_albedoRenderTarget,
-		&m_normalRenderTarget
+		&m_normalRenderTarget,
+		&m_depthRenderTarget
 	};
 
 	renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
@@ -329,7 +360,7 @@ void Models_16_02::draw(RenderContext& renderContext)
 	m_modelTeapot->Draw(renderContext);
 	m_modelBg->Draw(renderContext);
 
-	renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
+	renderContext.WaitUntilFinishDrawingToRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
 
 	MiniEngineIf::setOffscreenRenderTarget();
 
