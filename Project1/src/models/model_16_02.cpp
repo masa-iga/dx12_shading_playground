@@ -46,7 +46,6 @@ public:
 	void debugRenderParams();
 
 private:
-#if 1
 	static constexpr size_t kNumDirectionLight = 4;
 	static constexpr size_t kNumPointLight = 1000;
 	static constexpr int32_t kRtWidth = 1280;
@@ -57,6 +56,7 @@ private:
 		Vector3 m_color;
 		float m_pad0 = 0.0f;
 		Vector3 m_direction;
+		float m_pad1 = 0.0f;
 	};
 
 	struct alignas(16) PointLight
@@ -75,43 +75,24 @@ private:
 		Vector3 m_eyePos;
 		float m_specRow = 0.0f;
 	};
-#endif
 
-	struct SPointLight
-	{
-		Vector3 m_position;
-		float m_pad0 = 0.0f;
-		Vector3 m_color;
-		float m_pad1 = 0.0f;
-		float m_range = 0.0f;
-		float m_pad2[3] = { 0.0f, 0.0f, 0.0f };
-	};
-	static_assert(sizeof(SPointLight) % 16 == 0);
-
-	const std::string kTkmBgFile = "Sample_16_01/Sample_16_01/Assets/modelData/bg.tkm";
+	const std::string kTkmBgFile = "Sample_16_02/Sample_16_02/Assets/modelData/bg.tkm";
 	std::string getTkmBgFilePath() const { return ModelUtil::getPathFromAssetDir(kTkmBgFile); }
-	const std::string kTkmTeapotFile = "Sample_16_01/Sample_16_01/Assets/modelData/teapot.tkm";
+	const std::string kTkmTeapotFile = "Sample_16_02/Sample_16_02/Assets/modelData/teapot.tkm";
 	std::string getTkmTeapotFilePath() const { return ModelUtil::getPathFromAssetDir(kTkmTeapotFile); }
-	const std::string kFxModelFile = "./Assets/shader/sample_16_01_model.fx";
-	std::string getFxModelFilePath() const { return kFxModelFile; }
-#if 1
 	const std::string kFxRenderGBuffer = "./Assets/shader/sample_16_02_renderGBuffer.fx";
 	std::string getFxRenderGBufferPath() const { return kFxRenderGBuffer; };
 	const std::string kFxDefferedLightingFile = "./Assets/shader/sample_16_02_defferedLighting.fx";
 	std::string getFxDefferedLightingFilePath() const { return kFxDefferedLightingFile; }
-#endif
+
 	Obserber_16_02 m_obserber;
 	std::unique_ptr<Model> m_modelTeapot = nullptr;
 	std::unique_ptr<Model> m_modelBg = nullptr;
-	std::array<SPointLight, kNumPointLight> m_pointLights;
-
-#if 1
 	std::unique_ptr<Light> m_light = nullptr;
 	RenderTarget m_albedoRenderTarget;
 	RenderTarget m_normalRenderTarget;
 	RenderTarget m_depthRenderTarget;
 	std::unique_ptr<Sprite> m_defferedLightingSprite = nullptr;
-#endif
 };
 
 std::unique_ptr<IModels> ModelFactory_16_02::create()
@@ -143,7 +124,6 @@ void Models_16_02::resetCamera()
 
 void Models_16_02::createModel()
 {
-#if 1
 	{
 		constexpr int32_t mipLevel = 1;
 		constexpr int32_t arraySize = 1;
@@ -180,25 +160,10 @@ void Models_16_02::createModel()
 		);
 		Dbg::assert_(bRet);
 	}
-#endif
-	{
-		std::random_device seed_gen;
-		std::mt19937 random(seed_gen());
 
-		for (auto& pt : m_pointLights)
-		{
-			pt.m_position.x = static_cast<float>(random() % 1000) - 500.0f;
-			pt.m_position.y = 20.0f;
-			pt.m_position.z = static_cast<float>(random() % 1000) - 500.0f;
-			pt.m_range = 50.0f;
-			pt.m_color.x = static_cast<float>(random() % 255) / 255.0f;
-			pt.m_color.y = static_cast<float>(random() % 255) / 255.0f;
-			pt.m_color.z = static_cast<float>(random() % 255) / 255.0f;
-		}
-	}
-#if 1
 	m_light = std::make_unique<Light>();
 	{
+		resetCamera();
 		m_light->m_eyePos = MiniEngineIf::getCamera3D()->GetPosition();
 		m_light->m_specRow = 5.0f;
 		m_light->m_mViewProjInv.Inverse(MiniEngineIf::getCamera3D()->GetViewProjectionMatrix());
@@ -232,26 +197,19 @@ void Models_16_02::createModel()
 			};
 		}
 	}
-#endif
 
 	const std::string tkmBgFilePath = getTkmBgFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmBgFilePath));
 	const std::string tkmTeapotFilePath = getTkmTeapotFilePath();
 	Dbg::assert_(std::filesystem::exists(tkmTeapotFilePath));
-	const std::string fxModelFilePath = getFxModelFilePath();
-	Dbg::assert_(std::filesystem::exists(fxModelFilePath));
-#if 1
 	const std::string fxRenderGBufferPath = getFxRenderGBufferPath();
 	Dbg::assert_(std::filesystem::exists(fxRenderGBufferPath));
 	const std::string fxDefferedLightingFilePath = getFxDefferedLightingFilePath();
 	Dbg::assert_(std::filesystem::exists(fxDefferedLightingFilePath));
-#endif
 
 	{
 		ModelInitData d = { };
 		{
-			d.m_expandConstantBuffer = m_pointLights.data();
-			d.m_expandConstantBufferSize = sizeof(m_pointLights);
 			d.m_tkmFilePath = tkmTeapotFilePath.c_str();
 			d.m_fxFilePath = fxRenderGBufferPath.c_str();
 			d.m_colorBufferFormat.at(0) = m_albedoRenderTarget.GetColorBufferFormat();
@@ -265,8 +223,6 @@ void Models_16_02::createModel()
 	{
 		ModelInitData d = { };
 		{
-			d.m_expandConstantBuffer = m_pointLights.data();
-			d.m_expandConstantBufferSize = sizeof(m_pointLights);
 			d.m_tkmFilePath = tkmBgFilePath.c_str();
 			d.m_fxFilePath = fxRenderGBufferPath.c_str();
 			d.m_colorBufferFormat.at(0) = m_albedoRenderTarget.GetColorBufferFormat();
@@ -277,7 +233,6 @@ void Models_16_02::createModel()
 		m_modelBg->Init(d);
 	}
 
-#if 1
 	{
 		SpriteInitData d;
 		{
@@ -293,7 +248,6 @@ void Models_16_02::createModel()
 		m_defferedLightingSprite = std::make_unique<Sprite>();
 		m_defferedLightingSprite->Init(d);
 	}
-#endif
 }
 
 void Models_16_02::addObserver()
@@ -308,44 +262,32 @@ void Models_16_02::removeObserver()
 
 void Models_16_02::handleInput()
 {
+	if (WinMgr::isWindowActive(WinMgr::Handle::kMain))
 	{
 		using namespace MiniEngineIf;
-		getCamera3D()->MoveForward(getStick(StickType::kLY));
-		getCamera3D()->MoveRight(getStick(StickType::kLX));
-		getCamera3D()->MoveUp(getStick(StickType::kRY));
+		constexpr float kAffect = 5.0f;
+		getCamera3D()->MoveForward(getStick(StickType::kLY) * kAffect);
+		getCamera3D()->MoveRight(getStick(StickType::kLX) * kAffect);
+		getCamera3D()->MoveUp(getStick(StickType::kRY) * kAffect);
+		getCamera3D()->Update();
+		m_light->m_eyePos = getCamera3D()->GetPosition();
+		m_light->m_mViewProjInv.Inverse(getCamera3D()->GetViewProjectionMatrix());
 	}
 
-	if (!WinMgr::isWindowActive(WinMgr::Handle::kMain))
-		return;
-
-	if (m_obserber.isPaused())
-		return;
-
+	if (!m_obserber.isPaused())
 	{
 		Quaternion qRot;
-		qRot.SetRotationDegY(0.2f);
+		qRot.SetRotationDegY(1.0f);
 
-#if 0
-		for (auto& pt : m_pointLights)
-		{
-			qRot.Apply(pt.m_position);
-		}
-#endif
-#if 1
 		for (auto& pt : m_light->m_pointLights)
 		{
 			qRot.Apply(pt.m_position);
 		}
-#endif
 	}
 }
 
 void Models_16_02::draw(RenderContext& renderContext)
 {
-#if 0
-	m_modelTeapot->Draw(renderContext);
-	m_modelBg->Draw(renderContext);
-#else
 	RenderTarget* gbuffers[] = {
 		&m_albedoRenderTarget,
 		&m_normalRenderTarget,
@@ -355,6 +297,11 @@ void Models_16_02::draw(RenderContext& renderContext)
 	renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
 
 	renderContext.SetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
+	// set viewport; should be same to Gbuffer size
+	{
+		CD3DX12_VIEWPORT vp(0.0f, 0.0f, kRtWidth, kRtHeight);
+		renderContext.SetViewportAndScissor(vp);
+	}
 	renderContext.ClearRenderTargetViews(ARRAYSIZE(gbuffers), gbuffers);
 
 	m_modelTeapot->Draw(renderContext);
@@ -365,40 +312,21 @@ void Models_16_02::draw(RenderContext& renderContext)
 	MiniEngineIf::setOffscreenRenderTarget();
 
 	m_defferedLightingSprite->Draw(renderContext);
-#endif
 }
 
 void Models_16_02::debugRenderParams()
 {
 	{
-		{
-			const Vector3& v = MiniEngineIf::getCamera3D()->GetPosition();
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraPos", std::vector<const float*>{ &v.x, &v.y, &v.z });
-		}
-		{
-			const Vector3& v = MiniEngineIf::getCamera3D()->GetTarget();
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraTgt", std::vector<const float*>{ &v.x, &v.y, &v.z });
-		}
-		{
-			const Vector3& v = MiniEngineIf::getCamera3D()->GetUp();
-			ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraUp", std::vector<const float*>{ &v.x, &v.y, &v.z });
-		}
-		{
-			constexpr size_t n = 5;
-			const auto& light = m_pointLights[n];
-			{
-				const Vector3& v = light.m_position;
-				ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light pos  ", std::vector<const float*>{ &v.x, &v.y, &v.z });
-			}
-			{
-				const Vector3& v = light.m_color;
-				ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light col  ", std::vector<const float*>{ &v.x, &v.y, &v.z });
-			}
-			{
-				const float r = light.m_range;
-				ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "Light range", std::vector<const float*>{ &r });
-			}
-		}
+		const Vector3& v = MiniEngineIf::getCamera3D()->GetPosition();
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraPos", std::vector<const float*>{ &v.x, & v.y, & v.z });
+	}
+	{
+		const Vector3& v = MiniEngineIf::getCamera3D()->GetTarget();
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraTgt", std::vector<const float*>{ &v.x, & v.y, & v.z });
+	}
+	{
+		const Vector3& v = MiniEngineIf::getCamera3D()->GetUp();
+		ImguiIf::printParams<float>(ImguiIf::VarType::kFloat, "CameraUp", std::vector<const float*>{ &v.x, & v.y, & v.z });
 	}
 }
 

@@ -113,17 +113,17 @@ PSInput VSMain(VSInput In)
 float4 PSMain(PSInput In) : SV_Target0
 {
     // G-Bufferの内容を使ってライティング
-    float4 albedo = albedoTexture.Sample(Sampler, In.uv);
-    float3 normal = normalTexture.Sample(Sampler, In.uv).xyz;
+    const float4 albedo = albedoTexture.Sample(Sampler, In.uv);
+    const float3 normal = normalTexture.Sample(Sampler, In.uv).xyz;
 
     // 射影空間の深度値からワールド座標を復元する
-    float depth = depthTexture.Sample(Sampler, In.uv);
-    float3 worldPos = CalcWorldPosFromUVZ(In.uv, depth, mViewProjInv);
+    const float z = depthTexture.Sample(Sampler, In.uv);
+    const float3 worldPos = CalcWorldPosFromUVZ(In.uv, z, mViewProjInv);
 
     float3 lig = 0.0f;
 
     // 視点に向かって伸びるベクトルを計算
-    float3 toEye = normalize(eyePos - worldPos);
+    const float3 toEye = normalize(eyePos - worldPos);
 
     // ディレクションライトを計算
     for(int ligNo = 0; ligNo < NUM_DIRECTION_LIGHT; ligNo++)
@@ -145,9 +145,9 @@ float4 PSMain(PSInput In) : SV_Target0
     // ポイントライトを計算
     for (int lig2No = 0; lig2No < NUM_POINT_LIGHT; lig2No++)
     {
-        float3 ligDir = normalize(worldPos - pointLight[lig2No].position);
-        float distance = length(pointLight[lig2No].position - worldPos);
-        float affect = max(0.0f, 1 - distance / pointLight[lig2No].range);
+        const float3 ligDir = normalize(worldPos - pointLight[lig2No].position);
+        const float distance = length(worldPos - pointLight[lig2No].position);
+        const float affect = 1.0f - min(1.0f, distance / pointLight[lig2No].range);
 
         lig += CalcLambertReflection(
             ligDir,
