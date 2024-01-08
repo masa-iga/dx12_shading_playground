@@ -226,6 +226,7 @@ call :copyFiles
     <ClCompile Include="models\model_14_04.cpp" />
     <ClCompile Include="models\model_16_01.cpp" />
     <ClCompile Include="models\model_16_02.cpp" />
+    <ClCompile Include="models\model_16_03.cpp" />
     <ClCompile Include="models\model_util.cpp" />
     <ClCompile Include="render_d3d12.cpp" />
     <ClCompile Include="model_simple_triangle.cpp" />
@@ -280,6 +281,7 @@ call :copyFiles
     <ClInclude Include="models\model_14_04.h" />
     <ClInclude Include="models\model_16_01.h" />
     <ClInclude Include="models\model_16_02.h" />
+    <ClInclude Include="models\model_16_03.h" />
     <ClInclude Include="models\model_util.h" />
     <ClInclude Include="render_d3d12.h" />
     <ClInclude Include="model_simple_triangle.h" />
@@ -603,6 +605,20 @@ call :copyFiles
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSMain</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.6</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_16_03_defferedLighting.fx">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PSMain</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSMain</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.6</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_16_03_lightCulling.fx">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CSMain</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CSMain</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.6</ShaderModel>
     </FxCompile>
     <FxCompile Include="texCopy.hlsl">

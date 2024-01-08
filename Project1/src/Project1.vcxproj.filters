@@ -186,6 +186,9 @@
     <ClCompile Include="models\model_16_02.cpp">
       <Filter>ソース ファイル\models</Filter>
     </ClCompile>
+    <ClCompile Include="models\model_16_03.cpp">
+      <Filter>ソース ファイル\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="winmgr_win.h">
@@ -344,6 +347,9 @@
     <ClInclude Include="models\model_16_02.h">
       <Filter>ソース ファイル\models</Filter>
     </ClInclude>
+    <ClInclude Include="models\model_16_03.h">
+      <Filter>ソース ファイル\models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="simple.hlsl">
@@ -476,6 +482,12 @@
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
     <FxCompile Include="Assets\shader\sample_16_02_renderGBuffer.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_16_03_defferedLighting.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_16_03_lightCulling.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
   </ItemGroup>
