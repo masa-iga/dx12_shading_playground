@@ -156,6 +156,25 @@ float4 PSMain(PSInput In) : SV_Target0
     }
 
     // step-18 ポイントライトを計算
+#if 1 // naive point light (temporary code)
+    for (int lig2No = 0; lig2No < MAX_POINT_LIGHT; lig2No++)
+    {
+        const float3 ligDir = normalize(worldPos - pointLight[lig2No].position);
+        const float distance = length(worldPos - pointLight[lig2No].position);
+        const float affect = 1.0f - min(1.0f, distance / pointLight[lig2No].range);
+
+        lig += CalcLambertReflection(
+            ligDir,
+            pointLight[lig2No].color,
+            normal) * affect;
+
+        lig += CalcSpecularReflection(
+            ligDir,
+            pointLight[lig2No].color,
+            normal,
+            toEye) * affect;
+    }
+#endif
 
     float4 finalColor = albedo;
     finalColor.xyz *= lig;
