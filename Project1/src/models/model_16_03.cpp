@@ -52,7 +52,7 @@ private:
 	static constexpr int32_t kRtHeight = 720;
 	static constexpr size_t kTileWidth = 16;
 	static constexpr size_t kTileHeight = 16;
-	static constexpr size_t kNumTile = ((kRtWidth + kTileWidth - 1) / kTileWidth) * ((kRtHeight + kTileHeight - 1) / kRtHeight);
+	static constexpr size_t kNumTile = ((kRtWidth + kTileWidth - 1) / kTileWidth) * ((kRtHeight + kTileHeight - 1) / kTileHeight);
 
 	struct alignas(16) DirectionalLight
 	{
@@ -101,6 +101,7 @@ private:
 	RenderTarget m_albedoRenderTarget;
 	RenderTarget m_normalRenderTarget;
 	RenderTarget m_depthRenderTarget;
+	ConstantBuffer m_cameraParamCB;
 	ConstantBuffer m_lightCB;
 	DescriptorHeap m_lightCullingDescriptorHeap;
 	PipelineState m_lightCullingPipelineState;
@@ -212,6 +213,10 @@ void Models_16_03::createModel()
 				static_cast<float>(random() % 1000) - 500.0f
 			};
 			pt.m_positionInView = pt.m_position;
+			{
+				const Matrix& mView = MiniEngineIf::getCamera3D()->GetViewMatrix();
+				mView.Apply(pt.m_positionInView);
+			}
 			pt.m_range = 50.0f;
 			pt.m_color = {
 				static_cast<float>(random() % 255) / 255.0f,
@@ -315,9 +320,7 @@ void Models_16_03::createModel()
 			lightCullingCameraData.screenParam.w = kRtHeight;
 		}
 
-		ConstantBuffer cameraParamCB;
-		cameraParamCB.Init(sizeof(lightCullingCameraData), &lightCullingCameraData);
-
+		m_cameraParamCB.Init(sizeof(lightCullingCameraData), &lightCullingCameraData);
 		m_lightCB.Init(sizeof(m_light), &m_light);
 
 		m_lightCullingDescriptorHeap.RegistShaderResource(
@@ -330,7 +333,7 @@ void Models_16_03::createModel()
 		);
 		m_lightCullingDescriptorHeap.RegistConstantBuffer(
 			0,
-			cameraParamCB
+			m_cameraParamCB
 		);
 		m_lightCullingDescriptorHeap.RegistConstantBuffer(
 			1,
@@ -386,44 +389,61 @@ void Models_16_03::draw(RenderContext& renderContext)
 
 	renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
 
-	renderContext.SetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
-	// set viewport; should be same to Gbuffer size
+	// clear render targets
 	{
-		CD3DX12_VIEWPORT vp(0.0f, 0.0f, kRtWidth, kRtHeight);
-		renderContext.SetViewportAndScissor(vp);
+		renderContext.SetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
+		// set viewport; should be same to Gbuffer size
+		{
+			CD3DX12_VIEWPORT vp(0.0f, 0.0f, kRtWidth, kRtHeight);
+			renderContext.SetViewportAndScissor(vp);
+		}
+		renderContext.ClearRenderTargetViews(ARRAYSIZE(gbuffers), gbuffers);
 	}
-	renderContext.ClearRenderTargetViews(ARRAYSIZE(gbuffers), gbuffers);
 
-	m_modelTeapot->Draw(renderContext);
-	m_modelBg->Draw(renderContext);
+	// draw in Gbuffer
+	{
+		m_modelTeapot->Draw(renderContext);
+		m_modelBg->Draw(renderContext);
+	}
 
+	// sync
 	renderContext.WaitUntilFinishDrawingToRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
 
-	renderContext.SetComputeRootSignature(m_rootSignature);
-	m_lightCB.CopyToVRAM(m_light);
-	renderContext.SetComputeDescriptorHeap(m_lightCullingDescriptorHeap);
-	renderContext.SetPipelineState(m_lightCullingPipelineState);
+	// light culling
+	{
+		renderContext.SetComputeRootSignature(m_rootSignature);
+		m_lightCB.CopyToVRAM(m_light);
+		renderContext.SetComputeDescriptorHeap(m_lightCullingDescriptorHeap);
+		renderContext.SetPipelineState(m_lightCullingPipelineState);
 
-	renderContext.Dispatch(
-		kRtWidth / kTileWidth,
-		kRtHeight / kTileHeight,
-		1);
+		constexpr UINT tgx_count = kRtWidth / kTileWidth;
+		constexpr UINT tgy_count = kRtHeight / kTileHeight;
 
+		renderContext.Dispatch(
+			tgx_count,
+			tgy_count,
+			1);
+	}
+
+	// sync
 	renderContext.TransitionResourceState(
 		m_pointLightNoListInTileUAV.GetD3DResoruce(),
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
 
-	MiniEngineIf::setOffscreenRenderTarget();
+	// lighting
+	{
+		MiniEngineIf::setOffscreenRenderTarget();
 
-	renderContext.TransitionResourceState(
-		m_pointLightNoListInTileUAV.GetD3DResoruce(),
-		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-		D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-	);
+		m_defferedLightingSprite->Draw(renderContext);
 
-	m_defferedLightingSprite->Draw(renderContext);
+		renderContext.TransitionResourceState(
+			m_pointLightNoListInTileUAV.GetD3DResoruce(),
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+		);
+	}
 }
 
 void Models_16_03::debugRenderParams()

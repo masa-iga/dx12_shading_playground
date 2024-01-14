@@ -60,7 +60,7 @@ groupshared uint sMaxZ; // タイルの最大深度
 groupshared uint sTileLightIndices[MAX_POINT_LIGHT];    // タイルに接触しているポイントライトのインデックス
 groupshared uint sTileNumLights;                        // タイルに接触しているポイントライトの数
 
-groupshared uint ligNum = 0;
+groupshared uint ligNum;
 
 /*!
  * @brief タイルごとの視推台平面を求める
@@ -101,7 +101,7 @@ float3 ComputePositionInCamera(uint2 globalCoords)
     st = st * float2(2.0, -2.0) - float2(1.0, -1.0);
     float3 screenPos;
     screenPos.xy = st.xy;
-    screenPos.z = depthTexture.Load(uint3(globalCoords, 0.0f));
+    screenPos.z = depthTexture.Load(uint3(globalCoords, 0.0f)).x;
     float4 cameraPos = mul(mtxProjInv, float4(screenPos, 1.0f));
 
     return cameraPos.xyz / cameraPos.w;
@@ -116,22 +116,70 @@ void CSMain(
     uint3 dispatchThreadId : SV_DispatchThreadID,
     uint3 groupThreadId    : SV_GroupThreadID)
 {
-    // step-7 タイル内でのインデックスを求める
+    // タイル内でのインデックスを求める
+    uint groupIndex = groupThreadId.y * TILE_WIDTH + groupThreadId.x;
 
-    // step-8 共有メモリを初期化する
+    // 共有メモリを初期化する
+    if (groupIndex == 0)
+    {
+        sTileNumLights = 0;
+        sMinZ = 0x7F7FFFFF; // maximum number of float
+        sMaxZ = 0;
+    }
 
-    // step-9 このスレッドが担当するピクセルのカメラ空間での座標を計算する
+    // このスレッドが担当するピクセルのカメラ空間での座標を計算する
+    uint2 frameUV = dispatchThreadId.xy;
+    float3 posInView = ComputePositionInCamera(frameUV);
 
-    // step-10 全てのスレッドがここに到達するまで同期を取る
+    // 全てのスレッドがここに到達するまで同期を取る
+    GroupMemoryBarrierWithGroupSync();
 
-    // step-11 タイルの最大・最小深度を求める
+    // タイルの最大・最小深度を求める
+    InterlockedMin(sMinZ, asuint(posInView.z));
+    InterlockedMax(sMaxZ, asuint(posInView.z));
 
-    // step-12 タイルの視錘台を構成する6つの平面を求める
+    // タイルの視錘台を構成する6つの平面を求める
+    float4 frustumPlanes[6];
+    GetTileFrustumPlane(frustumPlanes, groupId);
 
-    // step-13 タイルとポイントライトの衝突判定を行う
+    // タイルとポイントライトの衝突判定を行う
+    for (uint lightIndex = groupIndex; lightIndex < numPointLight; lightIndex += TILE_SIZE)
+    {
+        PointLight light = pointLight[lightIndex];
 
-    // step-14 ライトインデックスを出力バッファーに出力
+        bool inFrustum = true;
 
-    // step-15 最後に番兵を設定する
+        for (uint i = 0; i < 6; ++i)
+        {
+            float4 lp = float4(light.positionInView, 1.0f);
+            float d = dot(frustumPlanes[i], lp);
 
+            inFrustum = inFrustum && (d >= -light.range);
+        }
+
+        if (inFrustum)
+        {
+            uint listIndex = 0;
+            InterlockedAdd(sTileNumLights, 1, listIndex);
+            sTileLightIndices[listIndex] = lightIndex;
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // ライトインデックスを出力バッファーに出力
+    uint numCellX = (screenParam.z + TILE_WIDTH - 1) / TILE_WIDTH;
+    uint tileIndex = floor(frameUV.x / TILE_WIDTH) + floor(frameUV.y / TILE_WIDTH) * numCellX;
+    uint lightStart = numPointLight * tileIndex;
+
+    for (uint lightIndex2 = groupIndex; lightIndex2 < sTileNumLights; lightIndex2 += TILE_SIZE)
+    {
+        rwLightIndices[lightStart + lightIndex2] = sTileLightIndices[lightIndex2];
+    }
+
+    // 最後に番兵を設定する
+    if ((groupIndex == 0) && (sTileNumLights < numPointLight))
+    {
+        rwLightIndices[lightStart + sTileNumLights] = 0xffffffff;
+    }
 }
