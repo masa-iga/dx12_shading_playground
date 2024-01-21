@@ -363,6 +363,11 @@ void Models_16_03::handleInput()
 		for (auto& pt : m_light->m_pointLights)
 		{
 			qRot.Apply(pt.m_position);
+			pt.m_positionInView = pt.m_position;
+			{
+				const Matrix& mView = MiniEngineIf::getCamera3D()->GetViewMatrix();
+				mView.Apply(pt.m_positionInView);
+			}
 		}
 	}
 }

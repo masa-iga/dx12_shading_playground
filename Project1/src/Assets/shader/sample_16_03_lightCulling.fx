@@ -53,7 +53,6 @@ Texture2D depthTexture : register(t0);
 
 // 出力用のバッファー
 RWStructuredBuffer<uint> rwLightIndices : register(u0); // ライトインデックスバッファー
-//RWStructuredBuffer<float> hoge : register(u1);
 
 // 共有メモリ
 groupshared uint sMinZ; // タイルの最小深度
@@ -145,10 +144,10 @@ void CSMain(
     float4 frustumPlanes[6];
     GetTileFrustumPlane(frustumPlanes, groupId);
 
-#if 1
     // タイルとポイントライトの衝突判定を行う
     for (uint lightIndex = groupIndex; lightIndex < numPointLight; lightIndex += TILE_SIZE)
     {
+
         const PointLight light = pointLight[lightIndex];
 
         bool inFrustum = true;
@@ -168,23 +167,6 @@ void CSMain(
             sTileLightIndices[listIndex] = lightIndex;
         }
     }
-#else
-    // list up all lights just for debugging
-    if (groupIndex == 0)
-    {
-        //if (groupId.x == (screenParam.z / TILE_WIDTH / 2))
-        //if (groupId.y == (screenParam.w / TILE_HEIGHT / 2))
-        //if (groupId.x == (uint) (screenParam.z / TILE_WIDTH / 2) || groupId.y == (uint)(screenParam.w / TILE_HEIGHT / 2))
-        {
-            for (uint i = 0; i < numPointLight; ++i)
-            {
-                uint listIndex = 0;
-                InterlockedAdd(sTileNumLights, 1, listIndex);
-                sTileLightIndices[listIndex] = i;
-            }
-        }
-    }
-#endif
 
     GroupMemoryBarrierWithGroupSync();
 
