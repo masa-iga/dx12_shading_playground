@@ -107,6 +107,7 @@ private:
 	PipelineState m_lightCullingPipelineState;
 	RWStructuredBuffer m_pointLightNoListInTileUAV;
 	std::unique_ptr<Sprite> m_defferedLightingSprite = nullptr;
+	Shader m_csLightCulling;
 };
 
 std::unique_ptr<IModels> ModelFactory_16_03::create()
@@ -285,13 +286,12 @@ void Models_16_03::createModel()
 	}
 
 	{
-		Shader csLightCulling;
-		csLightCulling.LoadCS(kFxLightCullingFile.c_str(), "CSMain");
+		m_csLightCulling.LoadCS(kFxLightCullingFile.c_str(), "CSMain");
 
 		const D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc =
 		{
 			.pRootSignature = m_rootSignature.Get(),
-			.CS = CD3DX12_SHADER_BYTECODE(csLightCulling.GetCompiledBlob()),
+			.CS = CD3DX12_SHADER_BYTECODE(m_csLightCulling.GetCompiledBlob()),
 			.NodeMask = 0,
 			.CachedPSO = nullptr,
 			.Flags = D3D12_PIPELINE_STATE_FLAG_NONE,
@@ -321,24 +321,12 @@ void Models_16_03::createModel()
 		}
 
 		m_cameraParamCB.Init(sizeof(lightCullingCameraData), &lightCullingCameraData);
-		m_lightCB.Init(sizeof(m_light), &m_light);
+		m_lightCB.Init(sizeof(*m_light), m_light.get());
 
-		m_lightCullingDescriptorHeap.RegistShaderResource(
-			0,
-			m_depthRenderTarget.GetRenderTargetTexture()
-		);
-		m_lightCullingDescriptorHeap.RegistUnorderAccessResource(
-			0,
-			m_pointLightNoListInTileUAV
-		);
-		m_lightCullingDescriptorHeap.RegistConstantBuffer(
-			0,
-			m_cameraParamCB
-		);
-		m_lightCullingDescriptorHeap.RegistConstantBuffer(
-			1,
-			m_lightCB
-		);
+		m_lightCullingDescriptorHeap.RegistShaderResource(0, m_depthRenderTarget.GetRenderTargetTexture());
+		m_lightCullingDescriptorHeap.RegistUnorderAccessResource(0, m_pointLightNoListInTileUAV);
+		m_lightCullingDescriptorHeap.RegistConstantBuffer(0, m_cameraParamCB);
+		m_lightCullingDescriptorHeap.RegistConstantBuffer(1, m_lightCB);
 		m_lightCullingDescriptorHeap.Commit();
 	}
 }
@@ -412,7 +400,7 @@ void Models_16_03::draw(RenderContext& renderContext)
 	// light culling
 	{
 		renderContext.SetComputeRootSignature(m_rootSignature);
-		m_lightCB.CopyToVRAM(m_light);
+		m_lightCB.CopyToVRAM(m_light.get());
 		renderContext.SetComputeDescriptorHeap(m_lightCullingDescriptorHeap);
 		renderContext.SetPipelineState(m_lightCullingPipelineState);
 
@@ -437,13 +425,14 @@ void Models_16_03::draw(RenderContext& renderContext)
 		MiniEngineIf::setOffscreenRenderTarget();
 
 		m_defferedLightingSprite->Draw(renderContext);
-
-		renderContext.TransitionResourceState(
-			m_pointLightNoListInTileUAV.GetD3DResoruce(),
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-			D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-		);
 	}
+
+	// sync
+	renderContext.TransitionResourceState(
+		m_pointLightNoListInTileUAV.GetD3DResoruce(),
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+	);
 }
 
 void Models_16_03::debugRenderParams()

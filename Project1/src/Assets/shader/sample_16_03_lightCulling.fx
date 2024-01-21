@@ -53,6 +53,7 @@ Texture2D depthTexture : register(t0);
 
 // 出力用のバッファー
 RWStructuredBuffer<uint> rwLightIndices : register(u0); // ライトインデックスバッファー
+//RWStructuredBuffer<float> hoge : register(u1);
 
 // 共有メモリ
 groupshared uint sMinZ; // タイルの最小深度
@@ -128,8 +129,8 @@ void CSMain(
     }
 
     // このスレッドが担当するピクセルのカメラ空間での座標を計算する
-    uint2 frameUV = dispatchThreadId.xy;
-    float3 posInView = ComputePositionInCamera(frameUV);
+    const uint2 frameUV = dispatchThreadId.xy;
+    const float3 posInView = ComputePositionInCamera(frameUV);
 
     // 全てのスレッドがここに到達するまで同期を取る
     GroupMemoryBarrierWithGroupSync();
@@ -138,20 +139,23 @@ void CSMain(
     InterlockedMin(sMinZ, asuint(posInView.z));
     InterlockedMax(sMaxZ, asuint(posInView.z));
 
+    GroupMemoryBarrierWithGroupSync();
+
     // タイルの視錘台を構成する6つの平面を求める
     float4 frustumPlanes[6];
     GetTileFrustumPlane(frustumPlanes, groupId);
 
+#if 1
     // タイルとポイントライトの衝突判定を行う
     for (uint lightIndex = groupIndex; lightIndex < numPointLight; lightIndex += TILE_SIZE)
     {
-        PointLight light = pointLight[lightIndex];
+        const PointLight light = pointLight[lightIndex];
 
         bool inFrustum = true;
 
         for (uint i = 0; i < 6; ++i)
         {
-            float4 lp = float4(light.positionInView, 1.0f);
+            const float4 lp = float4(light.positionInView, 1.0f);
             float d = dot(frustumPlanes[i], lp);
 
             inFrustum = inFrustum && (d >= -light.range);
@@ -164,13 +168,30 @@ void CSMain(
             sTileLightIndices[listIndex] = lightIndex;
         }
     }
+#else
+    // list up all lights just for debugging
+    if (groupIndex == 0)
+    {
+        //if (groupId.x == (screenParam.z / TILE_WIDTH / 2))
+        //if (groupId.y == (screenParam.w / TILE_HEIGHT / 2))
+        //if (groupId.x == (uint) (screenParam.z / TILE_WIDTH / 2) || groupId.y == (uint)(screenParam.w / TILE_HEIGHT / 2))
+        {
+            for (uint i = 0; i < numPointLight; ++i)
+            {
+                uint listIndex = 0;
+                InterlockedAdd(sTileNumLights, 1, listIndex);
+                sTileLightIndices[listIndex] = i;
+            }
+        }
+    }
+#endif
 
     GroupMemoryBarrierWithGroupSync();
 
     // ライトインデックスを出力バッファーに出力
-    uint numCellX = (screenParam.z + TILE_WIDTH - 1) / TILE_WIDTH;
-    uint tileIndex = floor(frameUV.x / TILE_WIDTH) + floor(frameUV.y / TILE_WIDTH) * numCellX;
-    uint lightStart = numPointLight * tileIndex;
+    const uint numCellX = (screenParam.z + TILE_WIDTH - 1) / TILE_WIDTH;
+    const uint tileIndex = floor(frameUV.x / TILE_WIDTH) + floor(frameUV.y / TILE_WIDTH) * numCellX;
+    const uint lightStart = numPointLight * tileIndex;
 
     for (uint lightIndex2 = groupIndex; lightIndex2 < sTileNumLights; lightIndex2 += TILE_SIZE)
     {

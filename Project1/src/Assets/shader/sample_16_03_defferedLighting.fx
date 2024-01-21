@@ -27,6 +27,7 @@ static const int MAX_POINT_LIGHT = 1000;    // ポイントライトの最大数
 // 一度に実行されるスレッド数
 #define TILE_WIDTH 16
 #define TILE_HEIGHT 16
+static const int kTileWidthInGBuffer = TILE_WIDTH * (1920.0f / 1280.0f);
 
 cbuffer Light : register(b1)
 {
@@ -121,9 +122,14 @@ PSInput VSMain(VSInput In)
  */
 float4 PSMain(PSInput In) : SV_Target0
 {
-    // step-16 このピクセルが含まれているタイルの番号を計算する
+    // このピクセルが含まれているタイルの番号を計算する
+    const uint numCellX = (screenParam.z + TILE_WIDTH - 1) / TILE_WIDTH;
+    //const uint tileIndex = floor(In.pos.x / TILE_WIDTH) + floor(In.pos.y / TILE_WIDTH) * numCellX;
+    const uint tileIndex = floor(In.pos.x / kTileWidthInGBuffer) + floor(In.pos.y / kTileWidthInGBuffer) * numCellX;
 
-    // step-17 含まれるタイルの影響の開始位置と終了位置を計算する
+    // 含まれるタイルの影響の開始位置と終了位置を計算する
+    const uint lightStart = tileIndex * numPointLight;
+    const uint lightEnd = lightStart + numPointLight;
 
     // G-Bufferの内容を使ってライティング
     float4 albedo = albedoTexture.Sample(Sampler, In.uv);
@@ -156,7 +162,7 @@ float4 PSMain(PSInput In) : SV_Target0
     }
 
     // step-18 ポイントライトを計算
-#if 1 // naive point light (temporary code)
+#if 0 // naive point light (temporary code)
     for (int lig2No = 0; lig2No < MAX_POINT_LIGHT; lig2No++)
     {
         const float3 ligDir = normalize(worldPos - pointLight[lig2No].position);
@@ -173,6 +179,30 @@ float4 PSMain(PSInput In) : SV_Target0
             pointLight[lig2No].color,
             normal,
             toEye) * affect;
+    }
+#else
+    for (uint lightListIndex = lightStart; lightListIndex < lightEnd; lightListIndex++)
+    {
+        const uint ligNo2 = pointLightListInTile[lightListIndex];
+
+        if (ligNo2 == 0xffffffff)
+            break;
+
+        const float3 ligDir = normalize(worldPos - pointLight[ligNo2].position);
+        const float distance = length(worldPos - pointLight[ligNo2].position);
+        const float affect = 1.0f - min(1.0f, distance / pointLight[ligNo2].range);
+
+        lig += CalcLambertReflection(
+            ligDir,
+            pointLight[ligNo2].color,
+            normal) * affect;
+
+        lig += CalcSpecularReflection(
+            ligDir,
+            pointLight[ligNo2].color,
+            normal,
+            toEye) * affect;
+
     }
 #endif
 
