@@ -496,5 +496,11 @@
     <FxCompile Include="Assets\shader\sample_16_03_lightCulling.fx">
       <Filter>Asserts\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Assets\shader\sample_16_04_zprepass.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Assets\shader\sample_16_04_model.fx">
+      <Filter>Asserts\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
