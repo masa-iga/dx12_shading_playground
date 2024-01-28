@@ -141,8 +141,50 @@ float3 CalcDirectionLight(SPSIn psIn)
  */
 float3 CalcPointLight(SPSIn psIn)
 {
-    // step-5 作成したライトのリストを使って、ポイントライトを計算する
-    return 0.0f;
+    // 作成したライトのリストを使って、ポイントライトを計算する
+    const int TILE_WIDTH = 16;
+    const int TILE_HEIGHT = 16;
+
+    const float2 viewportPos = psIn.pos.xy;
+    const uint numCellX = (screenParam.z + TILE_WIDTH - 1) / TILE_WIDTH;
+
+    const int rt_width = 1920;
+    const int rt_height = 1080;
+    const int TILE_WIDTH_IN_LIGHTING = TILE_WIDTH * (rt_width / screenParam.z);
+    const int TILE_HEIGHT_IN_LIGHTING = TILE_HEIGHT * (rt_height / screenParam.w);
+    const uint tileIndex = floor(viewportPos.x / TILE_WIDTH_IN_LIGHTING) + floor(viewportPos.y / TILE_HEIGHT_IN_LIGHTING) * numCellX;
+
+    const uint lightStart = tileIndex * numPointLight;
+    const uint lightEnd = lightStart + numPointLight;
+
+    const float3 toEye = normalize(eyePos - psIn.worldPos.xyz);
+    float3 lig = 0.0f;
+
+    for (uint lightListIndex = lightStart; lightListIndex < lightEnd; lightListIndex++)
+    {
+        const uint ligNo = pointLightListInTile[lightListIndex];
+
+        if (ligNo == 0xffffffff)
+            break;
+
+        const float3 ligDir = normalize(psIn.worldPos.xyz - pointLight[ligNo].position);
+
+        const float distance = length(psIn.worldPos.xyz - pointLight[ligNo].position);
+        const float affect = 1.0f - min(1.0f, distance / pointLight[ligNo].range);
+
+        lig += CalcLambertReflection(
+            ligDir,
+            pointLight[ligNo].color,
+            psIn.normal) * affect;
+
+        lig += CalcSpecularReflection(
+            ligDir,
+            pointLight[ligNo].color,
+            psIn.normal,
+            toEye) * affect;
+    }
+
+    return lig;
 }
 
 /// <summary>
