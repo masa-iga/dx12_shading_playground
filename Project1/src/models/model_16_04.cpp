@@ -55,6 +55,7 @@ struct Light
 	std::array<DirectionalLight, kNumDirectionLight> m_directionLights;
 	std::array<PointLight, kNumPointLight> m_pointLights;
 	Matrix m_mViewProjInv;
+	Vector4 m_screenParam;
 	Vector3 m_eyePos;
 	float m_specRow = 0.0f;
 	int32_t m_numPointLight = kNumPointLight;
@@ -64,7 +65,7 @@ class LightCulling
 {
 public:
 	void Init(RootSignature& rs, Light* light, RenderTarget& depthRenderTarget);
-	void Dispatch(RenderContext& renderContext);
+	void Dispatch(RenderContext& renderContext, std::unique_ptr<Light>& light);
 	RWStructuredBuffer& GetPointLightNoListInTileUAV() { return m_pointLightNoListInTileUAV; }
 
 private:
@@ -86,7 +87,6 @@ private:
 	std::string getFxFilePathLightCulling() const { return ModelUtil::getPathFromAssetDir(kFxFileLightCulling); }
 
 	RootSignature* m_rootSignature = nullptr;
-	Light* m_light = nullptr;
 	Shader m_csLightCulling;
 	PipelineState m_lightCullingPipelineState;
 	RWStructuredBuffer m_pointLightNoListInTileUAV;
@@ -95,10 +95,67 @@ private:
 	DescriptorHeap m_lightCullingDescriptorHeap;
 };
 
+class ZPrepass
+{
+public:
+	RenderTarget& GetDepthRenderTarget() { return m_depthRenderTarget; }
+	void Init();
+	void Draw(RenderContext& renderContext);
+
+private:
+	static constexpr size_t kRenderTargetWidth = 1280;
+	static constexpr size_t kRenderTargetHeight = 720;
+	const std::string kTkmFileTeapot = "Sample_16_04/Sample_16_04/Assets/modelData/teapot.tkm";
+	std::string getTkmFilePathTeapot() const { return ModelUtil::getPathFromAssetDir(kTkmFileTeapot); }
+	const std::string kTkmFileBg = "Sample_16_04/Sample_16_04/Assets/modelData/bg.tkm";
+	std::string getTkmFilePathBg() const { return ModelUtil::getPathFromAssetDir(kTkmFileBg); }
+	const std::string kFxFileZPrepass = "./Assets/shader/sample_16_04_zprepass.fx";
+	std::string getFxFilePathZPrepass() const { return kFxFileZPrepass; };
+
+	RenderTarget m_depthRenderTarget;
+	std::unique_ptr<Model> m_teapotModel = nullptr;
+	std::unique_ptr<Model> m_bgModel = nullptr;
+};
+
+class Models_16_04 : public IModels
+{
+public:
+	Models_16_04() { }
+	~Models_16_04()
+	{
+		WinMgr::removeObserver(&m_obserber);
+	}
+	void createModel();
+	void addObserver();
+	void removeObserver();
+	void resetCamera();
+	void handleInput();
+	void draw(RenderContext& renderContext);
+	void debugRenderParams();
+
+private:
+	static constexpr int32_t kRtWidth = 1280;
+	static constexpr int32_t kRtHeight = 720;
+
+	const std::string kTkmFileBg = "Sample_16_04/Sample_16_04/Assets/modelData/bg.tkm";
+	std::string getTkmFilePathBg() const { return ModelUtil::getPathFromAssetDir(kTkmFileBg); }
+	const std::string kTkmFileTeapot = "Sample_16_04/Sample_16_04/Assets/modelData/teapot.tkm";
+	std::string getTkmFilePathTeapot() const { return ModelUtil::getPathFromAssetDir(kTkmFileTeapot); }
+	const std::string kFxFileModel = "./Assets/shader/sample_16_04_model.fx";
+	std::string getFxFilePathModel() const { return kFxFileModel; };
+
+	Obserber_16_04 m_obserber;
+	ZPrepass m_zprepass;
+	LightCulling m_lightCulling;
+	std::unique_ptr<Model> m_modelTeapot = nullptr;
+	std::unique_ptr<Model> m_modelBg = nullptr;
+	RootSignature m_rootSignature;
+	std::unique_ptr<Light> m_light = nullptr;
+};
+
 void LightCulling::Init(RootSignature& rs, Light* light, RenderTarget& depthRenderTarget)
 {
 	m_rootSignature = &rs;
-	m_light = light;
 
 	{
 		const std::string fxFilePathLightCulling = getFxFilePathLightCulling();
@@ -157,10 +214,10 @@ void LightCulling::Init(RootSignature& rs, Light* light, RenderTarget& depthRend
 
 }
 
-void LightCulling::Dispatch(RenderContext& renderContext)
+void LightCulling::Dispatch(RenderContext& renderContext, std::unique_ptr<Light>& light)
 {
 	renderContext.SetComputeRootSignature(*m_rootSignature);
-	m_lightCB.CopyToVRAM(m_light);
+	m_lightCB.CopyToVRAM(light.get());
 	renderContext.SetComputeDescriptorHeap(m_lightCullingDescriptorHeap);
 	renderContext.SetPipelineState(m_lightCullingPipelineState);
 
@@ -180,28 +237,6 @@ size_t LightCulling::computeNumTile(const RenderTarget& depthRenderTarget) const
 	return ((rt_width + kTileWidth - 1) / kTileWidth) * ((rt_height + kTileHeight - 1) / kTileHeight);
 }
 
-class ZPrepass
-{
-public:
-	RenderTarget& GetDepthRenderTarget() { return m_depthRenderTarget; }
-	void Init();
-	void Draw(RenderContext& renderContext);
-
-private:
-	static constexpr size_t kRenderTargetWidth = 1280;
-	static constexpr size_t kRenderTargetHeight = 720;
-	const std::string kTkmFileTeapot = "Sample_16_04/Sample_16_04/Assets/modelData/teapot.tkm";
-	std::string getTkmFilePathTeapot() const { return ModelUtil::getPathFromAssetDir(kTkmFileTeapot); }
-	const std::string kTkmFileBg = "Sample_16_04/Sample_16_04/Assets/modelData/bg.tkm";
-	std::string getTkmFilePathBg() const { return ModelUtil::getPathFromAssetDir(kTkmFileBg); }
-	const std::string kFxFileZPrepass = "./Assets/shader/sample_16_04_zprepass.fx";
-	std::string getFxFilePathZPrepass() const { return kFxFileZPrepass; };
-
-	RenderTarget m_depthRenderTarget;
-	std::unique_ptr<Model> m_teapotModel = nullptr;
-	std::unique_ptr<Model> m_bgModel = nullptr;
-};
-
 void ZPrepass::Init()
 {
 	constexpr int32_t mip_level = 1;
@@ -216,14 +251,12 @@ void ZPrepass::Init()
 		DXGI_FORMAT_D32_FLOAT
 	);
 
-	const std::string tkmFilePathTeapot = getTkmFilePathTeapot();
-	Dbg::assert_(std::filesystem::exists(tkmFilePathTeapot));
-	const std::string tkmFilePathBg = getTkmFilePathBg();
-	Dbg::assert_(std::filesystem::exists(tkmFilePathBg));
 	const std::string fxFilePathZPrepass = getFxFilePathZPrepass();
 	Dbg::assert_(std::filesystem::exists(fxFilePathZPrepass));
-
 	{
+		const std::string tkmFilePathTeapot = getTkmFilePathTeapot();
+		Dbg::assert_(std::filesystem::exists(tkmFilePathTeapot));
+
 		ModelInitData d;
 		{
 			d.m_tkmFilePath = tkmFilePathTeapot.c_str();
@@ -236,6 +269,9 @@ void ZPrepass::Init()
 	}
 
 	{
+		const std::string tkmFilePathBg = getTkmFilePathBg();
+		Dbg::assert_(std::filesystem::exists(tkmFilePathBg));
+
 		ModelInitData d;
 		{
 			d.m_tkmFilePath = tkmFilePathBg.c_str();
@@ -256,6 +292,11 @@ void ZPrepass::Draw(RenderContext& renderContext)
 
 	renderContext.SetRenderTargets(1, rts);
 
+	{
+		CD3DX12_VIEWPORT vp(0.0f, 0.0f, static_cast<float>(m_depthRenderTarget.GetWidth()), static_cast<float>(m_depthRenderTarget.GetHeight()));
+		renderContext.SetViewportAndScissor(vp);
+	}
+
 	renderContext.ClearRenderTargetViews(1, rts);
 
 	m_teapotModel->Draw(renderContext);
@@ -263,42 +304,6 @@ void ZPrepass::Draw(RenderContext& renderContext)
 
 	renderContext.WaitUntilFinishDrawingToRenderTargets(1, rts);
 }
-
-class Models_16_04 : public IModels
-{
-public:
-	Models_16_04() { }
-	~Models_16_04()
-	{
-		WinMgr::removeObserver(&m_obserber);
-	}
-	void createModel();
-	void addObserver();
-	void removeObserver();
-	void resetCamera();
-	void handleInput();
-	void draw(RenderContext& renderContext);
-	void debugRenderParams();
-
-private:
-	static constexpr int32_t kRtWidth = 1280;
-	static constexpr int32_t kRtHeight = 720;
-
-	const std::string kTkmFileBg = "Sample_16_04/Sample_16_04/Assets/modelData/bg.tkm";
-	std::string getTkmFilePathBg() const { return ModelUtil::getPathFromAssetDir(kTkmFileBg); }
-	const std::string kTkmFileTeapot = "Sample_16_04/Sample_16_04/Assets/modelData/teapot.tkm";
-	std::string getTkmFilePathTeapot() const { return ModelUtil::getPathFromAssetDir(kTkmFileTeapot); }
-	const std::string kFxFileModel = "./Assets/shader/sample_16_04_model.fx";
-	std::string getFxFilePathModel() const { return kFxFileModel; };
-
-	Obserber_16_04 m_obserber;
-	ZPrepass m_zprepass;
-	LightCulling m_lightCulling;
-	std::unique_ptr<Model> m_modelTeapot = nullptr;
-	std::unique_ptr<Model> m_modelBg = nullptr;
-	RootSignature m_rootSignature;
-	std::unique_ptr<Light> m_light = nullptr;
-};
 
 std::unique_ptr<IModels> ModelFactory_16_04::create()
 {
@@ -342,6 +347,7 @@ void Models_16_04::createModel()
 
 	m_light = std::make_unique<Light>();
 	{
+		m_light->m_screenParam = { MiniEngineIf::getCamera3D()->GetNear(), MiniEngineIf::getCamera3D()->GetFar(), kRtWidth, kRtHeight };
 		m_light->m_eyePos = MiniEngineIf::getCamera3D()->GetPosition();
 		m_light->m_specRow = 5.0f;
 		m_light->m_mViewProjInv.Inverse(MiniEngineIf::getCamera3D()->GetViewProjectionMatrix());
@@ -384,39 +390,41 @@ void Models_16_04::createModel()
 	m_zprepass.Init();
 	m_lightCulling.Init(m_rootSignature, m_light.get(), m_zprepass.GetDepthRenderTarget());
 
-	const std::string fxFilePathModel = getFxFilePathModel();
-	Dbg::assert_(std::filesystem::exists(fxFilePathModel));
-
 	{
-		const std::string tkmFilePathTeapot = getTkmFilePathTeapot();
-		Dbg::assert_(std::filesystem::exists(tkmFilePathTeapot));
+		const std::string fxFilePathModel = getFxFilePathModel();
+		Dbg::assert_(std::filesystem::exists(fxFilePathModel));
 
-		ModelInitData d = { };
 		{
-			d.m_tkmFilePath = tkmFilePathTeapot.c_str();
-			d.m_fxFilePath = fxFilePathModel.c_str();
-			d.m_expandConstantBuffer = m_light.get();
-			d.m_expandConstantBufferSize = sizeof(*m_light.get());
-			d.m_expandShaderResoruceView.at(0) = &m_lightCulling.GetPointLightNoListInTileUAV();
+			const std::string tkmFilePathTeapot = getTkmFilePathTeapot();
+			Dbg::assert_(std::filesystem::exists(tkmFilePathTeapot));
+
+			ModelInitData d = { };
+			{
+				d.m_tkmFilePath = tkmFilePathTeapot.c_str();
+				d.m_fxFilePath = fxFilePathModel.c_str();
+				d.m_expandConstantBuffer = m_light.get();
+				d.m_expandConstantBufferSize = sizeof(*m_light.get());
+				d.m_expandShaderResoruceView.at(0) = &m_lightCulling.GetPointLightNoListInTileUAV();
+			}
+			m_modelTeapot = std::make_unique<Model>();
+			m_modelTeapot->Init(d);
 		}
-		m_modelTeapot = std::make_unique<Model>();
-		m_modelTeapot->Init(d);
-	}
 
-	{
-		const std::string tkmFilePathBg = getTkmFilePathBg();
-		Dbg::assert_(std::filesystem::exists(tkmFilePathBg));
-
-		ModelInitData d = { };
 		{
-			d.m_tkmFilePath = tkmFilePathBg.c_str();
-			d.m_fxFilePath = fxFilePathModel.c_str();
-			d.m_expandConstantBuffer = m_light.get();
-			d.m_expandConstantBufferSize = sizeof(*m_light.get());
-			d.m_expandShaderResoruceView.at(0) = &m_lightCulling.GetPointLightNoListInTileUAV();
+			const std::string tkmFilePathBg = getTkmFilePathBg();
+			Dbg::assert_(std::filesystem::exists(tkmFilePathBg));
+
+			ModelInitData d = { };
+			{
+				d.m_tkmFilePath = tkmFilePathBg.c_str();
+				d.m_fxFilePath = fxFilePathModel.c_str();
+				d.m_expandConstantBuffer = m_light.get();
+				d.m_expandConstantBufferSize = sizeof(*m_light.get());
+				d.m_expandShaderResoruceView.at(0) = &m_lightCulling.GetPointLightNoListInTileUAV();
+			}
+			m_modelBg = std::make_unique<Model>();
+			m_modelBg->Init(d);
 		}
-		m_modelBg = std::make_unique<Model>();
-		m_modelBg->Init(d);
 	}
 }
 
@@ -474,7 +482,7 @@ void Models_16_04::draw(RenderContext& renderContext)
 	m_zprepass.Draw(renderContext);
 
 	// light culling
-	m_lightCulling.Dispatch(renderContext);
+	m_lightCulling.Dispatch(renderContext, m_light);
 
 	// sync
 	renderContext.TransitionResourceState(
@@ -495,73 +503,6 @@ void Models_16_04::draw(RenderContext& renderContext)
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS
 	);
-
-#if 0
-	RenderTarget* gbuffers[] = {
-		&m_albedoRenderTarget,
-		&m_normalRenderTarget,
-		&m_depthRenderTarget
-	};
-
-	renderContext.WaitUntilToPossibleSetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
-
-	// clear render targets
-	{
-		renderContext.SetRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
-		// set viewport; should be same to Gbuffer size
-		{
-			CD3DX12_VIEWPORT vp(0.0f, 0.0f, kRtWidth, kRtHeight);
-			renderContext.SetViewportAndScissor(vp);
-		}
-		renderContext.ClearRenderTargetViews(ARRAYSIZE(gbuffers), gbuffers);
-	}
-
-	// draw in Gbuffer
-	{
-		m_modelTeapot->Draw(renderContext);
-		m_modelBg->Draw(renderContext);
-	}
-
-	// sync
-	renderContext.WaitUntilFinishDrawingToRenderTargets(ARRAYSIZE(gbuffers), gbuffers);
-
-	// light culling
-	{
-		renderContext.SetComputeRootSignature(m_rootSignature);
-		m_lightCB.CopyToVRAM(m_light.get());
-		renderContext.SetComputeDescriptorHeap(m_lightCullingDescriptorHeap);
-		renderContext.SetPipelineState(m_lightCullingPipelineState);
-
-		constexpr UINT tgx_count = kRtWidth / kTileWidth;
-		constexpr UINT tgy_count = kRtHeight / kTileHeight;
-
-		renderContext.Dispatch(
-			tgx_count,
-			tgy_count,
-			1);
-	}
-
-	// sync
-	renderContext.TransitionResourceState(
-		m_pointLightNoListInTileUAV.GetD3DResoruce(),
-		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
-	);
-
-	// lighting
-	{
-		MiniEngineIf::setOffscreenRenderTarget();
-
-		m_defferedLightingSprite->Draw(renderContext);
-	}
-
-	// sync
-	renderContext.TransitionResourceState(
-		m_pointLightNoListInTileUAV.GetD3DResoruce(),
-		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-		D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-	);
-#endif
 }
 
 void Models_16_04::debugRenderParams()
