@@ -16,7 +16,7 @@ class ModelFactory_12_04 : public IModelFactory
 {
 public:
 	~ModelFactory_12_04() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Obserber_12_04 : public WinMgr::Iobserber
@@ -37,7 +37,7 @@ public:
 	{
 		WinMgr::removeObserver(&m_obserber);
 	}
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void addObserver();
 	void removeObserver();
 	void resetCamera();
@@ -78,11 +78,11 @@ private:
 	std::array<std::unique_ptr<Sprite>, 3> m_debugSprites = { nullptr, nullptr, nullptr };
 };
 
-std::unique_ptr<IModels> ModelFactory_12_04::create()
+std::unique_ptr<IModels> ModelFactory_12_04::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_12_04> m = std::make_unique<Models_12_04>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 		m->addObserver();
 	}
 	return std::move(m);
@@ -106,7 +106,7 @@ void Models_12_04::resetCamera()
 	MiniEngineIf::getCamera3D()->Update();
 }
 
-void Models_12_04::createModel()
+void Models_12_04::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	// create Gbuffer
 	{
@@ -315,10 +315,10 @@ void Models_12_04::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap12_04()
+	std::unique_ptr<IModels> loadModelForChap12_04(RenderContext& renderContext)
 	{
 		ModelFactory_12_04 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);

@@ -16,7 +16,7 @@ class ModelFactory_12_01 : public IModelFactory
 {
 public:
 	~ModelFactory_12_01() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Models_12_01 : public IModels
@@ -24,7 +24,7 @@ class Models_12_01 : public IModels
 public:
 	Models_12_01() { }
 	~Models_12_01() { }
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void resetCamera();
 	void handleInput();
 	void draw(RenderContext& renderContext);
@@ -60,11 +60,11 @@ private:
 	std::array<std::unique_ptr<Sprite>, 2> m_debugSprites = { nullptr, nullptr };
 };
 
-std::unique_ptr<IModels> ModelFactory_12_01::create()
+std::unique_ptr<IModels> ModelFactory_12_01::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_12_01> m = std::make_unique<Models_12_01>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 	}
 	return std::move(m);
 }
@@ -74,7 +74,7 @@ void Models_12_01::resetCamera()
 	;
 }
 
-void Models_12_01::createModel()
+void Models_12_01::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	// create Gbuffer
 	{
@@ -256,10 +256,10 @@ void Models_12_01::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap12_01()
+	std::unique_ptr<IModels> loadModelForChap12_01(RenderContext& renderContext)
 	{
 		ModelFactory_12_01 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);

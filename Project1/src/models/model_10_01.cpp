@@ -12,7 +12,7 @@ class ModelFactory_10_01 : public IModelFactory
 {
 public:
 	~ModelFactory_10_01() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Models_10_01 : public IModels
@@ -20,7 +20,7 @@ class Models_10_01 : public IModels
 public:
 	Models_10_01() { m_models.resize(static_cast<size_t>(ModelType::kSize)); }
 	~Models_10_01() { }
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void resetCamera();
 	void handleInput();
 	void draw(RenderContext& renderContext);
@@ -47,11 +47,11 @@ private:
 	Vector3 m_plPos;
 };
 
-std::unique_ptr<IModels> ModelFactory_10_01::create()
+std::unique_ptr<IModels> ModelFactory_10_01::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_10_01> m(new Models_10_01);
 	{
-		m->createModel();
+		m->createModel(renderContext);
 	}
 	return std::move(m);
 }
@@ -61,7 +61,7 @@ void Models_10_01::resetCamera()
 	;
 }
 
-void Models_10_01::createModel()
+void Models_10_01::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	m_offscreenRenderTarget.Create(
 		1280,
@@ -145,10 +145,10 @@ void Models_10_01::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap10_01()
+	std::unique_ptr<IModels> loadModelForChap10_01(RenderContext& renderContext)
 	{
 		ModelFactory_10_01 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->debugRenderParams();
 		return std::move(iModels);
 	}

@@ -12,7 +12,7 @@ class ModelFactory_07_03 : public IModelFactory
 {
 public:
 	~ModelFactory_07_03() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Models_07_03 : public IModels
@@ -37,7 +37,7 @@ public:
 public:
 	Models_07_03() { }
 	~Models_07_03() { }
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void resetCamera();
 	void handleInput();
 	void setLight(const Light& light) { m_light = light; }
@@ -89,7 +89,7 @@ private:
 	Light m_light;
 };
 
-std::unique_ptr<IModels> ModelFactory_07_03::create()
+std::unique_ptr<IModels> ModelFactory_07_03::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_07_03> m(new Models_07_03);
 	{
@@ -131,7 +131,7 @@ std::unique_ptr<IModels> ModelFactory_07_03::create()
 			m->setLight(light);
 		}
 
-		m->createModel();
+		m->createModel(renderContext);
 
 		for (Model* model : m->getModels())
 		{
@@ -150,7 +150,7 @@ void Models_07_03::resetCamera()
 	MiniEngineIf::getCamera3D()->SetTarget(kDispSettings[static_cast<int32_t>(m_dispModelNo)].cameraTarget);
 }
 
-void Models_07_03::createModel()
+void Models_07_03::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	const std::string tkmMonsterFilePath = getTkmMonsterFilePath();
 	const std::string tkmHumanFilePath = getTkmHumanFile();
@@ -270,10 +270,10 @@ void Models_07_03::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap07_03()
+	std::unique_ptr<IModels> loadModelForChap07_03(RenderContext& renderContext)
 	{
 		ModelFactory_07_03 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->debugRenderParams();
 		return std::move(iModels);
 	}

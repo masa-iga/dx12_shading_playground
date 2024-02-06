@@ -14,7 +14,7 @@ class ModelFactory_11_03 : public IModelFactory
 {
 public:
 	~ModelFactory_11_03() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Models_11_03 : public IModels
@@ -22,7 +22,7 @@ class Models_11_03 : public IModels
 public:
 	Models_11_03() { m_models.resize(static_cast<size_t>(ModelType::kSize)); }
 	~Models_11_03() { }
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void resetCamera();
 	void handleInput();
 	void draw(RenderContext& renderContext);
@@ -53,11 +53,11 @@ private:
 	Camera m_lightCamera;
 };
 
-std::unique_ptr<IModels> ModelFactory_11_03::create()
+std::unique_ptr<IModels> ModelFactory_11_03::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_11_03> m = std::make_unique<Models_11_03>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 	}
 	return std::move(m);
 }
@@ -67,7 +67,7 @@ void Models_11_03::resetCamera()
 	MiniEngineIf::getCamera3D()->SetPosition(0, 100.0f, 350.0f);
 }
 
-void Models_11_03::createModel()
+void Models_11_03::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	{
 		m_lightCamera.SetPosition(0, 500, 0);
@@ -184,10 +184,10 @@ void Models_11_03::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap11_03()
+	std::unique_ptr<IModels> loadModelForChap11_03(RenderContext& renderContext)
 	{
 		ModelFactory_11_03 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);

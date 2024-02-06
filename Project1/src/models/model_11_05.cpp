@@ -15,7 +15,7 @@ class ModelFactory_11_05 : public IModelFactory
 {
 public:
 	~ModelFactory_11_05() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Models_11_05 : public IModels
@@ -23,7 +23,7 @@ class Models_11_05 : public IModels
 public:
 	Models_11_05() { m_models.resize(static_cast<size_t>(ModelType::kSize)); }
 	~Models_11_05() { }
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void resetCamera();
 	void handleInput();
 	void draw(RenderContext& renderContext);
@@ -65,11 +65,11 @@ private:
 	std::unique_ptr<Sprite> m_spriteShadowMap = nullptr;
 };
 
-std::unique_ptr<IModels> ModelFactory_11_05::create()
+std::unique_ptr<IModels> ModelFactory_11_05::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_11_05> m = std::make_unique<Models_11_05>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 	}
 	return std::move(m);
 }
@@ -80,7 +80,7 @@ void Models_11_05::resetCamera()
 	MiniEngineIf::getCamera3D()->SetTarget(0.0f, 0.0f, 0.0f);
 }
 
-void Models_11_05::createModel()
+void Models_11_05::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	{
 		float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -255,10 +255,10 @@ void Models_11_05::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap11_05()
+	std::unique_ptr<IModels> loadModelForChap11_05(RenderContext& renderContext)
 	{
 		ModelFactory_11_05 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);

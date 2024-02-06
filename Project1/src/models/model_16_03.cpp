@@ -16,7 +16,7 @@ class ModelFactory_16_03 : public IModelFactory
 {
 public:
 	~ModelFactory_16_03() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Obserber_16_03 : public WinMgr::Iobserber
@@ -37,7 +37,7 @@ public:
 	{
 		WinMgr::removeObserver(&m_obserber);
 	}
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void addObserver();
 	void removeObserver();
 	void resetCamera();
@@ -110,11 +110,11 @@ private:
 	Shader m_csLightCulling;
 };
 
-std::unique_ptr<IModels> ModelFactory_16_03::create()
+std::unique_ptr<IModels> ModelFactory_16_03::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_16_03> m = std::make_unique<Models_16_03>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 		m->addObserver();
 	}
 	return std::move(m);
@@ -137,7 +137,7 @@ void Models_16_03::resetCamera()
 	MiniEngineIf::getCamera3D()->Update();
 }
 
-void Models_16_03::createModel()
+void Models_16_03::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	{
 		bool bRet = m_rootSignature.Init(
@@ -457,10 +457,10 @@ void Models_16_03::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap16_03()
+	std::unique_ptr<IModels> loadModelForChap16_03(RenderContext& renderContext)
 	{
 		ModelFactory_16_03 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);

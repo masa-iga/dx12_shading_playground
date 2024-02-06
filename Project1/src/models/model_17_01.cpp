@@ -16,7 +16,7 @@ class ModelFactory_17_01 : public IModelFactory
 {
 public:
 	~ModelFactory_17_01() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Obserber_17_01 : public WinMgr::Iobserber
@@ -37,7 +37,7 @@ public:
 	{
 		WinMgr::removeObserver(&m_obserber);
 	}
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void addObserver();
 	void removeObserver();
 	void resetCamera();
@@ -52,11 +52,11 @@ private:
 	Obserber_17_01 m_obserber;
 };
 
-std::unique_ptr<IModels> ModelFactory_17_01::create()
+std::unique_ptr<IModels> ModelFactory_17_01::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_17_01> m = std::make_unique<Models_17_01>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 		m->addObserver();
 	}
 	return std::move(m);
@@ -80,7 +80,7 @@ void Models_17_01::resetCamera()
 	MiniEngineIf::getCamera3D()->Update();
 }
 
-void Models_17_01::createModel()
+void Models_17_01::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	const std::string tkmFilePathSample = getTkmFilePathSample();
 	Dbg::assert_(std::filesystem::exists(tkmFilePathSample));
@@ -94,6 +94,8 @@ void Models_17_01::createModel()
 	m_modelHuman->Init(d);
 
 	g_graphicsEngine->RegistModelToRaytracingWorld(*m_modelHuman);
+
+	g_graphicsEngine->BuildRaytracingWorld(renderContext);
 }
 
 void Models_17_01::addObserver()
@@ -128,7 +130,7 @@ void Models_17_01::handleInput()
 
 void Models_17_01::draw(RenderContext& renderContext)
 {
-	(void)renderContext;
+	g_graphicsEngine->DispatchRaytracing(renderContext);
 }
 
 void Models_17_01::debugRenderParams()
@@ -137,10 +139,10 @@ void Models_17_01::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap17_01()
+	std::unique_ptr<IModels> loadModelForChap17_01(RenderContext& renderContext)
 	{
 		ModelFactory_17_01 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);

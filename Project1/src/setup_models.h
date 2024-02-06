@@ -1,6 +1,8 @@
 #pragma once
 #include "../../import/hlsl-grimoire-sample/MiniEngine/MiniEngine.h"
 
+class RenderContext;
+
 class Models {
 public:
 	enum class Chapter {
@@ -43,12 +45,12 @@ public:
 		k16_04,
 		k17_01,
 	};
-	void loadModel();
+	void loadModel(RenderContext& renderContext);
 	void releaseResource();
 	void handleInput();
 	void draw(RenderContext& renderContext);
 
 private:
-	void loadModelInternal(Chapter chapter);
+	void loadModelInternal(Chapter chapter, RenderContext& renderContext);
 	void handleInputInternal(Chapter chapter);
 };

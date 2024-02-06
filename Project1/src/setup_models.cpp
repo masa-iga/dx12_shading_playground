@@ -123,7 +123,7 @@ namespace {
 	std::unique_ptr<IModels> s_iModels = nullptr;
 } // namespace anonymous
 
-void Models::loadModel()
+void Models::loadModel(RenderContext& renderContext)
 {
 #if LOAD_MODEL_CHAP_04_01
 		loadModelInternal(Models::Chapter::k04_01);
@@ -237,7 +237,7 @@ void Models::loadModel()
 		loadModelInternal(Models::Chapter::k16_04);
 #endif // #if LOAD_MODEL_CHAP_16_04
 #if LOAD_MODEL_CHAP_17_01
-		loadModelInternal(Models::Chapter::k17_01);
+		loadModelInternal(Models::Chapter::k17_01, renderContext);
 #endif // #if LOAD_MODEL_CHAP_17_01
 }
 
@@ -385,7 +385,7 @@ void Models::draw(RenderContext& renderContext)
 	}
 }
 
-void Models::loadModelInternal(Chapter chapter)
+void Models::loadModelInternal(Chapter chapter, RenderContext& renderContext)
 {
 	switch (chapter) {
 	case Chapter::k04_01: ModelHandler::loadModelForChap04_01(s_models); break;
@@ -397,35 +397,35 @@ void Models::loadModelInternal(Chapter chapter)
 	case Chapter::k06_01: ModelHandler::loadModelForChap06_01(s_models); break;
 	case Chapter::k06_02: ModelHandler::loadModelForChap06_02(s_models); break;
 	case Chapter::k06_03: ModelHandler::loadModelForChap06_03(s_models); break;
-	case Chapter::k07_02: s_iModels = ModelHandler::loadModelForChap07_02(); break;
-	case Chapter::k07_03: s_iModels = ModelHandler::loadModelForChap07_03(); break;
-	case Chapter::k10_01: s_iModels = ModelHandler::loadModelForChap10_01(); break;
-	case Chapter::k10_02: s_iModels = ModelHandler::loadModelForChap10_02(); break;
-	case Chapter::k10_03: s_iModels = ModelHandler::loadModelForChap10_03(); break;
-	case Chapter::k10_04: s_iModels = ModelHandler::loadModelForChap10_04(); break;
-	case Chapter::k10_05: s_iModels = ModelHandler::loadModelForChap10_05(); break;
-	case Chapter::k10_06: s_iModels = ModelHandler::loadModelForChap10_06(); break;
-	case Chapter::k10_07: s_iModels = ModelHandler::loadModelForChap10_07(); break;
-	case Chapter::k10_08: s_iModels = ModelHandler::loadModelForChap10_08(); break;
-	case Chapter::k11_01: s_iModels = ModelHandler::loadModelForChap11_01(); break;
-	case Chapter::k11_02: s_iModels = ModelHandler::loadModelForChap11_02(); break;
-	case Chapter::k11_03: s_iModels = ModelHandler::loadModelForChap11_03(); break;
-	case Chapter::k11_04: s_iModels = ModelHandler::loadModelForChap11_04(); break;
-	case Chapter::k11_05: s_iModels = ModelHandler::loadModelForChap11_05(); break;
-	case Chapter::k11_06: s_iModels = ModelHandler::loadModelForChap11_06(); break;
-	case Chapter::k12_01: s_iModels = ModelHandler::loadModelForChap12_01(); break;
-	case Chapter::k12_02: s_iModels = ModelHandler::loadModelForChap12_02(); break;
-	case Chapter::k12_03: s_iModels = ModelHandler::loadModelForChap12_03(); break;
-	case Chapter::k12_04: s_iModels = ModelHandler::loadModelForChap12_04(); break;
-	case Chapter::k13_02: s_iModels = ModelHandler::loadModelForChap13_02(); break;
-	case Chapter::k14_01: s_iModels = ModelHandler::loadModelForChap14_01(); break;
-	case Chapter::k14_02: s_iModels = ModelHandler::loadModelForChap14_02(); break;
-	case Chapter::k14_04: s_iModels = ModelHandler::loadModelForChap14_04(); break;
-	case Chapter::k16_01: s_iModels = ModelHandler::loadModelForChap16_01(); break;
-	case Chapter::k16_02: s_iModels = ModelHandler::loadModelForChap16_02(); break;
-	case Chapter::k16_03: s_iModels = ModelHandler::loadModelForChap16_03(); break;
-	case Chapter::k16_04: s_iModels = ModelHandler::loadModelForChap16_04(); break;
-	case Chapter::k17_01: s_iModels = ModelHandler::loadModelForChap17_01(); break;
+	case Chapter::k07_02: s_iModels = ModelHandler::loadModelForChap07_02(renderContext); break;
+	case Chapter::k07_03: s_iModels = ModelHandler::loadModelForChap07_03(renderContext); break;
+	case Chapter::k10_01: s_iModels = ModelHandler::loadModelForChap10_01(renderContext); break;
+	case Chapter::k10_02: s_iModels = ModelHandler::loadModelForChap10_02(renderContext); break;
+	case Chapter::k10_03: s_iModels = ModelHandler::loadModelForChap10_03(renderContext); break;
+	case Chapter::k10_04: s_iModels = ModelHandler::loadModelForChap10_04(renderContext); break;
+	case Chapter::k10_05: s_iModels = ModelHandler::loadModelForChap10_05(renderContext); break;
+	case Chapter::k10_06: s_iModels = ModelHandler::loadModelForChap10_06(renderContext); break;
+	case Chapter::k10_07: s_iModels = ModelHandler::loadModelForChap10_07(renderContext); break;
+	case Chapter::k10_08: s_iModels = ModelHandler::loadModelForChap10_08(renderContext); break;
+	case Chapter::k11_01: s_iModels = ModelHandler::loadModelForChap11_01(renderContext); break;
+	case Chapter::k11_02: s_iModels = ModelHandler::loadModelForChap11_02(renderContext); break;
+	case Chapter::k11_03: s_iModels = ModelHandler::loadModelForChap11_03(renderContext); break;
+	case Chapter::k11_04: s_iModels = ModelHandler::loadModelForChap11_04(renderContext); break;
+	case Chapter::k11_05: s_iModels = ModelHandler::loadModelForChap11_05(renderContext); break;
+	case Chapter::k11_06: s_iModels = ModelHandler::loadModelForChap11_06(renderContext); break;
+	case Chapter::k12_01: s_iModels = ModelHandler::loadModelForChap12_01(renderContext); break;
+	case Chapter::k12_02: s_iModels = ModelHandler::loadModelForChap12_02(renderContext); break;
+	case Chapter::k12_03: s_iModels = ModelHandler::loadModelForChap12_03(renderContext); break;
+	case Chapter::k12_04: s_iModels = ModelHandler::loadModelForChap12_04(renderContext); break;
+	case Chapter::k13_02: s_iModels = ModelHandler::loadModelForChap13_02(renderContext); break;
+	case Chapter::k14_01: s_iModels = ModelHandler::loadModelForChap14_01(renderContext); break;
+	case Chapter::k14_02: s_iModels = ModelHandler::loadModelForChap14_02(renderContext); break;
+	case Chapter::k14_04: s_iModels = ModelHandler::loadModelForChap14_04(renderContext); break;
+	case Chapter::k16_01: s_iModels = ModelHandler::loadModelForChap16_01(renderContext); break;
+	case Chapter::k16_02: s_iModels = ModelHandler::loadModelForChap16_02(renderContext); break;
+	case Chapter::k16_03: s_iModels = ModelHandler::loadModelForChap16_03(renderContext); break;
+	case Chapter::k16_04: s_iModels = ModelHandler::loadModelForChap16_04(renderContext); break;
+	case Chapter::k17_01: s_iModels = ModelHandler::loadModelForChap17_01(renderContext); break;
 	default: break;
 	}
 }

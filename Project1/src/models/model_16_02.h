@@ -5,5 +5,5 @@
 class Model;
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap16_02();
+	std::unique_ptr<IModels> loadModelForChap16_02(RenderContext& renderContext);
 } // namespace ModelHandler

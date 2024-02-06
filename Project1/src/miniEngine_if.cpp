@@ -53,7 +53,7 @@ namespace MiniEngineIf {
 
 	void loadModel()
 	{
-		s_models.loadModel();
+		s_models.loadModel(g_graphicsEngine->GetRenderContext());
 	}
 
 	ID3D12Resource* getRenderTargetResource()

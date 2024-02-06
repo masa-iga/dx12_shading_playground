@@ -19,7 +19,7 @@ class ModelFactory_14_02 : public IModelFactory
 {
 public:
 	~ModelFactory_14_02() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Obserber_14_02 : public WinMgr::Iobserber
@@ -40,7 +40,7 @@ public:
 	{
 		WinMgr::removeObserver(&m_obserber);
 	}
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void addObserver();
 	void removeObserver();
 	void resetCamera();
@@ -62,11 +62,11 @@ private:
 	myRenderer::ModelRender m_modelRenderTeapot;
 };
 
-std::unique_ptr<IModels> ModelFactory_14_02::create()
+std::unique_ptr<IModels> ModelFactory_14_02::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_14_02> m = std::make_unique<Models_14_02>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 		m->addObserver();
 	}
 	return std::move(m);
@@ -90,7 +90,7 @@ void Models_14_02::resetCamera()
 	MiniEngineIf::getCamera3D()->Update();
 }
 
-void Models_14_02::createModel()
+void Models_14_02::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	m_renderingEngine.Init();
 
@@ -181,10 +181,10 @@ void Models_14_02::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap14_02()
+	std::unique_ptr<IModels> loadModelForChap14_02(RenderContext& renderContext)
 	{
 		ModelFactory_14_02 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);

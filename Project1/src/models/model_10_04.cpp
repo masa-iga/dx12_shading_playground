@@ -13,7 +13,7 @@ class ModelFactory_10_04 : public IModelFactory
 {
 public:
 	~ModelFactory_10_04() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Models_10_04 : public IModels
@@ -21,7 +21,7 @@ class Models_10_04 : public IModels
 public:
 	Models_10_04() { m_models.resize(static_cast<size_t>(ModelType::kSize)); }
 	~Models_10_04() { }
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void resetCamera();
 	void handleInput();
 	void draw(RenderContext& renderContext);
@@ -71,11 +71,11 @@ private:
 	ConstantBuffer m_cb;
 };
 
-std::unique_ptr<IModels> ModelFactory_10_04::create()
+std::unique_ptr<IModels> ModelFactory_10_04::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_10_04> m(new Models_10_04);
 	{
-		m->createModel();
+		m->createModel(renderContext);
 	}
 	return std::move(m);
 }
@@ -85,7 +85,7 @@ void Models_10_04::resetCamera()
 	;
 }
 
-void Models_10_04::createModel()
+void Models_10_04::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	{
 		auto bRet = m_mainRenderTarget.Create(
@@ -287,10 +287,10 @@ void Models_10_04::CalcWeightsTableFromGaussian(float* weightsTbl, int sizeOfWei
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap10_04()
+	std::unique_ptr<IModels> loadModelForChap10_04(RenderContext& renderContext)
 	{
 		ModelFactory_10_04 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->debugRenderParams();
 		return std::move(iModels);
 	}

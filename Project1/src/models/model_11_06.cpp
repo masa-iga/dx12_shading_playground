@@ -16,7 +16,7 @@ class ModelFactory_11_06 : public IModelFactory
 {
 public:
 	~ModelFactory_11_06() { }
-	std::unique_ptr<IModels> create();
+	std::unique_ptr<IModels> create(RenderContext& renderContext);
 };
 
 class Models_11_06 : public IModels
@@ -27,7 +27,7 @@ public:
 		m_cascadeAreaTbl.at(2) = MiniEngineIf::getCamera3D()->GetFar();
 	}
 	~Models_11_06() { }
-	void createModel();
+	void createModel(RenderContext& renderContext);
 	void resetCamera();
 	void handleInput();
 	void draw(RenderContext& renderContext);
@@ -66,11 +66,11 @@ private:
 	std::array<Matrix, kNumShadowMap> m_lvpcMatrices; // light view projection crop matrix
 };
 
-std::unique_ptr<IModels> ModelFactory_11_06::create()
+std::unique_ptr<IModels> ModelFactory_11_06::create(RenderContext& renderContext)
 {
 	std::unique_ptr<Models_11_06> m = std::make_unique<Models_11_06>();
 	{
-		m->createModel();
+		m->createModel(renderContext);
 	}
 	return std::move(m);
 }
@@ -81,7 +81,7 @@ void Models_11_06::resetCamera()
 	MiniEngineIf::getCamera3D()->SetTarget(0.0f, 100.0f, 0.0f);
 }
 
-void Models_11_06::createModel()
+void Models_11_06::createModel([[maybe_unused]] RenderContext& renderContext)
 {
 	{
 		float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -339,10 +339,10 @@ void Models_11_06::debugRenderParams()
 }
 
 namespace ModelHandler {
-	std::unique_ptr<IModels> loadModelForChap11_06()
+	std::unique_ptr<IModels> loadModelForChap11_06(RenderContext& renderContext)
 	{
 		ModelFactory_11_06 factory;
-		std::unique_ptr<IModels> iModels = factory.create();
+		std::unique_ptr<IModels> iModels = factory.create(renderContext);
 		iModels->resetCamera();
 		iModels->debugRenderParams();
 		return std::move(iModels);
