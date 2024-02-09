@@ -8,14 +8,24 @@
 
 using namespace Microsoft::WRL;
 
-constexpr static D3D_FEATURE_LEVEL kD3dFeatureLevel = D3D_FEATURE_LEVEL_12_2;
+namespace {
+	enum class ReportFlag {
+		kSummary,
+		kDetail,
+		kIgnoreInternal,
+		kAll,
+	};
 
-[[maybe_unused]] static HRESULT enableDebugLayer();
-static void createDevice();
-static void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter** ppAdapter);
+	static D3D_FEATURE_LEVEL kD3dFeatureLevel = D3D_FEATURE_LEVEL_12_2;
 
-static ComPtr<IDXGIFactory4> s_factory = nullptr;
-static ComPtr<ID3D12Device> s_device = nullptr;
+	void reportLiveObjects(ReportFlag flag);
+	[[maybe_unused]] HRESULT enableDebugLayer();
+	void createDevice();
+	void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter** ppAdapter);
+
+	ComPtr<IDXGIFactory4> s_factory = nullptr;
+	ComPtr<ID3D12Device> s_device = nullptr;
+}
 
 namespace DeviceD3D12 {
 	HRESULT setup()
@@ -31,9 +41,31 @@ namespace DeviceD3D12 {
 
 	void tearDown()
 	{
-		;
+#define ENABLE_REPORT_LIVE_OBJECTS (0)
+#if ENABLE_REPORT_LIVE_OBJECTS
+		reportLiveObjects(ReportFlag::kAll);
+#endif // ENABLE_REPORT_LIVE_OBJECTS
+#undef ENABLE_REPORT_LIVE_OBJECTS
 	}
 
+	IDXGIFactory4* getFactory()
+	{
+		return s_factory.Get();
+	}
+
+	ID3D12Device* getDevice()
+	{
+		return s_device.Get();
+	}
+
+	UINT getDescHandleIncSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+	{
+		Dbg::assert_(s_device != nullptr);
+		return s_device->GetDescriptorHandleIncrementSize(heapType);
+	}
+} // namespace DeviceD3D12
+
+namespace {
 	void reportLiveObjects([[maybe_unused]] ReportFlag flag)
 	{
 #ifdef _DEBUG
@@ -54,78 +86,62 @@ namespace DeviceD3D12 {
 #endif // _DEBUG
 	}
 
-	IDXGIFactory4* getFactory()
+	HRESULT enableDebugLayer()
 	{
-		return s_factory.Get();
+		ComPtr<ID3D12Debug> debugController = nullptr;
+
+		auto hr = D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
+		Dbg::assert_(SUCCEEDED(hr));
+
+		if (FAILED(hr))
+			return E_FAIL;
+
+		debugController->EnableDebugLayer();
+
+		return S_OK;
 	}
 
-	ID3D12Device* getDevice()
+	void createDevice()
 	{
-		return s_device.Get();
+		Dbg::ThrowIfFailed(CreateDXGIFactory(IID_PPV_ARGS(&s_factory)));
+
+		ComPtr<IDXGIAdapter> hardwareAdapter = { };
+		GetHardwareAdapter(s_factory.Get(), hardwareAdapter.ReleaseAndGetAddressOf());
+
+		Dbg::ThrowIfFailed(D3D12CreateDevice(
+			hardwareAdapter.Get(),
+			kD3dFeatureLevel,
+			IID_PPV_ARGS(&s_device)
+		));
 	}
 
-	UINT getDescHandleIncSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+	void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter** ppAdapter)
 	{
-		Dbg::assert_(s_device != nullptr);
-		return s_device->GetDescriptorHandleIncrementSize(heapType);
-	}
-}
-
-HRESULT enableDebugLayer()
-{
-	ComPtr<ID3D12Debug> debugController = nullptr;
-
-	auto hr = D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
-	Dbg::assert_(SUCCEEDED(hr));
-
-	if (FAILED(hr))
-		return E_FAIL;
-
-	debugController->EnableDebugLayer();
-
-	return S_OK;
-}
-
-void createDevice()
-{
-	Dbg::ThrowIfFailed(CreateDXGIFactory(IID_PPV_ARGS(&s_factory)));
-
-	ComPtr<IDXGIAdapter> hardwareAdapter = { };
-	GetHardwareAdapter(s_factory.Get(), hardwareAdapter.ReleaseAndGetAddressOf());
-
-	Dbg::ThrowIfFailed(D3D12CreateDevice(
-		hardwareAdapter.Get(),
-		kD3dFeatureLevel,
-		IID_PPV_ARGS(&s_device)
-	));
-}
-
-void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter** ppAdapter)
-{
-	*ppAdapter = nullptr;
-	for (UINT adapterIndex = 0; ; ++adapterIndex)
-	{
-		IDXGIAdapter1* pAdapter = nullptr;
-		if (DXGI_ERROR_NOT_FOUND == pFactory->EnumAdapters1(adapterIndex, &pAdapter))
+		*ppAdapter = nullptr;
+		for (UINT adapterIndex = 0; ; ++adapterIndex)
 		{
-			// No more adapters to enumerate.
-			break;
-		}
-
-		// Check to see if the adapter supports Direct3D 12, but don't create the
-		// actual device yet.
-		if (SUCCEEDED(D3D12CreateDevice(pAdapter, kD3dFeatureLevel, _uuidof(ID3D12Device), nullptr)))
-		{
-			*ppAdapter = pAdapter;
-
+			IDXGIAdapter1* pAdapter = nullptr;
+			if (DXGI_ERROR_NOT_FOUND == pFactory->EnumAdapters1(adapterIndex, &pAdapter))
 			{
-				DXGI_ADAPTER_DESC1 pDesc = { };
-				Dbg::ThrowIfFailed(SUCCEEDED(pAdapter->GetDesc1(&pDesc)));
-				Dbg::print("Adapter%d: %ls\n", adapterIndex, pDesc.Description);
+				// No more adapters to enumerate.
+				break;
 			}
-			return;
+
+			// Check to see if the adapter supports Direct3D 12, but don't create the
+			// actual device yet.
+			if (SUCCEEDED(D3D12CreateDevice(pAdapter, kD3dFeatureLevel, _uuidof(ID3D12Device), nullptr)))
+			{
+				*ppAdapter = pAdapter;
+
+				{
+					DXGI_ADAPTER_DESC1 pDesc = { };
+					Dbg::ThrowIfFailed(SUCCEEDED(pAdapter->GetDesc1(&pDesc)));
+					Dbg::print("Adapter%d: %ls\n", adapterIndex, pDesc.Description);
+				}
+				return;
+			}
+			pAdapter->Release();
 		}
-		pAdapter->Release();
 	}
-}
+} // namespace
 
